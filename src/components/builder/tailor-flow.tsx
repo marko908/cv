@@ -9,6 +9,7 @@ import {
   Link2,
   Loader2,
   Lock,
+  Plus,
   RefreshCw,
   Target,
   X,
@@ -26,25 +27,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import { useCvStore } from "@/lib/store";
 import { buildTailoring, REVIEW_SPECIALISTS } from "@/lib/mock-review";
+import { TemplateThumb } from "@/components/template-thumb";
+import { NewCvDialog } from "@/components/new-cv-dialog";
 import { PaywallDialog } from "./paywall-dialog";
-import { cn } from "@/lib/utils";
+import { cn, pluralize } from "@/lib/utils";
 
-type Step = "config" | "running" | "result";
-
-const SEVERITY_LABEL = {
-  high: { label: "Ważne", cls: "border-destructive/50 text-destructive" },
-  medium: { label: "Średnie", cls: "border-primary/50 text-primary" },
-  low: { label: "Drobne", cls: "border-border text-muted-foreground" },
-} as const;
+type Step = "selectCv" | "config" | "running" | "result";
 
 export function TailorFlow({
   trigger,
   defaultOpen = false,
 }: {
-  trigger: React.ReactNode;
+  trigger?: React.ReactNode;
   defaultOpen?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -61,21 +57,45 @@ export function TailorFlow({
     setAiMeta,
     resetReview,
     addTailoring,
+    cvs,
+    openCv,
   } = useCvStore();
 
-  // Jeśli wynik już istnieje, otwórz od razu na ekranie wyniku.
+  // Otwórz, gdy sygnał z zewnątrz (np. ?oferta=1) się pojawi.
   useEffect(() => {
-    if (open) {
-      setStep(aiMeta.matchScoreAfter !== undefined ? "result" : "config");
-    }
+    if (defaultOpen) setOpen(true);
+  }, [defaultOpen]);
+
+  // Po otwarciu wybierz właściwy ekran startowy.
+  useEffect(() => {
+    if (!open) return;
+    if (aiMeta.matchScoreAfter !== undefined) setStep("result");
+    else if (cvs.length > 1) setStep("selectCv");
+    else setStep("config");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>{trigger}</DialogTrigger>
-        <DialogContent className="max-h-[88vh] overflow-y-auto shadow-dialog sm:max-w-xl">
+        {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
+        <DialogContent
+          className={cn(
+            "max-h-[88vh] overflow-y-auto shadow-dialog",
+            step === "selectCv" ? "sm:max-w-2xl" : "sm:max-w-xl"
+          )}
+        >
+          {step === "selectCv" && (
+            <SelectCvStep
+              cvs={cvs}
+              activeCvId={useCvStore.getState().activeCvId}
+              onSelect={(id) => {
+                openCv(id);
+                setStep("config");
+              }}
+              onClose={() => setOpen(false)}
+            />
+          )}
           {step === "config" && (
             <ConfigStep
               jobPosting={jobPosting}
@@ -110,6 +130,83 @@ export function TailorFlow({
       </Dialog>
 
       <PaywallDialog open={paywallOpen} onOpenChange={setPaywallOpen} />
+    </>
+  );
+}
+
+/* ---------- Ekran 0: wybór CV (gdy jest ich kilka) ---------- */
+function SelectCvStep({
+  cvs,
+  activeCvId,
+  onSelect,
+  onClose,
+}: {
+  cvs: ReturnType<typeof useCvStore.getState>["cvs"];
+  activeCvId: string | null;
+  onSelect: (id: string) => void;
+  onClose: () => void;
+}) {
+  return (
+    <>
+      <DialogHeader>
+        <p className="eyebrow flex items-center gap-1.5 text-primary">
+          <Target className="size-3.5" />
+          Dopasowanie do oferty
+        </p>
+        <DialogTitle>Które CV chcesz dopasować?</DialogTitle>
+        <DialogDescription>
+          Jedno CV możesz dopasować do wielu różnych ofert — wybierz to
+          właściwe dla tej rekrutacji.
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {cvs.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => onSelect(item.id)}
+            className={cn(
+              "relative rounded-lg bg-secondary p-3 text-left transition-all hover:bg-accent",
+              item.id === activeCvId && "ring-2 ring-primary"
+            )}
+          >
+            {item.id === activeCvId && (
+              <span className="absolute right-4 top-4 z-10 flex size-5 items-center justify-center rounded-full bg-primary">
+                <Check className="size-3 text-primary-foreground" />
+              </span>
+            )}
+            <div className="overflow-hidden rounded-md">
+              <TemplateThumb
+                template={item.template}
+                cv={item.cv}
+                width={200}
+                className="w-full"
+              />
+            </div>
+            <span className="mt-2 block truncate text-sm font-bold">
+              {item.name}
+            </span>
+          </button>
+        ))}
+
+        <NewCvDialog
+          createNew
+          redirectTo="/app/kreator/edytor"
+          trigger={
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex min-h-[200px] flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-primary/50 bg-primary/5 p-4 text-primary transition-colors hover:border-primary hover:bg-primary/10"
+            >
+              <span className="flex size-11 items-center justify-center rounded-full border-2 border-primary/50">
+                <Plus className="size-5" />
+              </span>
+              <span className="text-sm font-bold">Dodaj nowe CV</span>
+            </button>
+          }
+        />
+      </div>
     </>
   );
 }
@@ -204,7 +301,8 @@ function RunningStep({
       timers.push(
         setTimeout(() => {
           setDoneCount((n) => n + 1);
-          setLog((l) => [`${spec.label} — ${spec.note}`, ...l].slice(0, 5));
+          // Dopisujemy na dole — kolejność narasta, tekst nie „skacze".
+          setLog((l) => [...l, `${spec.label} — ${spec.note}`]);
         }, 500 + i * 650)
       );
     });
@@ -310,7 +408,6 @@ function ResultStep({
   const aiMeta = useCvStore((s) => s.aiMeta);
   const score = aiMeta.matchScoreAfter ?? 0;
   const before = aiMeta.matchScoreBefore;
-  const categories = aiMeta.categories ?? [];
   const findings = aiMeta.findings ?? [];
   const unlocked = aiMeta.unlocked ?? false;
   const fixCount = findings.length;
@@ -335,68 +432,34 @@ function ResultStep({
 
       {/* Wynik ogólny */}
       <div className="rounded-lg bg-secondary p-5 text-center">
-        <p className="eyebrow text-muted-foreground">Twoje CV oceniono</p>
+        <p className="eyebrow text-muted-foreground">Dopasowanie do oferty</p>
         <p className="mt-1 font-mono text-4xl font-bold text-primary">
           {score}
           <span className="text-lg text-muted-foreground">/100</span>
         </p>
         {before !== undefined && (
           <p className="mt-1 text-sm text-muted-foreground">
-            przed optymalizacją: {before}/100 —{" "}
+            przed dopasowaniem: {before}/100 —{" "}
             <span className="font-bold text-primary">+{score - before}</span>
           </p>
         )}
       </div>
 
-      {/* Kategorie */}
-      <div className="flex flex-col divide-y divide-border/60">
-        {categories.map((c) => (
-          <div key={c.id} className="flex items-center justify-between py-2.5">
-            <span className="text-sm">{c.label}</span>
-            <span className="flex items-center gap-3">
-              {c.issues > 0 && (
-                <span className="eyebrow text-muted-foreground">
-                  {c.issues} do poprawy
-                </span>
-              )}
-              <span
-                className={cn(
-                  "font-mono text-sm font-bold",
-                  c.score >= 70
-                    ? "text-primary"
-                    : c.score >= 40
-                      ? "text-foreground"
-                      : "text-destructive"
-                )}
-              >
-                {c.score}
-              </span>
-            </span>
-          </div>
-        ))}
-      </div>
-
-      {/* Znaleziska */}
+      {/* Poprawki */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
-          <p className="eyebrow text-muted-foreground">Co znalazł panel</p>
+          <p className="eyebrow text-muted-foreground">Co poprawiliśmy</p>
           <span className="eyebrow text-muted-foreground">
-            {fixCount} {fixCount === 1 ? "poprawka" : "poprawek"}
+            {pluralize(fixCount, "poprawka", "poprawki", "poprawek")}
           </span>
         </div>
 
         {findings.map((f, i) => {
-          const sev = SEVERITY_LABEL[f.severity];
           // Pierwsze poprawki widoczne za darmo; reszta za paywallem.
           const visible = unlocked || i < FREE_FINDINGS;
           return (
             <div key={f.id} className="rounded-lg bg-secondary p-3">
-              <div className="flex items-start justify-between gap-3">
-                <p className="text-sm font-bold">{f.title}</p>
-                <Badge variant="outline" className={cn("shrink-0", sev.cls)}>
-                  {sev.label}
-                </Badge>
-              </div>
+              <p className="text-sm font-bold">{f.title}</p>
               {visible ? (
                 <p className="mt-1.5 text-sm text-muted-foreground">
                   {f.detail}
@@ -417,14 +480,16 @@ function ResultStep({
         <div className="rounded-lg border border-primary/40 bg-primary/5 p-4 text-center">
           <Lock className="mx-auto size-5 text-primary" />
           <p className="mt-2 text-sm font-bold">
-            Zobacz wszystkie {fixCount} poprawek i pobierz przerobione CV
+            Zobacz wszystkie{" "}
+            {pluralize(fixCount, "poprawkę", "poprawki", "poprawek")} i pobierz
+            przerobione CV
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            Odblokuj pełny raport rekrutera z gotowymi przeróbkami oraz gotowe,
-            dopasowane CV do edycji i pobrania.
+            Odblokuj pełny raport z gotowymi przeróbkami oraz dopasowane CV do
+            edycji i pobrania.
           </p>
           <Button className="btn-label mt-3 w-full font-bold" onClick={onUnlock}>
-            Odblokuj — pełny raport i CV
+            Odblokuj raport i CV
           </Button>
         </div>
       )}

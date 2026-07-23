@@ -35,19 +35,23 @@ const templates: { id: TemplateId; name: string; description: string }[] = [
 
 /**
  * Modal wyboru szablonu (wzorzec z ResuMax) z prawdziwymi miniaturami CV.
- * `redirectTo: null` = tylko zastosuj szablon, bez nawigacji (użycie w kreatorze).
+ * `redirectTo: null` = tylko zastosuj szablon do bieżącego CV (bez nawigacji).
+ * `createNew` = utwórz nowe CV w bibliotece z wybranym szablonem.
  */
 export function NewCvDialog({
   trigger,
-  redirectTo = "/app/kreator",
+  redirectTo = "/app/kreator/edytor",
+  createNew = false,
 }: {
   trigger: React.ReactNode;
   redirectTo?: string | null;
+  createNew?: boolean;
 }) {
   const router = useRouter();
   const cv = useCvStore((s) => s.cv);
   const template = useCvStore((s) => s.template);
   const setTemplate = useCvStore((s) => s.setTemplate);
+  const newCv = useCvStore((s) => s.newCv);
   const [selected, setSelected] = useState<TemplateId>(template);
   const [open, setOpen] = useState(false);
 
@@ -118,13 +122,17 @@ export function NewCvDialog({
           <Button
             className="btn-label gap-2 font-bold"
             onClick={() => {
-              setTemplate(selected);
+              if (createNew) {
+                newCv(selected);
+              } else {
+                setTemplate(selected);
+              }
               if (redirectTo) router.push(redirectTo);
               else setOpen(false);
             }}
           >
             <Check className="size-4" />
-            Zastosuj szablon
+            {createNew ? "Utwórz CV" : "Zastosuj szablon"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FileText, Menu, X } from "lucide-react";
 import { SidebarContent } from "./app-sidebar";
+import { CvLibrarySync } from "@/components/cv-library-sync";
 import { cn } from "@/lib/utils";
 
 const COLLAPSE_KEY = "cv-copilot-sidebar-collapsed";
@@ -35,6 +36,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-dvh overflow-hidden">
+      <CvLibrarySync />
       {/* Sidebar — desktop (stały, zwijany) */}
       <aside
         className={cn(

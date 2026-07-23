@@ -14,7 +14,6 @@ import {
   Target,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { TemplateThumb } from "@/components/template-thumb";
 import { PaywallDialog } from "@/components/builder/paywall-dialog";
 import { DownloadPdfButton } from "@/components/download-pdf-button";
@@ -22,12 +21,6 @@ import { CvCompareDialog } from "@/components/cv-compare-dialog";
 import { ReportErrorDialog } from "@/components/report-error-dialog";
 import { useCvStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
-
-const SEVERITY = {
-  high: { label: "Ważne", cls: "border-destructive/50 text-destructive" },
-  medium: { label: "Średnie", cls: "border-primary/50 text-primary" },
-  low: { label: "Drobne", cls: "border-border text-muted-foreground" },
-} as const;
 
 export default function DopasowanieDetailPage({
   params,
@@ -37,8 +30,7 @@ export default function DopasowanieDetailPage({
   const { id } = use(params);
   const router = useRouter();
   const tailoring = useCvStore((s) => s.tailorings.find((t) => t.id === id));
-  const loadCv = useCvStore((s) => s.loadCv);
-  const setTemplate = useCvStore((s) => s.setTemplate);
+  const newCvFrom = useCvStore((s) => s.newCvFrom);
   const unlockTailoring = useCvStore((s) => s.unlockTailoring);
   const [paywallOpen, setPaywallOpen] = useState(false);
 
@@ -64,14 +56,13 @@ export default function DopasowanieDetailPage({
   const unlocked = aiMeta.unlocked ?? false;
   const score = aiMeta.matchScoreAfter ?? 0;
   const before = aiMeta.matchScoreBefore;
-  const categories = aiMeta.categories ?? [];
   const findings = aiMeta.findings ?? [];
   const changes = aiMeta.changesLog ?? [];
 
   const editInBuilder = () => {
-    setTemplate(template);
-    loadCv(tailoredCv);
-    router.push("/app/kreator");
+    // Tworzymy nowe CV z przerobionego, by nie nadpisać oryginału.
+    newCvFrom(tailoredCv, template, `${jobTitle} — dopasowane`);
+    router.push("/app/kreator/edytor");
   };
 
   return (
@@ -117,29 +108,6 @@ export default function DopasowanieDetailPage({
             </p>
           )}
         </div>
-      </div>
-
-      {/* Kategorie */}
-      <div className="mt-6 grid gap-2 sm:grid-cols-5">
-        {categories.map((c) => (
-          <div key={c.id} className="rounded-lg bg-secondary p-3 text-center">
-            <p
-              className={cn(
-                "font-mono text-lg font-bold",
-                c.score >= 70
-                  ? "text-primary"
-                  : c.score >= 40
-                    ? "text-foreground"
-                    : "text-destructive"
-              )}
-            >
-              {c.score}
-            </p>
-            <p className="mt-0.5 text-[11px] leading-tight text-muted-foreground">
-              {c.label}
-            </p>
-          </div>
-        ))}
       </div>
 
       {/* Porównanie CV przed / po */}
@@ -228,24 +196,18 @@ export default function DopasowanieDetailPage({
         })}
       </div>
 
-      {/* Znaleziska / poprawki */}
+      {/* Wskazówki, które zastosowaliśmy */}
       {findings.length > 0 && (
         <>
           <h2 className="mt-8 eyebrow text-muted-foreground">
-            Poprawki od panelu rekruterów
+            Na co zwróciliśmy uwagę
           </h2>
           <div className="mt-3 flex flex-col gap-2">
             {findings.map((f, i) => {
-              const sev = SEVERITY[f.severity];
               const visible = unlocked || i < 2;
               return (
                 <div key={f.id} className="card-surface p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <p className="text-sm font-bold">{f.title}</p>
-                    <Badge variant="outline" className={cn("shrink-0", sev.cls)}>
-                      {sev.label}
-                    </Badge>
-                  </div>
+                  <p className="text-sm font-bold">{f.title}</p>
                   {visible ? (
                     <p className="mt-1.5 text-sm text-muted-foreground">
                       {f.detail}

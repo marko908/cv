@@ -110,7 +110,31 @@ export function SectionList() {
 
   return (
     <div className="flex flex-col gap-2">
-      <p className="eyebrow px-1 text-muted-foreground">Sekcje CV</p>
+      {/* Wgranie własnego CV — wyeksponowane na górze */}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            disabled
+            className="flex items-center gap-3 rounded-lg border border-dashed border-primary/40 bg-primary/5 px-4 py-3 text-left disabled:cursor-not-allowed disabled:opacity-90"
+          >
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/15">
+              <FileUp className="size-4 text-primary" />
+            </span>
+            <span className="min-w-0">
+              <span className="block text-sm font-bold">
+                Wgraj swoje CV (PDF / DOCX)
+              </span>
+              <span className="block text-xs text-muted-foreground">
+                Wypełnimy formularz automatycznie na podstawie pliku.
+              </span>
+            </span>
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>Import z pliku dodamy w kroku 2</TooltipContent>
+      </Tooltip>
+
+      <p className="eyebrow mt-3 px-1 text-muted-foreground">Sekcje CV</p>
 
       {/* Dane osobowe — zawsze obecne, zablokowane */}
       <PersonalInfoDialog
@@ -162,7 +186,7 @@ export function SectionList() {
       })}
 
       {/* Akcje */}
-      <div className="mt-2 flex flex-col gap-2">
+      <div className="mt-2">
         <AddSectionDialog
           trigger={
             <Button variant="secondary" className="w-full gap-2">
@@ -171,21 +195,6 @@ export function SectionList() {
             </Button>
           }
         />
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="block">
-              <Button
-                variant="ghost"
-                disabled
-                className="w-full gap-2 text-muted-foreground"
-              >
-                <FileUp className="size-4" />
-                Wgraj z PDF / DOCX
-              </Button>
-            </span>
-          </TooltipTrigger>
-          <TooltipContent>Import z pliku dodamy w kroku 2</TooltipContent>
-        </Tooltip>
       </div>
 
       {/* Skrót do przykładu / wyczyszczenia */}

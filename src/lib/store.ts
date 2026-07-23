@@ -101,6 +101,34 @@ export interface Tailoring {
   aiMeta: AiMeta;
 }
 
+/** Pozycja biblioteki CV — użytkownik może mieć wiele CV (np. różne języki). */
+export interface SavedCv {
+  id: string;
+  name: string;
+  cv: TailoredCv;
+  template: TemplateId;
+  enabledSections: SectionId[];
+  createdAt: number;
+  updatedAt: number;
+}
+
+/** Domyślna nazwa CV na podstawie danych. */
+export function defaultCvName(cv: TailoredCv): string {
+  const name = cv.personal_info.full_name.trim();
+  const title = cv.personal_info.title.trim();
+  if (name && title) return `${name} — ${title}`;
+  if (name) return name;
+  if (title) return title;
+  return "CV bez nazwy";
+}
+
+function makeCvId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+  return `cv_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
 interface CvState {
   path: CvPath;
   cv: TailoredCv;
@@ -109,6 +137,8 @@ interface CvState {
   jobPosting: JobPosting;
   aiMeta: AiMeta;
   tailorings: Tailoring[];
+  cvs: SavedCv[];
+  activeCvId: string | null;
 
   setPath: (path: CvPath) => void;
   setTemplate: (template: TemplateId) => void;
@@ -116,6 +146,14 @@ interface CvState {
   loadCv: (cv: TailoredCv) => void;
   resetCv: () => void;
   setAiMeta: (meta: AiMeta) => void;
+
+  // Biblioteka CV
+  newCv: (template?: TemplateId) => string; // zwraca id nowego CV
+  newCvFrom: (cv: TailoredCv, template: TemplateId, name?: string) => string;
+  openCv: (id: string) => void;
+  syncActiveCv: () => void;
+  renameCv: (id: string, name: string) => void;
+  deleteCv: (id: string) => void;
   addTailoring: (t: Tailoring) => void;
   removeTailoring: (id: string) => void;
   updateTailoringCv: (id: string, cv: TailoredCv) => void;
@@ -195,6 +233,8 @@ export const useCvStore = create<CvState>()(
       jobPosting: { url: "", text: "" },
       aiMeta: emptyAiMeta,
       tailorings: [],
+      cvs: [],
+      activeCvId: null,
 
       setPath: (path) => set({ path }),
       setTemplate: (template) => set({ template }),
@@ -209,6 +249,162 @@ export const useCvStore = create<CvState>()(
           enabledSections: DEFAULT_SECTIONS,
         }),
       setAiMeta: (aiMeta) => set({ aiMeta }),
+
+      // ---- Biblioteka CV ----
+      // Zapisuje bieżąco edytowane CV (cv/template/enabledSections) do
+      // odpowiedniej pozycji w bibliotece.
+      syncActiveCv: () =>
+        set((s) => {
+          if (!s.activeCvId) return s;
+          return {
+            cvs: s.cvs.map((c) =>
+              c.id === s.activeCvId
+                ? {
+                    ...c,
+                    cv: s.cv,
+                    template: s.template,
+                    enabledSections: s.enabledSections,
+                    name: defaultCvName(s.cv),
+                    updatedAt: Date.now(),
+                  }
+                : c
+            ),
+          };
+        }),
+      newCv: (template = "nowoczesny") => {
+        const id = makeCvId();
+        set((s) => {
+          // najpierw zapisz bieżące, jeśli edytowaliśmy jakieś CV
+          const cvs = s.activeCvId
+            ? s.cvs.map((c) =>
+                c.id === s.activeCvId
+                  ? {
+                      ...c,
+                      cv: s.cv,
+                      template: s.template,
+                      enabledSections: s.enabledSections,
+                      name: defaultCvName(s.cv),
+                      updatedAt: Date.now(),
+                    }
+                  : c
+              )
+            : s.cvs;
+          const now = Date.now();
+          const entry: SavedCv = {
+            id,
+            name: "Nowe CV",
+            cv: emptyCv,
+            template,
+            enabledSections: DEFAULT_SECTIONS,
+            createdAt: now,
+            updatedAt: now,
+          };
+          return {
+            cvs: [entry, ...cvs],
+            activeCvId: id,
+            cv: emptyCv,
+            template,
+            enabledSections: DEFAULT_SECTIONS,
+            aiMeta: emptyAiMeta,
+          };
+        });
+        return id;
+      },
+      newCvFrom: (cv, template, name) => {
+        const id = makeCvId();
+        set((s) => {
+          const cvs = s.activeCvId
+            ? s.cvs.map((c) =>
+                c.id === s.activeCvId
+                  ? {
+                      ...c,
+                      cv: s.cv,
+                      template: s.template,
+                      enabledSections: s.enabledSections,
+                      name: defaultCvName(s.cv),
+                      updatedAt: Date.now(),
+                    }
+                  : c
+              )
+            : s.cvs;
+          const now = Date.now();
+          const enabledSections = sectionsForCv(cv);
+          const entry: SavedCv = {
+            id,
+            name: name ?? defaultCvName(cv),
+            cv,
+            template,
+            enabledSections,
+            createdAt: now,
+            updatedAt: now,
+          };
+          return {
+            cvs: [entry, ...cvs],
+            activeCvId: id,
+            cv,
+            template,
+            enabledSections,
+            aiMeta: emptyAiMeta,
+          };
+        });
+        return id;
+      },
+      openCv: (id) =>
+        set((s) => {
+          // zapisz bieżące przed przełączeniem
+          const cvs = s.activeCvId
+            ? s.cvs.map((c) =>
+                c.id === s.activeCvId
+                  ? {
+                      ...c,
+                      cv: s.cv,
+                      template: s.template,
+                      enabledSections: s.enabledSections,
+                      name: defaultCvName(s.cv),
+                      updatedAt: Date.now(),
+                    }
+                  : c
+              )
+            : s.cvs;
+          const target = cvs.find((c) => c.id === id);
+          if (!target) return { cvs };
+          return {
+            cvs,
+            activeCvId: id,
+            cv: target.cv,
+            template: target.template,
+            enabledSections: target.enabledSections,
+            aiMeta: emptyAiMeta,
+          };
+        }),
+      renameCv: (id, name) =>
+        set((s) => ({
+          cvs: s.cvs.map((c) =>
+            c.id === id ? { ...c, name, updatedAt: Date.now() } : c
+          ),
+        })),
+      deleteCv: (id) =>
+        set((s) => {
+          const cvs = s.cvs.filter((c) => c.id !== id);
+          if (s.activeCvId !== id) return { cvs };
+          // usuwane było aktywne — przełącz na inne lub wyczyść
+          const next = cvs[0];
+          return next
+            ? {
+                cvs,
+                activeCvId: next.id,
+                cv: next.cv,
+                template: next.template,
+                enabledSections: next.enabledSections,
+              }
+            : {
+                cvs,
+                activeCvId: null,
+                cv: emptyCv,
+                enabledSections: DEFAULT_SECTIONS,
+              };
+        }),
+
       addTailoring: (t) =>
         set((s) => ({ tailorings: [t, ...s.tailorings] })),
       removeTailoring: (id) =>
@@ -353,12 +549,12 @@ export const useCvStore = create<CvState>()(
     }),
     {
       name: "cv-copilot-store",
-      version: 1,
+      version: 2,
       // Rehydracja dopiero po montażu (StoreHydration) — inaczej SSR-owy HTML
       // różniłby się od stanu z localStorage i React zgłosiłby hydration error.
       skipHydration: true,
       // Migracja starszych stanów: dolewa pola dodane po pierwszym zapisie
-      // (projects, location, enabledSections), żeby renderer nie trafił na undefined.
+      // (projects, location, enabledSections, biblioteka cvs).
       migrate: (persisted) => {
         const p = persisted as Partial<CvState> | undefined;
         if (!p || typeof p !== "object") return persisted as unknown as CvState;
@@ -376,13 +572,43 @@ export const useCvStore = create<CvState>()(
           education: Array.isArray(rawCv.education) ? rawCv.education : [],
           languages: Array.isArray(rawCv.languages) ? rawCv.languages : [],
         };
+        const enabledSections = Array.isArray(p.enabledSections)
+          ? p.enabledSections
+          : sectionsForCv(cv);
+        const template = (p.template as TemplateId) ?? "nowoczesny";
+
+        // Migracja do biblioteki CV: dotychczasowe pojedyncze CV staje się
+        // pierwszą pozycją biblioteki (o ile ma jakieś dane).
+        let cvs = Array.isArray(p.cvs) ? (p.cvs as SavedCv[]) : [];
+        let activeCvId = p.activeCvId ?? null;
+        const cvHasData =
+          cv.personal_info.full_name.trim().length > 0 ||
+          cv.experience.length > 0;
+        if (cvs.length === 0 && cvHasData) {
+          const now = Date.now();
+          const id = makeCvId();
+          cvs = [
+            {
+              id,
+              name: defaultCvName(cv),
+              cv,
+              template,
+              enabledSections,
+              createdAt: now,
+              updatedAt: now,
+            },
+          ];
+          activeCvId = id;
+        }
+
         return {
           ...p,
           cv,
-          enabledSections: Array.isArray(p.enabledSections)
-            ? p.enabledSections
-            : sectionsForCv(cv),
+          template,
+          enabledSections,
           tailorings: Array.isArray(p.tailorings) ? p.tailorings : [],
+          cvs,
+          activeCvId,
         } as CvState;
       },
     }

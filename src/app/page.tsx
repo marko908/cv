@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import {
   ArrowRight,
   FileSearch,
@@ -70,7 +70,7 @@ export default function Home() {
 
         {/* Dwie ścieżki — karty jak playlisty */}
         <section className="mx-auto grid w-full max-w-4xl gap-4 px-4 pb-20 sm:grid-cols-2">
-          <Link href="/app/kreator?sciezka=dopasuj" className="group">
+          <Link href="/app/kreator" className="group">
             <div className="card-surface card-surface-hover flex h-full flex-col p-6 transition-shadow group-hover:shadow-elevated">
               <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-secondary transition-colors group-hover:bg-primary">
                 <FileSearch className="size-5 text-foreground transition-colors group-hover:text-primary-foreground" />
@@ -87,7 +87,7 @@ export default function Home() {
             </div>
           </Link>
 
-          <Link href="/app/kreator?sciezka=nowe" className="group">
+          <Link href="/app/kreator" className="group">
             <div className="card-surface card-surface-hover flex h-full flex-col p-6 transition-shadow group-hover:shadow-elevated">
               <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-secondary transition-colors group-hover:bg-primary">
                 <FilePlus2 className="size-5 text-foreground transition-colors group-hover:text-primary-foreground" />

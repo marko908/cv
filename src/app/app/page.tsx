@@ -75,7 +75,7 @@ function StartHub() {
 
   const actions = [
     {
-      href: "/app/kreator?oferta=1",
+      href: "/app/kreator",
       icon: Target,
       title: "Dopasuj do nowej oferty",
       desc: "Wklej kolejne ogłoszenie i wygeneruj świeże, skrojone CV.",
@@ -186,7 +186,7 @@ function StartHub() {
 /* ---------- Onboarding: samouczek dla nowych ---------- */
 function StartOnboarding() {
   const router = useRouter();
-  const loadCv = useCvStore((s) => s.loadCv);
+  const newCvFrom = useCvStore((s) => s.newCvFrom);
   const { cvFilled, jobFilled, analyzed } = useProgress();
 
   const headline = cvFilled
@@ -217,7 +217,7 @@ function StartOnboarding() {
       state: (jobFilled ? "done" : cvFilled ? "now" : "next") as StepState,
       cta: (
         <Button asChild size="sm" variant="secondary" className="gap-2">
-          <Link href="/app/kreator?oferta=1">
+          <Link href="/app/kreator">
             Dodaj ofertę
             <ArrowRight className="size-4" />
           </Link>
@@ -232,7 +232,7 @@ function StartOnboarding() {
       state: (analyzed ? "done" : "soon") as StepState,
       cta: (
         <Button asChild size="sm" variant="secondary" className="gap-2">
-          <Link href="/app/kreator?oferta=1">
+          <Link href="/app/kreator">
             Uruchom dopasowanie
             <ArrowRight className="size-4" />
           </Link>
@@ -326,8 +326,8 @@ function StartOnboarding() {
             variant="secondary"
             className="mt-3 gap-1.5"
             onClick={() => {
-              loadCv(sampleCv);
-              router.push("/app/kreator");
+              newCvFrom(sampleCv, "nowoczesny", "Przykładowe CV");
+              router.push("/app/kreator/edytor");
             }}
           >
             <Plus className="size-3.5" />

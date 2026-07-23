@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import {
@@ -50,7 +50,7 @@ export default function DopasowaniaPage() {
             description="Otwórz kreator, wklej ofertę pracy i uruchom analizę — wynik i przerobione CV pojawią się na tej liście."
             action={
               <Button asChild className="gap-2">
-                <Link href="/app/kreator?oferta=1">
+                <Link href="/app/kreator">
                   Dopasuj CV do oferty
                   <ArrowRight className="size-4" />
                 </Link>

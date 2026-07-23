@@ -34,6 +34,12 @@ export function Builder({
     if (!initialized.current) {
       initialized.current = true;
       setPath(initialPath);
+      // Zapewnij aktywne CV: otwórz pierwsze z biblioteki albo utwórz nowe.
+      const s = useCvStore.getState();
+      if (!s.activeCvId) {
+        if (s.cvs.length > 0) s.openCv(s.cvs[0].id);
+        else s.newCv();
+      }
     }
   }, [initialPath, setPath]);
 
