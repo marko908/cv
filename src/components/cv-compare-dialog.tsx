@@ -7,6 +7,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Lock } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { TemplateThumb } from "@/components/template-thumb";
 import type { TailoredCv } from "@/lib/cv-schema";
 import type { TemplateId } from "@/lib/store";
@@ -53,13 +55,19 @@ export function CvCompareDialog({
   tailoredCv,
   template,
   trigger,
+  locked = false,
+  onUnlock,
 }: {
   baseCv: TailoredCv;
   tailoredCv: TailoredCv;
   template: TemplateId;
   trigger: React.ReactNode;
+  locked?: boolean;
+  onUnlock?: () => void;
 }) {
-  const [view, setView] = useState<"before" | "after">("after");
+  const [view, setView] = useState<"before" | "after">(
+    locked ? "before" : "after"
+  );
 
   return (
     <Dialog>
@@ -121,7 +129,33 @@ export function CvCompareDialog({
             )}
           >
             <p className="eyebrow text-center text-primary">Po dopasowaniu</p>
-            <FittedCvSheet cv={tailoredCv} template={template} />
+            {locked ? (
+              <div className="relative">
+                <div className="blur-sm">
+                  <FittedCvSheet cv={baseCv} template={template} />
+                </div>
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-sm bg-background/70 p-6 text-center backdrop-blur-[2px]">
+                  <Lock className="size-7 text-primary" />
+                  <p className="text-sm font-bold">
+                    Przerobione CV jest zablokowane
+                  </p>
+                  <p className="max-w-xs text-xs text-muted-foreground">
+                    Odblokuj dopasowanie, aby zobaczyć i pobrać gotowe CV.
+                  </p>
+                  {onUnlock && (
+                    <Button
+                      size="sm"
+                      className="btn-label font-bold"
+                      onClick={onUnlock}
+                    >
+                      Odblokuj
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <FittedCvSheet cv={tailoredCv} template={template} />
+            )}
           </div>
         </div>
       </DialogContent>

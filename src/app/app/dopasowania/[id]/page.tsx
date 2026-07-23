@@ -117,8 +117,10 @@ export default function DopasowanieDetailPage({
         </h2>
         <CvCompareDialog
           baseCv={baseCv}
-          tailoredCv={unlocked ? tailoredCv : baseCv}
+          tailoredCv={tailoredCv}
           template={template}
+          locked={!unlocked}
+          onUnlock={() => setPaywallOpen(true)}
           trigger={
             <Button variant="secondary" size="sm" className="gap-1.5">
               <Maximize2 className="size-3.5" />

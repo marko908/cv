@@ -111,6 +111,46 @@ export type TailoredCv = z.infer<typeof tailoredCvSchema>;
 export type ChangeLogEntry = z.infer<typeof changeLogEntrySchema>;
 export type CvGeneration = z.infer<typeof cvGenerationSchema>;
 
+/** Lista kontrolna kompletności CV (te same kryteria co miernik gotowości). */
+export function cvChecklist(cv: TailoredCv): { label: string; done: boolean }[] {
+  return [
+    {
+      label: "Dane kontaktowe",
+      done:
+        cv.personal_info.full_name.trim().length > 0 &&
+        cv.personal_info.email.trim().length > 0 &&
+        cv.personal_info.phone.trim().length > 0,
+    },
+    {
+      label: "Podsumowanie zawodowe",
+      done: cv.professional_summary.trim().length >= 50,
+    },
+    {
+      label: "Doświadczenie",
+      done:
+        cv.experience.length > 0 &&
+        cv.experience.some((e) => e.bullets.filter(Boolean).length > 0),
+    },
+    {
+      label: "Umiejętności",
+      done: cv.skills.technical.filter(Boolean).length >= 3,
+    },
+    { label: "Edukacja", done: cv.education.length > 0 },
+  ];
+}
+
+/** Czy CV jest kompletne na tyle, by je dopasować do oferty. */
+export function isCvComplete(cv: TailoredCv): boolean {
+  return cvChecklist(cv).every((c) => c.done);
+}
+
+/** Nieuzupełnione sekcje CV. */
+export function missingCvSections(cv: TailoredCv): string[] {
+  return cvChecklist(cv)
+    .filter((c) => !c.done)
+    .map((c) => c.label);
+}
+
 export const DEFAULT_RODO_CLAUSE =
   "Wyrażam zgodę na przetwarzanie moich danych osobowych przez [nazwa firmy] w celu prowadzenia rekrutacji na aplikowane przeze mnie stanowisko.";
 

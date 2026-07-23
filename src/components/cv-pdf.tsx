@@ -54,7 +54,14 @@ function makeStyles(accent: string) {
       justifyContent: "space-between",
       alignItems: "flex-start",
     },
-    itemTitle: { fontWeight: "bold", color: "#111827" },
+    // flex:1 + paddingRight zapobiega nachodzeniu tytułu na daty po prawej
+    itemTitle: {
+      flex: 1,
+      paddingRight: 10,
+      fontWeight: "bold",
+      color: "#111827",
+    },
+    metaCol: { flexShrink: 0, alignItems: "flex-end" },
     itemMeta: { fontSize: 9, color: "#6b7280", textAlign: "right" },
     bulletRow: { flexDirection: "row", marginTop: 2, paddingLeft: 6 },
     bulletDot: { width: 8, fontSize: 9 },
@@ -130,7 +137,7 @@ export function CvPdf({
                       </Text>
                     ) : null}
                   </Text>
-                  <View>
+                  <View style={s.metaCol}>
                     {exp.period ? (
                       <Text style={s.itemMeta}>{exp.period}</Text>
                     ) : null}
@@ -166,9 +173,11 @@ export function CvPdf({
                       </Text>
                     ) : null}
                   </Text>
-                  {proj.period ? (
-                    <Text style={s.itemMeta}>{proj.period}</Text>
-                  ) : null}
+                  <View style={s.metaCol}>
+                    {proj.period ? (
+                      <Text style={s.itemMeta}>{proj.period}</Text>
+                    ) : null}
+                  </View>
                 </View>
                 {proj.link ? (
                   <Text style={{ fontSize: 9, color: "#6b7280" }}>
@@ -213,8 +222,8 @@ export function CvPdf({
             <Text style={s.heading}>Edukacja</Text>
             {cv.education.map((edu, i) => (
               <View key={i} style={[s.rowBetween, { marginBottom: 4 }]}>
-                <Text>
-                  <Text style={s.itemTitle}>
+                <Text style={{ flex: 1, paddingRight: 10 }}>
+                  <Text style={{ fontWeight: "bold", color: "#111827" }}>
                     {edu.institution || "Uczelnia"}
                   </Text>
                   {edu.degree ? (
@@ -224,7 +233,7 @@ export function CvPdf({
                     </Text>
                   ) : null}
                 </Text>
-                <View>
+                <View style={s.metaCol}>
                   {edu.period ? (
                     <Text style={s.itemMeta}>{edu.period}</Text>
                   ) : null}

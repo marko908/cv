@@ -4,8 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import { LayoutTemplate, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useCvStore, type CvPath } from "@/lib/store";
+import { isCvComplete, missingCvSections } from "@/lib/cv-schema";
 import { SavedIndicator } from "@/components/saved-indicator";
 import { NewCvDialog } from "@/components/new-cv-dialog";
 import { DownloadPdfButton } from "@/components/download-pdf-button";
@@ -44,6 +50,8 @@ export function Builder({
   }, [initialPath, setPath]);
 
   const fullName = cv.personal_info.full_name;
+  const complete = isCvComplete(cv);
+  const missing = missingCvSections(cv);
 
   return (
     <TooltipProvider>
@@ -58,16 +66,34 @@ export function Builder({
           </div>
 
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-            <TailorFlow
-              defaultOpen={openTailor}
-              trigger={
-                <Button size="sm" className="gap-2 font-bold">
-                  <Target className="size-4" />
-                  <span className="hidden sm:inline">Dopasuj do oferty</span>
-                  <span className="sm:hidden">Dopasuj</span>
-                </Button>
-              }
-            />
+            {complete ? (
+              <TailorFlow
+                defaultOpen={openTailor}
+                trigger={
+                  <Button size="sm" className="gap-2 font-bold">
+                    <Target className="size-4" />
+                    <span className="hidden sm:inline">Dopasuj do oferty</span>
+                    <span className="sm:hidden">Dopasuj</span>
+                  </Button>
+                }
+              />
+            ) : (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Button size="sm" disabled className="gap-2 font-bold">
+                      <Target className="size-4" />
+                      <span className="hidden sm:inline">Dopasuj do oferty</span>
+                      <span className="sm:hidden">Dopasuj</span>
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  Uzupełnij CV, aby dopasować je do oferty. Brakuje:{" "}
+                  {missing.join(", ")}.
+                </TooltipContent>
+              </Tooltip>
+            )}
             <NewCvDialog
               redirectTo={null}
               trigger={
