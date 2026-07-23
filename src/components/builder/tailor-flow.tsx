@@ -9,7 +9,6 @@ import {
   Link2,
   Loader2,
   Lock,
-  Plus,
   RefreshCw,
   Target,
   X,
@@ -29,12 +28,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { useCvStore } from "@/lib/store";
 import { buildTailoring, REVIEW_SPECIALISTS } from "@/lib/mock-review";
-import { TemplateThumb } from "@/components/template-thumb";
-import { NewCvDialog } from "@/components/new-cv-dialog";
 import { PaywallDialog } from "./paywall-dialog";
 import { cn, pluralize } from "@/lib/utils";
 
-type Step = "selectCv" | "config" | "running" | "result";
+type Step = "config" | "running" | "result";
 
 export function TailorFlow({
   trigger,
@@ -57,8 +54,6 @@ export function TailorFlow({
     setAiMeta,
     resetReview,
     addTailoring,
-    cvs,
-    openCv,
   } = useCvStore();
 
   // Otwórz, gdy sygnał z zewnątrz (np. ?oferta=1) się pojawi.
@@ -66,12 +61,11 @@ export function TailorFlow({
     if (defaultOpen) setOpen(true);
   }, [defaultOpen]);
 
-  // Po otwarciu wybierz właściwy ekran startowy.
+  // Edytor dotyczy konkretnego (aktywnego) CV, więc od razu konfiguracja
+  // — bez wyboru CV. Jeśli wynik już jest, pokazujemy go.
   useEffect(() => {
     if (!open) return;
-    if (aiMeta.matchScoreAfter !== undefined) setStep("result");
-    else if (cvs.length > 1) setStep("selectCv");
-    else setStep("config");
+    setStep(aiMeta.matchScoreAfter !== undefined ? "result" : "config");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
@@ -79,23 +73,7 @@ export function TailorFlow({
     <>
       <Dialog open={open} onOpenChange={setOpen}>
         {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-        <DialogContent
-          className={cn(
-            "max-h-[88vh] overflow-y-auto shadow-dialog",
-            step === "selectCv" ? "sm:max-w-2xl" : "sm:max-w-xl"
-          )}
-        >
-          {step === "selectCv" && (
-            <SelectCvStep
-              cvs={cvs}
-              activeCvId={useCvStore.getState().activeCvId}
-              onSelect={(id) => {
-                openCv(id);
-                setStep("config");
-              }}
-              onClose={() => setOpen(false)}
-            />
-          )}
+        <DialogContent className="max-h-[88vh] overflow-y-auto shadow-dialog sm:max-w-xl">
           {step === "config" && (
             <ConfigStep
               jobPosting={jobPosting}
@@ -130,83 +108,6 @@ export function TailorFlow({
       </Dialog>
 
       <PaywallDialog open={paywallOpen} onOpenChange={setPaywallOpen} />
-    </>
-  );
-}
-
-/* ---------- Ekran 0: wybór CV (gdy jest ich kilka) ---------- */
-function SelectCvStep({
-  cvs,
-  activeCvId,
-  onSelect,
-  onClose,
-}: {
-  cvs: ReturnType<typeof useCvStore.getState>["cvs"];
-  activeCvId: string | null;
-  onSelect: (id: string) => void;
-  onClose: () => void;
-}) {
-  return (
-    <>
-      <DialogHeader>
-        <p className="eyebrow flex items-center gap-1.5 text-primary">
-          <Target className="size-3.5" />
-          Dopasowanie do oferty
-        </p>
-        <DialogTitle>Które CV chcesz dopasować?</DialogTitle>
-        <DialogDescription>
-          Jedno CV możesz dopasować do wielu różnych ofert — wybierz to
-          właściwe dla tej rekrutacji.
-        </DialogDescription>
-      </DialogHeader>
-
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {cvs.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            onClick={() => onSelect(item.id)}
-            className={cn(
-              "relative rounded-lg bg-secondary p-3 text-left transition-all hover:bg-accent",
-              item.id === activeCvId && "ring-2 ring-primary"
-            )}
-          >
-            {item.id === activeCvId && (
-              <span className="absolute right-4 top-4 z-10 flex size-5 items-center justify-center rounded-full bg-primary">
-                <Check className="size-3 text-primary-foreground" />
-              </span>
-            )}
-            <div className="overflow-hidden rounded-md">
-              <TemplateThumb
-                template={item.template}
-                cv={item.cv}
-                width={200}
-                className="w-full"
-              />
-            </div>
-            <span className="mt-2 block truncate text-sm font-bold">
-              {item.name}
-            </span>
-          </button>
-        ))}
-
-        <NewCvDialog
-          createNew
-          redirectTo="/app/kreator/edytor"
-          trigger={
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex min-h-[200px] flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-primary/50 bg-primary/5 p-4 text-primary transition-colors hover:border-primary hover:bg-primary/10"
-            >
-              <span className="flex size-11 items-center justify-center rounded-full border-2 border-primary/50">
-                <Plus className="size-5" />
-              </span>
-              <span className="text-sm font-bold">Dodaj nowe CV</span>
-            </button>
-          }
-        />
-      </div>
     </>
   );
 }

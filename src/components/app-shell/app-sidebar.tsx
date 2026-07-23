@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import {
   FileText,
   Home,
-  SquarePen,
   Target,
   Briefcase,
   MessageSquare,
@@ -18,8 +17,7 @@ import { cn } from "@/lib/utils";
 
 export const navItems = [
   { href: "/app", label: "Start", icon: Home },
-  { href: "/app/dokumenty", label: "Dokumenty", icon: FileText },
-  { href: "/app/kreator", label: "Kreator CV", icon: SquarePen },
+  { href: "/app/kreator", label: "Moje CV", icon: FileText },
   { href: "/app/dopasowania", label: "Dopasowania", icon: Target },
 ];
 

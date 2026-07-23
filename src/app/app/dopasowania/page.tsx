@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/empty-state";
+import { SelectCvDialog } from "@/components/select-cv-dialog";
 import { useCvStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -30,15 +31,25 @@ export default function DopasowaniaPage() {
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-8 sm:py-10">
-      <div className="mb-6">
-        <p className="eyebrow text-muted-foreground">Dopasowania</p>
-        <h1 className="mt-1 text-xl font-extrabold tracking-tight">
-          Historia dopasowań CV do ofert
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Każde uruchomienie „Dopasuj do oferty" zapisuje się tutaj — z ofertą,
-          wynikiem i przerobionym CV.
-        </p>
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className="eyebrow text-muted-foreground">Dopasowania</p>
+          <h1 className="mt-1 text-xl font-extrabold tracking-tight">
+            Historia dopasowań CV do ofert
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Każde uruchomienie „Dopasuj do oferty" zapisuje się tutaj — z ofertą,
+            wynikiem i przerobionym CV.
+          </p>
+        </div>
+        <SelectCvDialog
+          trigger={
+            <Button className="shrink-0 gap-2 font-bold">
+              <Target className="size-4" />
+              Dopasuj CV do oferty
+            </Button>
+          }
+        />
       </div>
 
       {tailorings.length === 0 ? (

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DownloadPdfButton } from "@/components/download-pdf-button";
+import { SelectCvDialog } from "@/components/select-cv-dialog";
 import { useCvStore } from "@/lib/store";
 import { sampleCv } from "@/lib/sample-cv";
 import { cn } from "@/lib/utils";
@@ -73,14 +74,7 @@ function StartHub() {
   const tailorings = useCvStore((s) => s.tailorings);
   const last = tailorings[0];
 
-  const actions = [
-    {
-      href: "/app/kreator",
-      icon: Target,
-      title: "Dopasuj do nowej oferty",
-      desc: "Wklej kolejne ogłoszenie i wygeneruj świeże, skrojone CV.",
-      primary: true,
-    },
+  const linkActions = [
     {
       href: "/app/dopasowania",
       icon: Briefcase,
@@ -95,10 +89,13 @@ function StartHub() {
     {
       href: "/app/kreator",
       icon: SquarePen,
-      title: "Edytuj swoje CV",
-      desc: "Popraw treść, dodaj sekcje albo zmień szablon.",
+      title: "Moje CV",
+      desc: "Przeglądaj, edytuj i dodawaj swoje CV.",
     },
   ];
+
+  const cardClass =
+    "card-surface card-surface-hover group flex flex-col p-5 text-left transition-shadow hover:shadow-elevated";
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-8 sm:py-10">
@@ -108,23 +105,31 @@ function StartHub() {
       </h1>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
-        {actions.map((a) => (
-          <Link
-            key={a.href}
-            href={a.href}
-            className={cn(
-              "card-surface card-surface-hover group flex flex-col p-5 transition-shadow hover:shadow-elevated",
-              a.primary && "ring-1 ring-primary/40"
-            )}
-          >
-            <span
-              className={cn(
-                "mb-4 flex size-11 items-center justify-center rounded-full transition-colors",
-                a.primary
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary text-foreground group-hover:bg-primary group-hover:text-primary-foreground"
-              )}
+        {/* Dopasowanie — wybór CV przed przejściem */}
+        <SelectCvDialog
+          trigger={
+            <button
+              type="button"
+              className={cn(cardClass, "ring-1 ring-primary/40")}
             >
+              <span className="mb-4 flex size-11 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                <Target className="size-5" />
+              </span>
+              <h2 className="text-base font-bold">Dopasuj do nowej oferty</h2>
+              <p className="mt-1 flex-1 text-sm text-muted-foreground">
+                Wybierz CV, wklej ogłoszenie i wygeneruj skrojone CV.
+              </p>
+              <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold">
+                Przejdź
+                <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+              </span>
+            </button>
+          }
+        />
+
+        {linkActions.map((a) => (
+          <Link key={a.href} href={a.href} className={cardClass}>
+            <span className="mb-4 flex size-11 items-center justify-center rounded-full bg-secondary text-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
               <a.icon className="size-5" />
             </span>
             <h2 className="text-base font-bold">{a.title}</h2>
