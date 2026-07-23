@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { generateObject } from "ai";
-import { MODEL_TANI } from "./models";
+import { MODEL_TANI, model } from "./models";
 
 /**
  * KROK 2 PIPELINE'U: ogłoszenie → ustrukturyzowane wymagania z wagami.
@@ -85,7 +85,7 @@ Odpowiadasz po polsku, poprawną polszczyzną.`;
  */
 export async function parsujOferte(trescOferty: string): Promise<ParsedOferta> {
   const { object } = await generateObject({
-    model: MODEL_TANI,
+    model: model(MODEL_TANI),
     schema: ofertaSchema,
     instructions: INSTRUKCJA,
     prompt: `Rozłóż to ogłoszenie na wymagania:\n\n${trescOferty}`,

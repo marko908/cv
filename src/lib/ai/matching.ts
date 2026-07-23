@@ -1,5 +1,12 @@
 import { normalize, type Fact, type FactLedger } from "./fact-ledger";
 import type { ParsedOferta, Wymaganie } from "./job-offer";
+import {
+  rdzenPasuje,
+  SLOWA_POMOCNICZE,
+  spelniaWymogJezykowy,
+  wykryjWymogJezykowy,
+  zSynonimami,
+} from "./slownik";
 
 /**
  * KROK 3 PIPELINE'U: dopasowanie fakt ↔ wymaganie.
@@ -57,18 +64,7 @@ const PUNKTY: Record<Pokrycie, number> = {
 };
 
 /** Słowa zbyt pospolite, by cokolwiek znaczyły przy dopasowaniu. */
-const STOP = new Set([
-  "i", "w", "z", "na", "do", "oraz", "lub", "dla", "od", "po", "przy", "o",
-  "the", "and", "or", "of", "in", "to", "a", "an",
-]);
-
-/**
- * Najdłuższa końcówka fleksyjna, jaką dopuszczamy przy dopasowaniu rdzenia.
- * Polskie końcówki („-ach”, „-ami”, „-ych”, „-owych”) mieszczą się w pięciu
- * znakach. Bez tego limitu „Java” trafiałaby w „JavaScript”, co zawyżałoby
- * wynik dopasowania.
- */
-const MAX_KONCOWKA = 5;
+const STOP = SLOWA_POMOCNICZE;
 
 /** Czy fraza występuje dosłownie, ale na granicy słowa (nie w środku wyrazu). */
 function zawieraDoslownie(tekst: string, fraza: string): boolean {
@@ -108,20 +104,22 @@ export function frazaWystepuje(fraza: string, tekst: string): boolean {
     .filter((x) => x.length >= 3 && !STOP.has(x));
   if (tokeny.length === 0) return false;
 
-  // Każdy człon frazy musi mieć w tekście słowo o wspólnym rdzeniu,
-  // różniące się co najwyżej końcówką fleksyjną.
-  return tokeny.every((token) => {
-    const rdzen = token.slice(0, Math.max(4, token.length - 3));
-    return slowaTekstu.some(
-      (slowo) =>
-        slowo.startsWith(rdzen) && slowo.length <= rdzen.length + MAX_KONCOWKA
-    );
-  });
+  // Każdy człon frazy musi mieć w tekście słowo o wspólnej podstawie,
+  // różniące się wyłącznie końcówką fleksyjną.
+  return tokeny.every((token) =>
+    slowaTekstu.some((slowo) => rdzenPasuje(token, slowo))
+  );
 }
 
-/** Fakty, w których występuje dana fraza. */
+/**
+ * Fakty, w których występuje dana fraza — z uwzględnieniem synonimów.
+ * „metodyki zwinne” z oferty trafia w „Praca w Scrum” z CV.
+ */
 function faktyZFraza(ledger: FactLedger, fraza: string): Fact[] {
-  return ledger.facts.filter((f) => frazaWystepuje(fraza, f.value));
+  const warianty = zSynonimami(fraza);
+  return ledger.facts.filter((f) =>
+    warianty.some((w) => frazaWystepuje(w, f.value))
+  );
 }
 
 /** Dopasowuje pojedyncze wymaganie do rejestru faktów. */
@@ -129,6 +127,24 @@ export function dopasujWymaganie(
   wymaganie: Wymaganie,
   ledger: FactLedger
 ): DopasowanieWymagania {
+  // Wymagania językowe porównujemy po POZIOMIE, nie po tekście — kandydat
+  // z C1 spełnia wymóg B2, choć w jego CV nigdzie nie pada napis „B2”.
+  const wymogJezykowy = wykryjWymogJezykowy(wymaganie.tekst);
+  if (wymogJezykowy) {
+    const deklaracje = ledger.facts.filter((f) => f.type === "jezyk");
+    const pasujace = deklaracje.filter((d) =>
+      spelniaWymogJezykowy(wymogJezykowy, [d.value])
+    );
+    const spelnia = pasujace.length > 0;
+    return {
+      wymaganie,
+      pokrycie: spelnia ? "pelne" : "brak",
+      trafioneSlowa: spelnia ? wymaganie.slowa_kluczowe : [],
+      brakujaceSlowa: spelnia ? [] : wymaganie.slowa_kluczowe,
+      fakty: pasujace,
+    };
+  }
+
   const slowa =
     wymaganie.slowa_kluczowe.filter(Boolean).length > 0
       ? wymaganie.slowa_kluczowe.filter(Boolean)

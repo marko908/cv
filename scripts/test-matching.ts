@@ -67,6 +67,38 @@ ok(
   "„Java” nadal trafia w prawdziwą Javę",
   frazaWystepuje("Java", "Programowanie w Java i Spring")
 );
+ok(
+  "„JUnit” NIE trafia w „Junior”",
+  !frazaWystepuje("JUnit", "Junior Frontend Developer")
+);
+ok(
+  "„Vitest” NIE trafia w „Vite”",
+  !frazaWystepuje("Vitest", "Technologie: React, D3.js, Vite")
+);
+
+console.log("\n== Słownik branżowy ==");
+ok(
+  "„metodykach zwinnych” trafia w „Praca w Scrum”",
+  frazaWystepuje("scrum", "Praca w Scrum")
+);
+const dJez = dopasujWymaganie(
+  wym("W9", "Znajomość języka angielskiego na poziomie min. B2", ["języka angielskiego", "B2"]),
+  ledger
+);
+ok(
+  "angielski C1 spełnia wymóg B2",
+  dJez.pokrycie === "pelne",
+  `pokrycie=${dJez.pokrycie}`
+);
+const dJezWyzszy = dopasujWymaganie(
+  wym("W10", "Znajomość języka niemieckiego na poziomie C2", ["niemiecki", "C2"]),
+  ledger
+);
+ok(
+  "brak niemieckiego nadal jest luką",
+  dJezWyzszy.pokrycie === "brak",
+  `pokrycie=${dJezWyzszy.pokrycie}`
+);
 
 console.log("\n== Pokrycie pojedynczego wymagania ==");
 const d1 = dopasujWymaganie(wym("W1", "React", ["React"]), ledger);
