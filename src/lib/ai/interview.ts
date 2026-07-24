@@ -19,13 +19,19 @@ import type { DopasowanieWymagania } from "./matching";
 
 export type PytanieWywiadu = {
   id: string;
+  /**
+   * Rodzaj pytania — zmienia framing i miejsce docelowe:
+   *  - „doswiadczenie": twarda kompetencja, pytamy o realne doświadczenie,
+   *    potwierdzenie może dać punkt w doświadczeniu;
+   *  - „cecha": kompetencja miękka / postawa, to NIE doświadczenie — pytamy,
+   *    czy kandydat chce ją wskazać, i trafia tylko do umiejętności miękkich.
+   */
+  typ: "doswiadczenie" | "cecha";
   pytanie: string;
-  /** Podpowiedź, co wpisać w odpowiedzi. */
+  /** Podpowiedź, co wpisać (tylko dla „doswiadczenie"). */
   hint: string;
   /** Słowa kluczowe z oferty, które to pytanie pokrywa. */
   slowa: string[];
-  /** Gdzie trafi potwierdzona kompetencja. */
-  sekcja: "techniczne" | "miekkie";
   /** Priorytet wymagania — pytamy najpierw o wymagane. */
   wazne: boolean;
 };
@@ -38,22 +44,17 @@ export type OdpowiedzWywiadu = {
   szczegol?: string;
 };
 
-/** Buduje naturalne pytanie z treści wymagania. */
-function sformułuj(tekst: string): { pytanie: string; hint: string } {
-  const t = tekst.trim();
-  const niski = t.charAt(0).toLowerCase() + t.slice(1);
-  return {
-    pytanie: `Czy masz doświadczenie z tym: „${t}”?`,
-    hint: `Jeśli tak, opisz krótko — gdzie i jak długo (np. w projekcie X, ${niski.split(" ").slice(0, 3).join(" ")}…). Jeśli nie, pomiń.`,
-  };
-}
-
 /**
  * Tworzy pytania z luk dopasowania.
  *
  * Pytamy tylko o luki, na które użytkownik może sensownie odpowiedzieć —
  * czyli o kompetencje twarde i miękkie. Wymagań formalnych (wykształcenie,
  * poziom języka) nie „dopytujemy”, bo tego się nie nadrabia deklaracją.
+ *
+ * Framing zależy od rodzaju wymagania. Kompetencji twardej dotyczy pytanie
+ * o doświadczenie („czy masz doświadczenie z X”). Cechy/postawy nie pytamy
+ * o doświadczenie — bo „chęć do dzielenia się wiedzą” to nie doświadczenie,
+ * tylko coś, co kandydat może chcieć w CV wskazać.
  */
 export function zbudujPytania(luki: DopasowanieWymagania[]): PytanieWywiadu[] {
   return luki
@@ -63,19 +64,23 @@ export function zbudujPytania(luki: DopasowanieWymagania[]): PytanieWywiadu[] {
         (l.wymaganie.rodzaj === "twarda" || l.wymaganie.rodzaj === "miekka")
     )
     .map((l) => {
-      const { pytanie, hint } = sformułuj(l.wymaganie.tekst);
+      const t = l.wymaganie.tekst.trim();
+      const twarda = l.wymaganie.rodzaj === "twarda";
+      const slowa =
+        l.wymaganie.slowa_kluczowe.filter(Boolean).length > 0
+          ? l.wymaganie.slowa_kluczowe.filter(Boolean)
+          : [t];
+
       return {
         id: l.wymaganie.id,
-        pytanie,
-        hint,
-        slowa:
-          l.wymaganie.slowa_kluczowe.filter(Boolean).length > 0
-            ? l.wymaganie.slowa_kluczowe.filter(Boolean)
-            : [l.wymaganie.tekst],
-        sekcja:
-          l.wymaganie.rodzaj === "twarda"
-            ? ("techniczne" as const)
-            : ("miekkie" as const),
+        typ: twarda ? ("doswiadczenie" as const) : ("cecha" as const),
+        pytanie: twarda
+          ? `Czy masz doświadczenie z tym: „${t}”?`
+          : `Czy chcesz wskazać w CV: „${t}”?`,
+        hint: twarda
+          ? "Jeśli tak, opisz krótko — gdzie i jak długo (np. w projekcie X). Jeśli nie, pomiń."
+          : "",
+        slowa,
         wazne: l.wymaganie.priorytet === "wymagane",
       };
     });
@@ -125,11 +130,17 @@ export function zastosujOdpowiedzi(
     const p = poId.get(odp.id);
     if (!p) continue;
 
-    if (p.sekcja === "techniczne") noweTech.push(...p.slowa);
-    else noweMiekkie.push(...p.slowa);
-
-    const szczegol = odp.szczegol?.trim();
-    if (szczegol && szczegol.length >= 10) noweBullety.push(szczegol);
+    if (p.typ === "doswiadczenie") {
+      // Twarda kompetencja: do umiejętności technicznych, a konkret (jeśli
+      // podany) jako punkt doświadczenia w słowach użytkownika.
+      noweTech.push(...p.slowa);
+      const szczegol = odp.szczegol?.trim();
+      if (szczegol && szczegol.length >= 10) noweBullety.push(szczegol);
+    } else {
+      // Cecha/postawa: tylko do umiejętności miękkich. NIE robimy z niej
+      // punktu doświadczenia — to nie jest osiągnięcie zawodowe.
+      noweMiekkie.push(...p.slowa);
+    }
   }
 
   wynik.skills.technical = dodajUnikalne(wynik.skills.technical, noweTech);

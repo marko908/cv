@@ -292,15 +292,26 @@ function RunningStep({
 
     const timers: ReturnType<typeof setTimeout>[] = [];
 
-    // Animujemy pierwszych (total-1) specjalistów. Ostatni czeka na wynik
-    // pipeline'u — dzięki temu pasek nie pokazuje „gotowe", gdy praca trwa.
+    // Urealniamy pasek postępu. Zamiast stałych, krótkich odstępów (przez które
+    // pierwsze kroki „wyskakiwały" od razu) losujemy czas trwania każdego kroku
+    // tak, by SUMA odpowiadała szacowanemu czasowi pracy AI. Każde uruchomienie
+    // wygląda trochę inaczej — bardziej jak realne przetwarzanie.
+    const SZACOWANY_MS = 11000; // z obserwacji: pełne dopasowanie ~10–14 s
+    const wagi = REVIEW_SPECIALISTS.map(() => 0.6 + Math.random()); // 0.6–1.6
+    const sumaWag = wagi.reduce((a, b) => a + b, 0);
+    // Skumulowane momenty ukończenia kolejnych kroków (ostatni ≈ SZACOWANY_MS).
+    const momenty: number[] = [];
+    wagi.reduce((acc, w, i) => (momenty[i] = acc + (w / sumaWag) * SZACOWANY_MS), 0);
+
+    // Kroki 1..(total-1) kończą się w wylosowanych, narastających momentach.
+    // Ostatni krok („Język") czeka na wynik AI — patrz finalize niżej.
     for (let i = 0; i < total - 1; i++) {
       const spec = REVIEW_SPECIALISTS[i];
       timers.push(
         setTimeout(() => {
           setDoneCount((n) => n + 1);
           setLog((l) => [...l, `${spec.label} — ${spec.note}`]);
-        }, 500 + i * 650)
+        }, momenty[i])
       );
     }
 
@@ -313,15 +324,13 @@ function RunningStep({
       doneRef.current(wynik);
     };
 
-    // Minimalny czas animacji, żeby wynik nie „mignął" przy szybkim mocku.
+    // Ostatni krok nie kończy się wcześniej niż po szacowanym czasie. Jeśli AI
+    // odpowie później — czekamy na nią (krok „Język" kręci się aż do wyniku).
     timers.push(
-      setTimeout(
-        () => {
-          minPo = true;
-          finalize();
-        },
-        500 + Math.max(0, total - 1) * 650
-      )
+      setTimeout(() => {
+        minPo = true;
+        finalize();
+      }, momenty[total - 1])
     );
 
     // Prawdziwa praca leci równolegle — ale odpalamy ją tylko RAZ.
@@ -443,6 +452,65 @@ function InterviewStep({
     );
   };
 
+  const doswiadczenie = pytania.filter((p) => p.typ === "doswiadczenie");
+  const cechy = pytania.filter((p) => p.typ === "cecha");
+
+  // Karta pytania — framing i pola zależą od rodzaju (doświadczenie vs cecha).
+  const karta = (p: PytanieWywiadu) => {
+    const s = stan[p.id] ?? { ma: false, szczegol: "" };
+    const tak = p.typ === "doswiadczenie" ? "Mam to" : "Wskaż w CV";
+    const nie = p.typ === "doswiadczenie" ? "Nie mam" : "Pomiń";
+    return (
+      <div key={p.id} className="card-surface p-4">
+        <p className="text-sm font-medium">{p.pytanie}</p>
+        <div className="mt-2 flex gap-1.5">
+          <button
+            type="button"
+            onClick={() =>
+              setStan((st) => ({ ...st, [p.id]: { ...s, ma: true } }))
+            }
+            className={cn(
+              "rounded-full px-3 py-1 text-xs font-bold transition-colors",
+              s.ma
+                ? "bg-primary text-primary-foreground"
+                : "bg-secondary text-muted-foreground"
+            )}
+          >
+            {tak}
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              setStan((st) => ({ ...st, [p.id]: { ma: false, szczegol: "" } }))
+            }
+            className={cn(
+              "rounded-full px-3 py-1 text-xs font-bold transition-colors",
+              !s.ma
+                ? "bg-accent text-foreground"
+                : "bg-secondary text-muted-foreground"
+            )}
+          >
+            {nie}
+          </button>
+        </div>
+        {/* Pole na konkret tylko dla doświadczenia — cechy nie opisujemy. */}
+        {s.ma && p.typ === "doswiadczenie" && (
+          <Textarea
+            value={s.szczegol}
+            onChange={(e) =>
+              setStan((st) => ({
+                ...st,
+                [p.id]: { ...s, szczegol: e.target.value },
+              }))
+            }
+            placeholder={p.hint}
+            className="mt-2 min-h-16 text-sm"
+          />
+        )}
+      </div>
+    );
+  };
+
   return (
     <>
       <DialogHeader>
@@ -450,69 +518,29 @@ function InterviewStep({
           <Target className="size-3.5" />
           Wzmocnij swoje CV
         </p>
-        <DialogTitle>Kilka pytań o brakujące konkrety</DialogTitle>
+        <DialogTitle>Uzupełnij to, czego brakuje</DialogTitle>
         <DialogDescription>
-          Ta oferta wymaga rzeczy, których nie znaleźliśmy w Twoim CV. Nie
-          dopisujemy niczego za Ciebie — ale jeśli faktycznie masz z tym
-          styczność, potwierdź, a policzymy dopasowanie od nowa.
+          Ta oferta wspomina o rzeczach, których nie ma w Twoim CV. Nie
+          dopisujemy niczego za Ciebie — potwierdź tylko to, co faktycznie
+          Cię dotyczy, a policzymy dopasowanie od nowa.
         </DialogDescription>
       </DialogHeader>
 
-      <div className="flex flex-col gap-4">
-        {pytania.map((p) => {
-          const s = stan[p.id] ?? { ma: false, szczegol: "" };
-          return (
-            <div key={p.id} className="card-surface p-4">
-              <p className="text-sm font-medium">{p.pytanie}</p>
-              <div className="mt-2 flex gap-1.5">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setStan((st) => ({ ...st, [p.id]: { ...s, ma: true } }))
-                  }
-                  className={cn(
-                    "rounded-full px-3 py-1 text-xs font-bold transition-colors",
-                    s.ma
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary text-muted-foreground"
-                  )}
-                >
-                  Mam to
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setStan((st) => ({
-                      ...st,
-                      [p.id]: { ma: false, szczegol: "" },
-                    }))
-                  }
-                  className={cn(
-                    "rounded-full px-3 py-1 text-xs font-bold transition-colors",
-                    !s.ma
-                      ? "bg-accent text-foreground"
-                      : "bg-secondary text-muted-foreground"
-                  )}
-                >
-                  Nie mam
-                </button>
-              </div>
-              {s.ma && (
-                <Textarea
-                  value={s.szczegol}
-                  onChange={(e) =>
-                    setStan((st) => ({
-                      ...st,
-                      [p.id]: { ...s, szczegol: e.target.value },
-                    }))
-                  }
-                  placeholder={p.hint}
-                  className="mt-2 min-h-16 text-sm"
-                />
-              )}
-            </div>
-          );
-        })}
+      <div className="flex flex-col gap-5">
+        {doswiadczenie.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <p className="eyebrow text-muted-foreground">Twoje doświadczenie</p>
+            {doswiadczenie.map(karta)}
+          </div>
+        )}
+        {cechy.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <p className="eyebrow text-muted-foreground">
+              Cechy — warto wskazać, jeśli Cię opisują
+            </p>
+            {cechy.map(karta)}
+          </div>
+        )}
       </div>
 
       <div className="flex items-center justify-between gap-2">

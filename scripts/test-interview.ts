@@ -44,6 +44,7 @@ const oferta: ParsedOferta = {
     wym("W2", "Docker", ["Docker"], "twarda", "mile_widziane"),
     wym("W3", "GraphQL", ["GraphQL"]),
     wym("W4", "Wykształcenie wyższe kierunkowe", ["wyższe"], "formalna"),
+    wym("W5", "Chęć do dzielenia się wiedzą", ["dzielenia się wiedzą"], "miekka"),
   ],
 };
 
@@ -65,6 +66,42 @@ ok(
   !pytania.some((p) => p.slowa.includes("wyższe"))
 );
 ok("czyWartoWywiad = true", czyWartoWywiad(przed.luki));
+
+console.log("\n== Framing: doświadczenie vs cecha ==");
+const pTwarde = pytania.find((p) => p.slowa.includes("GraphQL"));
+const pMiekkie = pytania.find((p) => p.slowa.includes("dzielenia się wiedzą"));
+ok("twarda kompetencja = typ doswiadczenie", pTwarde?.typ === "doswiadczenie");
+ok(
+  "twarde pytanie mówi o doświadczeniu",
+  /doświadczenie/i.test(pTwarde?.pytanie ?? "")
+);
+ok("cecha = typ cecha", pMiekkie?.typ === "cecha");
+ok(
+  "pytanie o cechę NIE mówi o doświadczeniu",
+  !/doświadczenie/i.test(pMiekkie?.pytanie ?? ""),
+  pMiekkie?.pytanie
+);
+ok(
+  "pytanie o cechę mówi o wskazaniu w CV",
+  /wskazać w CV/i.test(pMiekkie?.pytanie ?? "")
+);
+
+console.log("\n== Cecha trafia do umiejętności miękkich, NIE do doświadczenia ==");
+const cvCecha = zastosujOdpowiedzi(sampleCv, pytania, [
+  { id: "W5", ma: true, szczegol: "to jest ignorowane dla cechy bo bez pola" },
+]);
+ok(
+  "cecha w umiejętnościach miękkich",
+  cvCecha.skills.soft_and_tools.some((s) => /dzielenia się wiedzą/i.test(s))
+);
+ok(
+  "cecha NIE trafia jako punkt doświadczenia",
+  !cvCecha.experience[0].bullets.some((b) => /dzielenia się wiedzą/i.test(b))
+);
+ok(
+  "cecha NIE ląduje w umiejętnościach technicznych",
+  !cvCecha.skills.technical.some((s) => /dzielenia się wiedzą/i.test(s))
+);
 
 console.log("\n== Potwierdzenie podnosi wynik UCZCIWIE ==");
 const cvPo = zastosujOdpowiedzi(sampleCv, pytania, [
