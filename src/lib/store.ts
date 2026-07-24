@@ -13,7 +13,12 @@ import type {
 import { emptyCv } from "./cv-schema";
 
 export type CvPath = "tailor" | "create";
-export type TemplateId = "klasyczny" | "nowoczesny";
+export type TemplateId =
+  | "klasyczny"
+  | "nowoczesny"
+  | "minimalny"
+  | "elegancki"
+  | "kompaktowy";
 
 /** Identyfikatory sekcji CV widocznych na liście edytora. */
 export type SectionId =

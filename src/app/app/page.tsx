@@ -10,13 +10,12 @@ import {
   Check,
   Target,
   SquarePen,
-  Plus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DownloadPdfButton } from "@/components/download-pdf-button";
 import { SelectCvDialog } from "@/components/select-cv-dialog";
+import { SampleCvPicker } from "@/components/sample-cv-picker";
 import { useCvStore } from "@/lib/store";
-import { sampleCv } from "@/lib/sample-cv";
 import { cn } from "@/lib/utils";
 
 function useProgress() {
@@ -326,18 +325,15 @@ function StartOnboarding() {
           <p className="mt-1.5 text-sm text-muted-foreground">
             Wczytaj przykładowe CV i pooglądaj edytor na żywych danych.
           </p>
-          <Button
-            size="sm"
-            variant="secondary"
-            className="mt-3 gap-1.5"
-            onClick={() => {
-              newCvFrom(sampleCv, "nowoczesny", "Przykładowe CV");
-              router.push("/app/kreator/edytor");
-            }}
-          >
-            <Plus className="size-3.5" />
-            Wczytaj przykład
-          </Button>
+          <div className="mt-3">
+            <SampleCvPicker
+              buttonLabel="Otwórz w edytorze"
+              onSelect={(cv, sample) => {
+                newCvFrom(cv, "nowoczesny", sample.name);
+                router.push("/app/kreator/edytor");
+              }}
+            />
+          </div>
         </div>
 
         <div className="card-surface p-5">

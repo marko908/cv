@@ -25,9 +25,48 @@ export function CvDocument({
     languages: rawCv.languages ?? [],
     skills: rawCv.skills ?? { technical: [], soft_and_tools: [] },
   };
-  const modern = template === "nowoczesny";
-  const accent = modern ? "text-[#0057D9]" : "text-neutral-900";
-  const rule = modern ? "border-[#0057D9]/30" : "border-neutral-300";
+  const styles = {
+    nowoczesny: {
+      page: "gap-5 px-12 py-10 text-[13px] leading-relaxed",
+      name: "text-3xl tracking-tight text-[#0057D9]",
+      accent: "text-[#0057D9]",
+      rule: "border-[#0057D9]/30",
+      heading: "pb-1 tracking-widest",
+      sectionGap: "gap-3.5",
+    },
+    klasyczny: {
+      page: "gap-5 px-12 py-10 text-[13px] leading-relaxed",
+      name: "text-3xl tracking-tight text-neutral-900",
+      accent: "text-neutral-900",
+      rule: "border-neutral-300",
+      heading: "pb-1 tracking-widest",
+      sectionGap: "gap-3.5",
+    },
+    minimalny: {
+      page: "gap-7 px-14 py-14 text-[13px] leading-relaxed",
+      name: "text-[32px] tracking-[-0.03em] text-[#1f2937]",
+      accent: "text-[#374151]",
+      rule: "border-neutral-200",
+      heading: "pb-1.5 tracking-[0.18em]",
+      sectionGap: "gap-4",
+    },
+    elegancki: {
+      page: "gap-6 px-14 py-12 text-[13px] leading-relaxed",
+      name: "text-[32px] uppercase tracking-[0.12em] text-[#1E3A5F]",
+      accent: "text-[#1E3A5F]",
+      rule: "border-[#1E3A5F]/30",
+      heading: "pb-1.5 tracking-[0.16em]",
+      sectionGap: "gap-4",
+    },
+    kompaktowy: {
+      page: "gap-3.5 px-9 py-8 text-[12px] leading-snug",
+      name: "text-[27px] tracking-tight text-[#0057D9]",
+      accent: "text-[#0057D9]",
+      rule: "border-[#0057D9]/30",
+      heading: "pb-0.5 tracking-[0.12em]",
+      sectionGap: "gap-2.5",
+    },
+  }[template];
 
   const contactLine = [
     cv.personal_info.email,
@@ -40,15 +79,15 @@ export function CvDocument({
 
   return (
     <div
-      className="flex flex-col gap-5 bg-white px-12 py-10 text-[13px] leading-relaxed text-[#1f2937]"
+      className={cn("flex flex-col bg-white text-[#1f2937]", styles.page)}
       style={{ fontFamily: "var(--font-cv), 'Lato', system-ui, sans-serif" }}
     >
       {/* Nagłówek */}
       <header>
         <h1
           className={cn(
-            "text-3xl font-bold tracking-tight",
-            modern ? "text-[#0057D9]" : "text-neutral-900"
+            "font-bold",
+            styles.name
           )}
         >
           {cv.personal_info.full_name || "Imię i nazwisko"}
@@ -69,8 +108,9 @@ export function CvDocument({
           <h2
             className={cn(
               "mb-1.5 border-b pb-1 text-xs font-bold uppercase tracking-widest",
-              accent,
-              rule
+              styles.accent,
+              styles.rule,
+              styles.heading
             )}
           >
             Podsumowanie zawodowe
@@ -85,13 +125,14 @@ export function CvDocument({
           <h2
             className={cn(
               "mb-2 border-b pb-1 text-xs font-bold uppercase tracking-widest",
-              accent,
-              rule
+              styles.accent,
+              styles.rule,
+              styles.heading
             )}
           >
             Doświadczenie zawodowe
           </h2>
-          <div className="flex flex-col gap-3.5">
+          <div className={cn("flex flex-col", styles.sectionGap)}>
             {cv.experience.map((exp, i) => (
               <div key={i}>
                 <div className="flex items-baseline justify-between gap-4">
@@ -128,8 +169,9 @@ export function CvDocument({
           <h2
             className={cn(
               "mb-2 border-b pb-1 text-xs font-bold uppercase tracking-widest",
-              accent,
-              rule
+              styles.accent,
+              styles.rule,
+              styles.heading
             )}
           >
             Projekty
@@ -176,8 +218,9 @@ export function CvDocument({
           <h2
             className={cn(
               "mb-1.5 border-b pb-1 text-xs font-bold uppercase tracking-widest",
-              accent,
-              rule
+              styles.accent,
+              styles.rule,
+              styles.heading
             )}
           >
             Umiejętności
@@ -203,8 +246,9 @@ export function CvDocument({
           <h2
             className={cn(
               "mb-2 border-b pb-1 text-xs font-bold uppercase tracking-widest",
-              accent,
-              rule
+              styles.accent,
+              styles.rule,
+              styles.heading
             )}
           >
             Edukacja
@@ -239,8 +283,9 @@ export function CvDocument({
           <h2
             className={cn(
               "mb-1.5 border-b pb-1 text-xs font-bold uppercase tracking-widest",
-              accent,
-              rule
+              styles.accent,
+              styles.rule,
+              styles.heading
             )}
           >
             Języki obce

@@ -16,22 +16,8 @@ import { Button } from "@/components/ui/button";
 import { TemplateThumb } from "@/components/template-thumb";
 import { useCvStore, type TemplateId } from "@/lib/store";
 import { sampleCv } from "@/lib/sample-cv";
+import { CV_TEMPLATES } from "@/lib/cv-templates";
 import { cn } from "@/lib/utils";
-
-const templates: { id: TemplateId; name: string; description: string }[] = [
-  {
-    id: "nowoczesny",
-    name: "Nowoczesny",
-    description:
-      "Granatowe akcenty, czytelna hierarchia. Jedna kolumna — w 100% czytelna dla ATS.",
-  },
-  {
-    id: "klasyczny",
-    name: "Klasyczny",
-    description:
-      "Czerń i biel, zero ozdobników. Bezpieczny wybór do konserwatywnych branż.",
-  },
-];
 
 /**
  * Modal wyboru szablonu (wzorzec z ResuMax) z prawdziwymi miniaturami CV.
@@ -58,7 +44,7 @@ export function NewCvDialog({
   const hasData =
     cv.personal_info.full_name.trim().length > 0 || cv.experience.length > 0;
   const thumbCv = hasData ? cv : sampleCv;
-  const selectedName = templates.find((t) => t.id === selected)?.name;
+  const selectedName = CV_TEMPLATES.find((t) => t.id === selected)?.name;
 
   return (
     <Dialog
@@ -69,7 +55,7 @@ export function NewCvDialog({
       }}
     >
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="shadow-dialog sm:max-w-2xl">
+      <DialogContent className="max-h-[88vh] overflow-y-auto shadow-dialog sm:max-w-3xl">
         <DialogHeader>
           <p className="eyebrow text-muted-foreground">Szablony</p>
           <DialogTitle>Wybierz szablon</DialogTitle>
@@ -79,7 +65,7 @@ export function NewCvDialog({
         </DialogHeader>
 
         <div className="grid grid-cols-2 gap-4">
-          {templates.map((t) => (
+          {CV_TEMPLATES.map((t) => (
             <button
               key={t.id}
               type="button"
@@ -91,7 +77,7 @@ export function NewCvDialog({
                   : "hover:bg-accent"
               )}
             >
-              {t.id === "nowoczesny" && (
+              {t.recommended && (
                 <span className="eyebrow absolute left-5 top-5 z-10 rounded-full bg-primary px-2 py-0.5 text-primary-foreground">
                   Polecany
                 </span>
@@ -104,8 +90,8 @@ export function NewCvDialog({
               <TemplateThumb
                 template={t.id}
                 cv={thumbCv}
-                width={260}
-                className="w-full"
+                width={220}
+                className="mx-auto"
               />
               <span className="mt-3 block text-sm font-bold">{t.name}</span>
               <span className="mt-0.5 block text-xs text-muted-foreground">

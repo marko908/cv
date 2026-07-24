@@ -10,6 +10,7 @@
     "test:walidator": "tsx scripts/test-validator.ts",
     "test:dopasowanie": "tsx scripts/test-matching.ts",
     "test:wywiad": "tsx scripts/test-interview.ts",
+    "verify:pdf": "tsx scripts/render-template.ts",
     "test:oferta": "node --env-file=.env.local --import tsx scripts/test-oferta-live.ts",
     "test:pipeline": "node --env-file=.env.local --import tsx scripts/test-pipeline-live.ts"
   },
@@ -37,6 +38,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.11",
+    "pdf-to-img": "^6.2.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.1",
     "typescript": "^5"

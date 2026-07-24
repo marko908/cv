@@ -20,6 +20,7 @@ import { SECTION_META, SECTION_ORDER } from "@/lib/sections";
 import type { TailoredCv } from "@/lib/cv-schema";
 import { PersonalInfoDialog, SECTION_DIALOGS } from "./section-dialogs";
 import { AddSectionDialog } from "./add-section-dialog";
+import { SampleCvPicker } from "@/components/sample-cv-picker";
 import { cn } from "@/lib/utils";
 
 /** Krótki status wypełnienia sekcji pokazywany w wierszu. */
@@ -198,7 +199,7 @@ export function SectionList() {
       </div>
 
       {/* Skrót do przykładu / wyczyszczenia */}
-      <div className="mt-1 flex gap-2 border-t border-border/60 pt-3">
+      <div className="mt-1 flex min-w-0 flex-wrap items-center gap-2 border-t border-border/60 pt-3">
         <SampleButtons loadCv={loadCv} />
       </div>
     </div>
@@ -209,21 +210,11 @@ function SampleButtons({ loadCv }: { loadCv: (cv: TailoredCv) => void }) {
   const resetCv = useCvStore((s) => s.resetCv);
   return (
     <>
+      <SampleCvPicker onSelect={(cv) => loadCv(cv)} compact />
       <Button
         variant="ghost"
         size="sm"
-        className="flex-1 text-xs text-muted-foreground"
-        onClick={async () => {
-          const { sampleCv } = await import("@/lib/sample-cv");
-          loadCv(sampleCv);
-        }}
-      >
-        Wczytaj przykład
-      </Button>
-      <Button
-        variant="ghost"
-        size="sm"
-        className="flex-1 text-xs text-muted-foreground"
+        className="shrink-0 text-xs text-muted-foreground"
         onClick={resetCv}
       >
         Wyczyść

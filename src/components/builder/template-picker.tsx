@@ -1,29 +1,11 @@
 "use client";
 
 import { Check, Lock } from "lucide-react";
-import { useCvStore, type TemplateId } from "@/lib/store";
+import { useCvStore } from "@/lib/store";
 import { TemplateThumb } from "@/components/template-thumb";
 import { sampleCv } from "@/lib/sample-cv";
+import { CV_TEMPLATES } from "@/lib/cv-templates";
 import { cn } from "@/lib/utils";
-
-const templates: {
-  id: TemplateId;
-  name: string;
-  description: string;
-}[] = [
-  {
-    id: "nowoczesny",
-    name: "Nowoczesny",
-    description:
-      "Granatowe akcenty, czytelna hierarchia. Jedna kolumna — w 100% czytelna dla ATS.",
-  },
-  {
-    id: "klasyczny",
-    name: "Klasyczny",
-    description:
-      "Czerń i biel, zero ozdobników. Bezpieczny wybór do konserwatywnych branż (bank, administracja).",
-  },
-];
 
 export function TemplatePicker() {
   const { cv, template, setTemplate } = useCvStore();
@@ -43,7 +25,7 @@ export function TemplatePicker() {
         </p>
       </div>
 
-      {templates.map((t) => (
+      {CV_TEMPLATES.map((t) => (
         <button
           key={t.id}
           type="button"
@@ -55,7 +37,7 @@ export function TemplatePicker() {
               : "hover:bg-accent"
           )}
         >
-          {t.id === "nowoczesny" && (
+          {t.recommended && (
             <span className="eyebrow absolute left-6 top-6 z-10 rounded-full bg-primary px-2 py-0.5 text-primary-foreground">
               Polecany
             </span>
@@ -69,8 +51,8 @@ export function TemplatePicker() {
           <TemplateThumb
             template={t.id}
             cv={thumbCv}
-            width={310}
-            className="w-full"
+            width={240}
+            className="mx-auto"
           />
 
           <span className="mt-3 block text-sm font-bold">{t.name}</span>
