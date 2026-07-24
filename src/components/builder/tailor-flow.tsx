@@ -26,7 +26,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import { useCvStore } from "@/lib/store";
+import { useCvStore, type Tailoring } from "@/lib/store";
 import { buildTailoring, REVIEW_SPECIALISTS } from "@/lib/mock-review";
 import { PaywallDialog } from "./paywall-dialog";
 import { cn, pluralize } from "@/lib/utils";
@@ -69,6 +69,41 @@ export function TailorFlow({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
+  /**
+   * Produkuje dopasowanie: najpierw prawdziwy pipeline AI (trasa /api/dopasuj),
+   * a gdy się nie uda (brak klucza, błąd, offline) — mock, żeby demo działało
+   * bez konfiguracji. Klient nigdy nie widzi klucza; cała praca z modelem jest
+   * po stronie serwera.
+   */
+  const produce = async (): Promise<Tailoring> => {
+    try {
+      const res = await fetch("/api/dopasuj", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cv,
+          template,
+          jobText: jobPosting.text,
+          jobUrl: jobPosting.url,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.ok && data.tailoring) return data.tailoring as Tailoring;
+      }
+    } catch {
+      // sieć/serwer padł — spadamy na mock poniżej
+    }
+    return buildTailoring(cv, jobPosting, template);
+  };
+
+  const zapiszWynik = (t: Tailoring) => {
+    addTailoring(t);
+    setAiMeta(t.aiMeta);
+    setTailoringId(t.id);
+    setStep("result");
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
@@ -83,13 +118,8 @@ export function TailorFlow({
           )}
           {step === "running" && (
             <RunningStep
-              onDone={() => {
-                const t = buildTailoring(cv, jobPosting, template);
-                addTailoring(t);
-                setAiMeta(t.aiMeta);
-                setTailoringId(t.id);
-                setStep("result");
-              }}
+              produce={produce}
+              onDone={zapiszWynik}
               onCancel={() => setStep("config")}
             />
           )}
@@ -185,36 +215,73 @@ function ConfigStep({
 
 /* ---------- Ekran 2: analiza w toku ---------- */
 function RunningStep({
+  produce,
   onDone,
   onCancel,
 }: {
-  onDone: () => void;
+  produce: () => Promise<Tailoring>;
+  onDone: (t: Tailoring) => void;
   onCancel: () => void;
 }) {
   const [doneCount, setDoneCount] = useState(0);
   const [log, setLog] = useState<string[]>([]);
   const doneRef = useRef(onDone);
   doneRef.current = onDone;
+  const produceRef = useRef(produce);
+  produceRef.current = produce;
 
   useEffect(() => {
+    const total = REVIEW_SPECIALISTS.length;
+    let cancelled = false;
+    let finished = false;
+    let wynik: Tailoring | null = null;
+    let minPo = false; // czy minęła minimalna animacja
+
     const timers: ReturnType<typeof setTimeout>[] = [];
-    REVIEW_SPECIALISTS.forEach((spec, i) => {
+
+    // Animujemy pierwszych (total-1) specjalistów. Ostatni czeka na wynik
+    // pipeline'u — dzięki temu pasek nie pokazuje „gotowe", gdy praca trwa.
+    for (let i = 0; i < total - 1; i++) {
+      const spec = REVIEW_SPECIALISTS[i];
       timers.push(
         setTimeout(() => {
           setDoneCount((n) => n + 1);
-          // Dopisujemy na dole — kolejność narasta, tekst nie „skacze".
           setLog((l) => [...l, `${spec.label} — ${spec.note}`]);
         }, 500 + i * 650)
       );
-    });
-    // finalizacja po ostatnim specjaliście
+    }
+
+    const finalize = () => {
+      if (cancelled || finished || !wynik || !minPo) return;
+      finished = true;
+      const ostatni = REVIEW_SPECIALISTS[total - 1];
+      setDoneCount(total);
+      setLog((l) => [...l, `${ostatni.label} — ${ostatni.note}`]);
+      doneRef.current(wynik);
+    };
+
+    // Minimalny czas animacji, żeby wynik nie „mignął" przy szybkim mocku.
     timers.push(
       setTimeout(
-        () => doneRef.current(),
-        700 + REVIEW_SPECIALISTS.length * 650
+        () => {
+          minPo = true;
+          finalize();
+        },
+        500 + Math.max(0, total - 1) * 650
       )
     );
-    return () => timers.forEach(clearTimeout);
+
+    // Prawdziwa praca leci równolegle.
+    produceRef.current().then((t) => {
+      if (cancelled) return;
+      wynik = t;
+      finalize();
+    });
+
+    return () => {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+    };
   }, []);
 
   const total = REVIEW_SPECIALISTS.length;

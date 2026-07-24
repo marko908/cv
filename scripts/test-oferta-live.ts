@@ -45,7 +45,7 @@ async function main() {
   console.log("Parsuję ogłoszenie...\n");
 
   const start = Date.now();
-  const oferta = await parsujOferte(OGLOSZENIE);
+  const { oferta } = await parsujOferte(OGLOSZENIE);
   const czas = ((Date.now() - start) / 1000).toFixed(1);
 
   console.log(`Sparsowano w ${czas}s\n`);

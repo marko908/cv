@@ -79,16 +79,27 @@ ZASADY BEZWZGLĘDNE:
 
 Odpowiadasz po polsku, poprawną polszczyzną.`;
 
+/** Zużycie tokenów pojedynczego wywołania — do liczenia realnego kosztu. */
+export type Zuzycie = { wejscie: number; wyjscie: number };
+
 /**
  * Parsuje wklejoną treść ogłoszenia do struktury wymagań.
  * Wymaga skonfigurowanego klucza API (patrz models.ts).
  */
-export async function parsujOferte(trescOferty: string): Promise<ParsedOferta> {
-  const { object } = await generateObject({
+export async function parsujOferte(
+  trescOferty: string
+): Promise<{ oferta: ParsedOferta; zuzycie: Zuzycie }> {
+  const { object, usage } = await generateObject({
     model: model(MODEL_TANI),
     schema: ofertaSchema,
     instructions: INSTRUKCJA,
     prompt: `Rozłóż to ogłoszenie na wymagania:\n\n${trescOferty}`,
   });
-  return object;
+  return {
+    oferta: object,
+    zuzycie: {
+      wejscie: usage.inputTokens ?? 0,
+      wyjscie: usage.outputTokens ?? 0,
+    },
+  };
 }
