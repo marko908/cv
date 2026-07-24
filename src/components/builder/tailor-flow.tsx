@@ -277,6 +277,11 @@ function RunningStep({
   doneRef.current = onDone;
   const produceRef = useRef(produce);
   produceRef.current = produce;
+  // Trzyma jedno wywołanie pipeline'u. W trybie dev React StrictMode uruchamia
+  // efekt dwa razy — bez tego pipeline (a więc płatny model) odpalałby się
+  // dwukrotnie. Oba przebiegi efektu współdzielą tę samą obietnicę, więc
+  // realne wywołanie modelu jest jedno. W produkcji StrictMode i tak nie dubluje.
+  const produkcjaRef = useRef<Promise<Produkt> | null>(null);
 
   useEffect(() => {
     const total = REVIEW_SPECIALISTS.length;
@@ -319,8 +324,12 @@ function RunningStep({
       )
     );
 
-    // Prawdziwa praca leci równolegle.
-    produceRef.current().then((t) => {
+    // Prawdziwa praca leci równolegle — ale odpalamy ją tylko RAZ.
+    // Drugi przebieg efektu (StrictMode w dev) podpina się pod tę samą obietnicę.
+    if (!produkcjaRef.current) {
+      produkcjaRef.current = produceRef.current();
+    }
+    produkcjaRef.current.then((t) => {
       if (cancelled) return;
       wynik = t;
       finalize();
