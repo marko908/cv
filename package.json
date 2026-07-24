@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test:walidator": "tsx scripts/test-validator.ts",
     "test:dopasowanie": "tsx scripts/test-matching.ts",
+    "test:wywiad": "tsx scripts/test-interview.ts",
     "test:oferta": "node --env-file=.env.local --import tsx scripts/test-oferta-live.ts",
     "test:pipeline": "node --env-file=.env.local --import tsx scripts/test-pipeline-live.ts"
   },

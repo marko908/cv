@@ -28,10 +28,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { useCvStore, type Tailoring } from "@/lib/store";
 import { buildTailoring, REVIEW_SPECIALISTS } from "@/lib/mock-review";
+import type { TailoredCv } from "@/lib/cv-schema";
+import {
+  zastosujOdpowiedzi,
+  type OdpowiedzWywiadu,
+  type PytanieWywiadu,
+} from "@/lib/ai/interview";
 import { PaywallDialog } from "./paywall-dialog";
 import { cn, pluralize } from "@/lib/utils";
 
-type Step = "config" | "running" | "result";
+type Step = "config" | "running" | "interview" | "result";
+
+/** Wynik produkcji dopasowania: rekord + pytania wywiadu (nieutrwalane). */
+type Produkt = { tailoring: Tailoring; pytania: PytanieWywiadu[] };
 
 export function TailorFlow({
   trigger,
@@ -44,6 +53,9 @@ export function TailorFlow({
   const [step, setStep] = useState<Step>("config");
   const [paywallOpen, setPaywallOpen] = useState(false);
   const [tailoringId, setTailoringId] = useState<string | null>(null);
+  const [pytania, setPytania] = useState<PytanieWywiadu[]>([]);
+  // Wzbogacone CV z wywiadu — baza kolejnego przebiegu (null = CV ze store'u).
+  const [pendingCv, setPendingCv] = useState<TailoredCv | null>(null);
 
   const {
     cv,
@@ -54,7 +66,11 @@ export function TailorFlow({
     setAiMeta,
     resetReview,
     addTailoring,
+    removeTailoring,
   } = useCvStore();
+
+  // Rekord do zastąpienia po przeliczeniu z wywiadu (żeby nie mnożyć historii).
+  const zastapRef = useRef<string | null>(null);
 
   // Otwórz, gdy sygnał z zewnątrz (np. ?oferta=1) się pojawi.
   useEffect(() => {
@@ -75,13 +91,13 @@ export function TailorFlow({
    * bez konfiguracji. Klient nigdy nie widzi klucza; cała praca z modelem jest
    * po stronie serwera.
    */
-  const produce = async (): Promise<Tailoring> => {
+  const produce = async (bazaCv: TailoredCv): Promise<Produkt> => {
     try {
       const res = await fetch("/api/dopasuj", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          cv,
+          cv: bazaCv,
           template,
           jobText: jobPosting.text,
           jobUrl: jobPosting.url,
@@ -89,19 +105,45 @@ export function TailorFlow({
       });
       if (res.ok) {
         const data = await res.json();
-        if (data?.ok && data.tailoring) return data.tailoring as Tailoring;
+        if (data?.ok && data.tailoring) {
+          return {
+            tailoring: data.tailoring as Tailoring,
+            pytania: (data.pytania ?? []) as PytanieWywiadu[],
+          };
+        }
       }
     } catch {
-      // sieć/serwer padł — spadamy na mock poniżej
+      // sieć/serwer padł — spadamy na mock poniżej (bez wywiadu)
     }
-    return buildTailoring(cv, jobPosting, template);
+    return { tailoring: buildTailoring(bazaCv, jobPosting, template), pytania: [] };
   };
 
-  const zapiszWynik = (t: Tailoring) => {
+  const zapiszWynik = ({ tailoring: t, pytania: p }: Produkt) => {
     addTailoring(t);
+    // Przeliczenie z wywiadu zastępuje poprzedni rekord, nie mnoży historii.
+    if (zastapRef.current && zastapRef.current !== t.id) {
+      removeTailoring(zastapRef.current);
+    }
+    zastapRef.current = null;
     setAiMeta(t.aiMeta);
     setTailoringId(t.id);
+    setPytania(p);
     setStep("result");
+  };
+
+  // Wywiad: nakładamy potwierdzone odpowiedzi na CV i uruchamiamy ponownie.
+  const wzmocnij = (odpowiedzi: OdpowiedzWywiadu[]) => {
+    const baza = pendingCv ?? cv;
+    zastapRef.current = tailoringId; // ten rekord skasujemy po przeliczeniu
+    setPendingCv(zastosujOdpowiedzi(baza, pytania, odpowiedzi));
+    setStep("running");
+  };
+
+  const resetFlow = () => {
+    resetReview();
+    setPytania([]);
+    setPendingCv(null);
+    setStep("config");
   };
 
   return (
@@ -118,19 +160,25 @@ export function TailorFlow({
           )}
           {step === "running" && (
             <RunningStep
-              produce={produce}
+              produce={() => produce(pendingCv ?? cv)}
               onDone={zapiszWynik}
               onCancel={() => setStep("config")}
+            />
+          )}
+          {step === "interview" && (
+            <InterviewStep
+              pytania={pytania}
+              onSubmit={wzmocnij}
+              onSkip={() => setStep("result")}
             />
           )}
           {step === "result" && (
             <ResultStep
               tailoringId={tailoringId}
+              pytania={pytania}
+              onWzmocnij={() => setStep("interview")}
               onClose={() => setOpen(false)}
-              onRerun={() => {
-                resetReview();
-                setStep("config");
-              }}
+              onRerun={resetFlow}
               onUnlock={() => setPaywallOpen(true)}
             />
           )}
@@ -219,8 +267,8 @@ function RunningStep({
   onDone,
   onCancel,
 }: {
-  produce: () => Promise<Tailoring>;
-  onDone: (t: Tailoring) => void;
+  produce: () => Promise<Produkt>;
+  onDone: (res: Produkt) => void;
   onCancel: () => void;
 }) {
   const [doneCount, setDoneCount] = useState(0);
@@ -234,7 +282,7 @@ function RunningStep({
     const total = REVIEW_SPECIALISTS.length;
     let cancelled = false;
     let finished = false;
-    let wynik: Tailoring | null = null;
+    let wynik: Produkt | null = null;
     let minPo = false; // czy minęła minimalna animacja
 
     const timers: ReturnType<typeof setTimeout>[] = [];
@@ -359,16 +407,136 @@ function RunningStep({
   );
 }
 
+/* ---------- Ekran pośredni: wywiad ---------- */
+function InterviewStep({
+  pytania,
+  onSubmit,
+  onSkip,
+}: {
+  pytania: PytanieWywiadu[];
+  onSubmit: (odpowiedzi: OdpowiedzWywiadu[]) => void;
+  onSkip: () => void;
+}) {
+  // Stan odpowiedzi: dla każdego pytania „mam” + opcjonalny szczegół.
+  const [stan, setStan] = useState<
+    Record<string, { ma: boolean; szczegol: string }>
+  >(() => Object.fromEntries(pytania.map((p) => [p.id, { ma: false, szczegol: "" }])));
+
+  const potwierdzone = pytania.filter((p) => stan[p.id]?.ma).length;
+
+  const wyslij = () => {
+    onSubmit(
+      pytania.map((p) => ({
+        id: p.id,
+        ma: stan[p.id]?.ma ?? false,
+        szczegol: stan[p.id]?.szczegol,
+      }))
+    );
+  };
+
+  return (
+    <>
+      <DialogHeader>
+        <p className="eyebrow flex items-center gap-1.5 text-primary">
+          <Target className="size-3.5" />
+          Wzmocnij swoje CV
+        </p>
+        <DialogTitle>Kilka pytań o brakujące konkrety</DialogTitle>
+        <DialogDescription>
+          Ta oferta wymaga rzeczy, których nie znaleźliśmy w Twoim CV. Nie
+          dopisujemy niczego za Ciebie — ale jeśli faktycznie masz z tym
+          styczność, potwierdź, a policzymy dopasowanie od nowa.
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="flex flex-col gap-4">
+        {pytania.map((p) => {
+          const s = stan[p.id] ?? { ma: false, szczegol: "" };
+          return (
+            <div key={p.id} className="card-surface p-4">
+              <p className="text-sm font-medium">{p.pytanie}</p>
+              <div className="mt-2 flex gap-1.5">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setStan((st) => ({ ...st, [p.id]: { ...s, ma: true } }))
+                  }
+                  className={cn(
+                    "rounded-full px-3 py-1 text-xs font-bold transition-colors",
+                    s.ma
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-secondary text-muted-foreground"
+                  )}
+                >
+                  Mam to
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setStan((st) => ({
+                      ...st,
+                      [p.id]: { ma: false, szczegol: "" },
+                    }))
+                  }
+                  className={cn(
+                    "rounded-full px-3 py-1 text-xs font-bold transition-colors",
+                    !s.ma
+                      ? "bg-accent text-foreground"
+                      : "bg-secondary text-muted-foreground"
+                  )}
+                >
+                  Nie mam
+                </button>
+              </div>
+              {s.ma && (
+                <Textarea
+                  value={s.szczegol}
+                  onChange={(e) =>
+                    setStan((st) => ({
+                      ...st,
+                      [p.id]: { ...s, szczegol: e.target.value },
+                    }))
+                  }
+                  placeholder={p.hint}
+                  className="mt-2 min-h-16 text-sm"
+                />
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="flex items-center justify-between gap-2">
+        <button
+          type="button"
+          onClick={onSkip}
+          className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          Pomiń
+        </button>
+        <Button onClick={wyslij} disabled={potwierdzone === 0} className="gap-2 font-bold">
+          <RefreshCw className="size-4" />
+          Przelicz z {potwierdzone === 1 ? "1 uzupełnieniem" : `${potwierdzone} uzupełnieniami`}
+        </Button>
+      </div>
+    </>
+  );
+}
+
 /* ---------- Ekran 3: wynik ---------- */
 const FREE_FINDINGS = 2; // ile poprawek widać przed opłatą
 
 function ResultStep({
   tailoringId,
+  pytania,
+  onWzmocnij,
   onClose,
   onRerun,
   onUnlock,
 }: {
   tailoringId: string | null;
+  pytania: PytanieWywiadu[];
+  onWzmocnij: () => void;
   onClose: () => void;
   onRerun: () => void;
   onUnlock: () => void;
@@ -380,6 +548,7 @@ function ResultStep({
   const unlocked = aiMeta.unlocked ?? false;
   const fixCount = findings.length;
   const lockedCount = Math.max(0, fixCount - FREE_FINDINGS);
+  const mozliwyWywiad = pytania.length > 0;
 
   return (
     <>
@@ -405,13 +574,41 @@ function ResultStep({
           {score}
           <span className="text-lg text-muted-foreground">/100</span>
         </p>
-        {before !== undefined && (
+        {before !== undefined && score > before && (
           <p className="mt-1 text-sm text-muted-foreground">
             przed dopasowaniem: {before}/100 —{" "}
             <span className="font-bold text-primary">+{score - before}</span>
           </p>
         )}
+        {before !== undefined && score <= before && (
+          <p className="mt-1 text-sm text-muted-foreground">
+            Twoje CV już dobrze pasuje do tej oferty — dopracowaliśmy brzmienie
+            pod ATS i czytelność.
+          </p>
+        )}
       </div>
+
+      {/* Wywiad — realny sposób na podniesienie wyniku bez zmyślania */}
+      {mozliwyWywiad && (
+        <button
+          type="button"
+          onClick={onWzmocnij}
+          className="flex w-full items-center justify-between gap-3 rounded-lg border border-primary/40 bg-primary/5 p-4 text-left transition-colors hover:bg-primary/10"
+        >
+          <span>
+            <span className="flex items-center gap-1.5 text-sm font-bold text-primary">
+              <Target className="size-4" />
+              Możesz podnieść ten wynik
+            </span>
+            <span className="mt-0.5 block text-xs text-muted-foreground">
+              Oferta wymaga {pluralize(pytania.length, "rzeczy", "rzeczy", "rzeczy")},
+              których nie ma w Twoim CV. Jeśli faktycznie je masz — potwierdź, a
+              policzymy dopasowanie od nowa. Bez zmyślania.
+            </span>
+          </span>
+          <ArrowRight className="size-4 shrink-0 text-primary" />
+        </button>
+      )}
 
       {/* Poprawki */}
       <div className="flex flex-col gap-2">

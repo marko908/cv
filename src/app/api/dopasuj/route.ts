@@ -90,7 +90,7 @@ export async function POST(request: Request) {
       ...wynik.diagnostyka,
     });
 
-    return NextResponse.json({ ok: true, tailoring });
+    return NextResponse.json({ ok: true, tailoring, pytania: wynik.pytania });
   } catch (e) {
     console.error("[dopasuj] błąd pipeline:", e);
     return NextResponse.json(

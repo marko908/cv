@@ -6,6 +6,7 @@ import { dopasuj, type WynikDopasowania } from "./matching";
 import { przepiszCv, zlozCv } from "./rewrite";
 import { validateAgainstLedger, type Violation } from "./validator";
 import { opiszZmiany, zbudujWskazowki } from "./changes";
+import { zbudujPytania, type PytanieWywiadu } from "./interview";
 
 /**
  * Pełny przebieg dopasowania CV do oferty.
@@ -24,6 +25,8 @@ export type WynikPipeline = {
   oferta: ParsedOferta;
   tailoredCv: TailoredCv;
   aiMeta: AiMeta;
+  /** Pytania wywiadu do luk — do opcjonalnego wzmocnienia CV. */
+  pytania: PytanieWywiadu[];
   /** Naruszenia odrzucone przez walidator — do diagnostyki i logów. */
   odrzucone: Violation[];
   diagnostyka: {
@@ -138,6 +141,7 @@ export async function uruchomDopasowanie(
     jobTitle: tytulDopasowania(oferta),
     oferta,
     tailoredCv,
+    pytania: zbudujPytania(po.luki),
     aiMeta: {
       matchScoreBefore: przed.wynik,
       matchScoreAfter: po.wynik,

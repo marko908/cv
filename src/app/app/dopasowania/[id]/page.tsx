@@ -102,10 +102,13 @@ export default function DopasowanieDetailPage({
             {score}
             <span className="text-base text-muted-foreground">/100</span>
           </p>
-          {before !== undefined && (
+          {before !== undefined && score > before && (
             <p className="text-xs text-muted-foreground">
               przed: {before} · <span className="text-primary">+{score - before}</span>
             </p>
+          )}
+          {before !== undefined && score <= before && (
+            <p className="text-xs text-muted-foreground">już dobrze dopasowane</p>
           )}
         </div>
       </div>
