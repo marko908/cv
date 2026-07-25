@@ -55,8 +55,11 @@ export function NewCvDialog({
       }}
     >
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="max-h-[88vh] overflow-y-auto shadow-dialog sm:max-w-3xl">
-        <DialogHeader>
+      {/* Układ flex-kolumnowy: nagłówek i stopka stałe, szablony w środku
+          przewijają się. Dzięki temu przycisk zatwierdzenia jest ZAWSZE widoczny
+          na dole — niezależnie od liczby szablonów i wysokości ekranu. */}
+      <DialogContent className="flex max-h-[88vh] flex-col gap-0 p-0 shadow-dialog sm:max-w-3xl">
+        <DialogHeader className="shrink-0 p-4 pb-3">
           <p className="eyebrow text-muted-foreground">Szablony</p>
           <DialogTitle>Wybierz szablon</DialogTitle>
           <DialogDescription>
@@ -64,8 +67,9 @@ export function NewCvDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Mobile: poziomy pasek przewijania (treść niska → przycisk zawsze widoczny).
-            sm+: klasyczna siatka 2-kolumnowa. */}
+        {/* Środkowa, przewijana sekcja. Mobile: poziomy pasek (treść niska).
+            sm+: siatka 2-kolumnowa przewijana pionowo. */}
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
         <div className="flex min-w-0 snap-x snap-mandatory gap-4 overflow-x-auto pb-1 sm:grid sm:grid-cols-2 sm:overflow-x-visible sm:pb-0">
           {CV_TEMPLATES.map((t) => (
             <button
@@ -102,8 +106,9 @@ export function NewCvDialog({
             </button>
           ))}
         </div>
+        </div>
 
-        <DialogFooter className="items-center sm:justify-between">
+        <DialogFooter className="mx-0 mb-0 shrink-0 items-center sm:justify-between">
           <p className="text-xs text-muted-foreground">
             Wybrano: <span className="font-bold">{selectedName}</span>
           </p>
