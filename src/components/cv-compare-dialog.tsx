@@ -77,7 +77,7 @@ export function CvCompareDialog({
         style={{ display: "flex", flexDirection: "column" }}
         className="h-[94vh] w-[96vw] max-w-[1400px] gap-0 overflow-hidden p-0 shadow-dialog sm:max-w-[1400px]"
       >
-        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border/60 px-4 py-3">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border/60 py-3 pl-4 pr-11 lg:pr-4">
           <DialogTitle className="text-sm font-bold">
             Porównanie CV — przed i po dopasowaniu
           </DialogTitle>

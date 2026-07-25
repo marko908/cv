@@ -82,7 +82,7 @@ export function PaywallDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         className={cn(
-          "shadow-dialog",
+          "max-h-[90vh] overflow-y-auto shadow-dialog",
           view === "pricing" ? "sm:max-w-2xl" : "sm:max-w-md"
         )}
       >

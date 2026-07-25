@@ -354,7 +354,7 @@ function RunningStep({
 
   return (
     <>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pr-8">
         <button
           type="button"
           onClick={onCancel}
@@ -589,7 +589,7 @@ function ResultStep({
 
   return (
     <>
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2 pr-8">
         <p className="eyebrow flex items-center gap-1.5 text-primary">
           <Target className="size-3.5" />
           Wynik dopasowania
@@ -597,7 +597,7 @@ function ResultStep({
         <button
           type="button"
           onClick={onRerun}
-          className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          className="flex shrink-0 items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <RefreshCw className="size-3.5" />
           Analizuj ponownie
