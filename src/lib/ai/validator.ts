@@ -58,6 +58,13 @@ const FRAZESY = [
   "profesjonalne podejscie",
   "wysoka kultura osobista",
   "praca pod presja czasu",
+  // Dodane z syntezy poradników — puste deklaracje, które i tak weryfikuje
+  // się na rozmowie, więc w CV nic nie wnoszą.
+  "dyspozycyjny",
+  "praca zespolowa",
+  "obsluga komputera",
+  "obsluga urzadzen biurowych",
+  "dobra organizacja czasu pracy",
 ];
 
 /** Poziomy językowe w kolejności rosnącej — nie wolno ich podnosić. */
