@@ -64,14 +64,16 @@ export function NewCvDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {/* Mobile: poziomy pasek przewijania (treść niska → przycisk zawsze widoczny).
+            sm+: klasyczna siatka 2-kolumnowa. */}
+        <div className="flex min-w-0 snap-x snap-mandatory gap-4 overflow-x-auto pb-1 sm:grid sm:grid-cols-2 sm:overflow-x-visible sm:pb-0">
           {CV_TEMPLATES.map((t) => (
             <button
               key={t.id}
               type="button"
               onClick={() => setSelected(t.id)}
               className={cn(
-                "relative rounded-lg bg-secondary p-3 text-left transition-all",
+                "relative w-64 shrink-0 snap-start rounded-lg bg-secondary p-3 text-left transition-all sm:w-auto",
                 selected === t.id
                   ? "shadow-elevated ring-2 ring-primary"
                   : "hover:bg-accent"
