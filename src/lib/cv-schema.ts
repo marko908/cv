@@ -79,6 +79,26 @@ export const changeLogEntrySchema = z.object({
   reason: z.string().describe("Dlaczego — w odniesieniu do oferty pracy"),
 });
 
+/**
+ * Jedno kryterium rubryki oceny CV (0–100). Wynik rozkładamy na jawne,
+ * ważone kryteria, żeby liczba była UZASADNIALNA i POWTARZALNA, a użytkownik
+ * rozumiał, z czego wynika i co konkretnie poprawiliśmy.
+ */
+export const scoreCriterionSchema = z.object({
+  id: z.string(),
+  label: z.string().describe("Nazwa kryterium widoczna dla użytkownika"),
+  weight: z.number().describe("Maksymalna liczba punktów tego kryterium"),
+  before: z.number().describe("Punkty przed dopasowaniem"),
+  after: z.number().describe("Punkty po dopasowaniu"),
+  explanation: z
+    .string()
+    .describe("Krótkie wyjaśnienie dla użytkownika: skąd ten wynik"),
+  dependsOnOffer: z
+    .boolean()
+    .describe("Czy kryterium zależy od konkretnej oferty, czy to ogólna jakość CV"),
+});
+export type ScoreCriterion = z.infer<typeof scoreCriterionSchema>;
+
 /** Pełna odpowiedź AI dla ścieżki A (tailoring) i B (generowanie od zera). */
 export const cvGenerationSchema = z.object({
   match_score_before: z

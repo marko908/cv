@@ -1,4 +1,6 @@
-import type { TailoredCv } from "./cv-schema";
+import type { ScoreCriterion, TailoredCv } from "./cv-schema";
+import { ocenCv } from "./ai/scoring";
+import type { WynikDopasowania } from "./ai/matching";
 import type {
   AiMeta,
   JobPosting,
@@ -364,6 +366,26 @@ function makeId(): string {
   return `t_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 }
 
+/**
+ * Zgrubne dopasowanie dla mocka: pokrycie słów kluczowych z oferty.
+ * `ocenCv` czyta z niego tylko `wynik` i `pokrycieSlowKluczowych`, więc taki
+ * skrócony obiekt wystarcza, by rubryka policzyła się tym samym kodem co w
+ * prawdziwym pipelinie (spójny wynik demo ↔ produkcja).
+ */
+function stubDopasowanie(cv: TailoredCv, jobText: string): WynikDopasowania {
+  const jobKw = keywordsFromJob(jobText);
+  if (jobKw.length === 0) {
+    return { wynik: 60, pokrycieSlowKluczowych: 0 } as unknown as WynikDopasowania;
+  }
+  const have = cvKeywords(cv);
+  const covered = jobKw.filter((k) => have.has(k.toLowerCase())).length;
+  const proc = Math.round((covered / jobKw.length) * 100);
+  return {
+    wynik: proc,
+    pokrycieSlowKluczowych: proc,
+  } as unknown as WynikDopasowania;
+}
+
 /** Buduje kompletny rekord dopasowania (ocena + poprawione CV) — do historii. */
 export function buildTailoring(
   cv: TailoredCv,
@@ -372,6 +394,27 @@ export function buildTailoring(
 ): Tailoring {
   const aiMeta = runMockReview(cv, jobPosting.text);
   const tailoredCv = buildTailoredCv(cv, aiMeta.addedKeywords);
+
+  // Rubryka oceny 0–100 tym samym kodem co prawdziwy pipeline — dzięki temu
+  // nawet demo bez klucza pokazuje użytkownikowi, z czego wynika wynik.
+  const przed = ocenCv(cv, stubDopasowanie(cv, jobPosting.text));
+  const po = ocenCv(tailoredCv, stubDopasowanie(tailoredCv, jobPosting.text));
+  const scoreBreakdown: ScoreCriterion[] = po.kryteria.map((k) => {
+    const b = przed.kryteria.find((x) => x.id === k.id);
+    return {
+      id: k.id,
+      label: k.etykieta,
+      weight: k.waga,
+      before: b?.zdobyte ?? 0,
+      after: k.zdobyte,
+      explanation: k.opis,
+      dependsOnOffer: k.zalezyOdOferty,
+    };
+  });
+  aiMeta.matchScoreBefore = przed.wynik;
+  aiMeta.matchScoreAfter = po.wynik;
+  aiMeta.scoreBreakdown = scoreBreakdown;
+
   return {
     id: makeId(),
     createdAt: Date.now(),

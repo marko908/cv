@@ -19,6 +19,7 @@ import { PaywallDialog } from "@/components/builder/paywall-dialog";
 import { DownloadPdfButton } from "@/components/download-pdf-button";
 import { CvCompareDialog } from "@/components/cv-compare-dialog";
 import { ReportErrorDialog } from "@/components/report-error-dialog";
+import { ScoreBreakdown } from "@/components/builder/score-breakdown";
 import { useCvStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -112,6 +113,13 @@ export default function DopasowanieDetailPage({
           )}
         </div>
       </div>
+
+      {/* Rozkład wyniku — edukacja: z czego wynika liczba i co poprawiliśmy */}
+      {aiMeta.scoreBreakdown && aiMeta.scoreBreakdown.length > 0 && (
+        <div className="mt-6">
+          <ScoreBreakdown breakdown={aiMeta.scoreBreakdown} />
+        </div>
+      )}
 
       {/* Porównanie CV przed / po */}
       <div className="mt-8 flex flex-wrap items-center justify-between gap-2">

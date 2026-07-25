@@ -35,6 +35,7 @@ import {
   type PytanieWywiadu,
 } from "@/lib/ai/interview";
 import { PaywallDialog } from "./paywall-dialog";
+import { ScoreBreakdown } from "./score-breakdown";
 import { cn, pluralize } from "@/lib/utils";
 
 type Step = "config" | "running" | "interview" | "result";
@@ -582,6 +583,7 @@ function ResultStep({
   const score = aiMeta.matchScoreAfter ?? 0;
   const before = aiMeta.matchScoreBefore;
   const findings = aiMeta.findings ?? [];
+  const breakdown = aiMeta.scoreBreakdown ?? [];
   const unlocked = aiMeta.unlocked ?? false;
   const fixCount = findings.length;
   const lockedCount = Math.max(0, fixCount - FREE_FINDINGS);
@@ -624,6 +626,9 @@ function ResultStep({
           </p>
         )}
       </div>
+
+      {/* Rozkład wyniku — użytkownik od razu widzi, z czego wynika liczba */}
+      {breakdown.length > 0 && <ScoreBreakdown breakdown={breakdown} />}
 
       {/* Wywiad — realny sposób na podniesienie wyniku bez zmyślania */}
       {mozliwyWywiad && (

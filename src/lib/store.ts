@@ -8,6 +8,7 @@ import type {
   EducationItem,
   ProjectItem,
   PersonalInfo,
+  ScoreCriterion,
   TailoredCv,
 } from "./cv-schema";
 import { emptyCv } from "./cv-schema";
@@ -90,6 +91,8 @@ export interface AiMeta {
   changesLog: ChangeLogEntry[];
   categories?: ReviewCategory[];
   findings?: ReviewFinding[];
+  /** Rozkład wyniku 0–100 na jawne, ważone kryteria (przed/po) — do edukacji. */
+  scoreBreakdown?: ScoreCriterion[];
   unlocked?: boolean; // czy pełne poprawki są odblokowane (paywall)
 }
 

@@ -1,8 +1,9 @@
-import type { TailoredCv } from "@/lib/cv-schema";
+import type { ScoreCriterion, TailoredCv } from "@/lib/cv-schema";
 import type { AiMeta } from "@/lib/store";
 import { buildLedgerFromCv, type FactLedger } from "./fact-ledger";
 import { parsujOferte, type ParsedOferta } from "./job-offer";
 import { dopasuj, type WynikDopasowania } from "./matching";
+import { ocenCv } from "./scoring";
 import { przepiszCv, zlozCv } from "./rewrite";
 import { validateAgainstLedger, type Violation } from "./validator";
 import { opiszZmiany, zbudujWskazowki } from "./changes";
@@ -125,6 +126,24 @@ export async function uruchomDopasowanie(
   // 6. Wynik „po” liczony tym samym miernikiem co „przed”.
   const po = dopasuj(oferta, buildLedgerFromCv(tailoredCv));
 
+  // 6b. Rubryka oceny 0–100 — wynik rozłożony na jawne, ważone kryteria.
+  //     Ten sam rachunek dla „przed” i „po”, więc różnica na każdym kryterium
+  //     jest realną, wytłumaczalną miarą tego, co poprawiliśmy.
+  const ocenaPrzed = ocenCv(baseCv, przed);
+  const ocenaPo = ocenCv(tailoredCv, po);
+  const scoreBreakdown: ScoreCriterion[] = ocenaPo.kryteria.map((k) => {
+    const przedK = ocenaPrzed.kryteria.find((x) => x.id === k.id);
+    return {
+      id: k.id,
+      label: k.etykieta,
+      weight: k.waga,
+      before: przedK?.zdobyte ?? 0,
+      after: k.zdobyte,
+      explanation: k.opis,
+      dependsOnOffer: k.zalezyOdOferty,
+    };
+  });
+
   // 7. Opis zmian z rzeczywistej różnicy.
   const changesLog = opiszZmiany(baseCv, tailoredCv, oferta, po);
   const findings = zbudujWskazowki(oferta, po, changesLog.length);
@@ -143,11 +162,12 @@ export async function uruchomDopasowanie(
     tailoredCv,
     pytania: zbudujPytania(po.luki),
     aiMeta: {
-      matchScoreBefore: przed.wynik,
-      matchScoreAfter: po.wynik,
+      matchScoreBefore: ocenaPrzed.wynik,
+      matchScoreAfter: ocenaPo.wynik,
       addedKeywords,
       changesLog,
       findings,
+      scoreBreakdown,
       unlocked: false,
     },
     odrzucone: walidacja.violations,
