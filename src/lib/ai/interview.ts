@@ -1,4 +1,5 @@
 import type { TailoredCv } from "@/lib/cv-schema";
+import { digitsIn } from "./fact-ledger";
 import type { DopasowanieWymagania } from "./matching";
 
 /**
@@ -34,6 +35,12 @@ export type PytanieWywiadu = {
   slowa: string[];
   /** Priorytet wymagania — pytamy najpierw o wymagane. */
   wazne: boolean;
+  /**
+   * Cel pytania o metrykę: konkretny punkt doświadczenia, który po odpowiedzi
+   * ZASTĘPUJEMY wersją z liczbą (a nie dopisujemy obok). Ustawiane tylko dla
+   * pytań o kwantyfikację.
+   */
+  cel?: { exp: number; bullet: number };
 };
 
 export type OdpowiedzWywiadu = {
@@ -91,6 +98,48 @@ export function czyWartoWywiad(luki: DopasowanieWymagania[]): boolean {
   return zbudujPytania(luki).length > 0;
 }
 
+/** Krótki podgląd punktu (do treści pytania). */
+function skrot(tekst: string, max = 60): string {
+  const t = tekst.trim();
+  return t.length <= max ? t : t.slice(0, max).trim() + "…";
+}
+
+/**
+ * Pytania o KWANTYFIKACJĘ — najmocniejszy element CV to konkretna liczba
+ * (RUB-07). Znajdujemy istotne punkty doświadczenia BEZ liczby i pytamy, czy
+ * kandydat potrafi je uściślić metryką. To nie zmyślanie: liczbę podaje sam
+ * użytkownik, a my zastępujemy nią mętny punkt.
+ *
+ * Pytamy tylko o dwie najnowsze pozycje (najistotniejsze) i maksymalnie o trzy
+ * punkty, żeby nie przytłoczyć.
+ */
+export function zbudujPytaniaOMetryki(cv: TailoredCv): PytanieWywiadu[] {
+  const pytania: PytanieWywiadu[] = [];
+  const maxPozycje = Math.min(2, cv.experience.length);
+
+  for (let e = 0; e < maxPozycje && pytania.length < 3; e++) {
+    const exp = cv.experience[e];
+    exp.bullets.forEach((b, j) => {
+      if (pytania.length >= 3) return;
+      const tekst = (b ?? "").trim();
+      // Istotny punkt bez liczby — kandydat do wzmocnienia metryką.
+      if (tekst.length < 25) return;
+      if (digitsIn(tekst).length > 0) return;
+      pytania.push({
+        id: `metryka-${e}-${j}`,
+        typ: "doswiadczenie",
+        pytanie: `Czy możesz dodać konkretną liczbę do: „${skrot(tekst)}”?`,
+        hint: 'Podaj cały punkt z liczbą — np. „Skróciłem czas obsługi o 30%” albo „Obsługiwałem 500 zgłoszeń miesięcznie”. Jeśli nie masz liczby, pomiń.',
+        slowa: [],
+        wazne: false,
+        cel: { exp: e, bullet: j },
+      });
+    });
+  }
+
+  return pytania;
+}
+
 function dodajUnikalne(lista: string[], nowe: string[]): string[] {
   const zbior = new Set(lista.map((s) => s.toLowerCase().trim()));
   const wynik = [...lista];
@@ -129,6 +178,17 @@ export function zastosujOdpowiedzi(
     if (!odp.ma) continue;
     const p = poId.get(odp.id);
     if (!p) continue;
+
+    // Pytanie o metrykę: ZASTĘPUJEMY konkretny punkt wersją z liczbą podaną
+    // przez użytkownika (nie dopisujemy obok, żeby nie dublować treści).
+    if (p.cel) {
+      const szczegol = odp.szczegol?.trim();
+      const poz = wynik.experience[p.cel.exp];
+      if (szczegol && szczegol.length >= 10 && poz?.bullets[p.cel.bullet] !== undefined) {
+        poz.bullets[p.cel.bullet] = szczegol;
+      }
+      continue;
+    }
 
     if (p.typ === "doswiadczenie") {
       // Twarda kompetencja: do umiejętności technicznych, a konkret (jeśli

@@ -7,7 +7,11 @@ import { ocenCv } from "./scoring";
 import { przepiszCv, zlozCv } from "./rewrite";
 import { validateAgainstLedger, type Violation } from "./validator";
 import { opiszZmiany, zbudujWskazowki } from "./changes";
-import { zbudujPytania, type PytanieWywiadu } from "./interview";
+import {
+  zbudujPytania,
+  zbudujPytaniaOMetryki,
+  type PytanieWywiadu,
+} from "./interview";
 
 /**
  * Pełny przebieg dopasowania CV do oferty.
@@ -156,11 +160,18 @@ export async function uruchomDopasowanie(
     ),
   ];
 
+  // Pytania wywiadu: najpierw luki wobec oferty (najważniejsze), potem
+  // uzupełnienie o metryki dla mętnych punktów. Limit, by nie przytłoczyć.
+  const pytania = [
+    ...zbudujPytania(po.luki),
+    ...zbudujPytaniaOMetryki(tailoredCv),
+  ].slice(0, 5);
+
   return {
     jobTitle: tytulDopasowania(oferta),
     oferta,
     tailoredCv,
-    pytania: zbudujPytania(po.luki),
+    pytania,
     aiMeta: {
       matchScoreBefore: ocenaPrzed.wynik,
       matchScoreAfter: ocenaPo.wynik,
