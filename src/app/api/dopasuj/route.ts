@@ -40,11 +40,15 @@ export async function POST(request: Request) {
 
   const {
     cv,
+    oryginalCv,
+    obsluzonePytania,
     template,
     jobText,
     jobUrl = "",
   } = (body ?? {}) as {
     cv?: unknown;
+    oryginalCv?: unknown;
+    obsluzonePytania?: unknown;
     template?: string;
     jobText?: string;
     jobUrl?: string;
@@ -67,8 +71,24 @@ export async function POST(request: Request) {
   }
   const baseCv: TailoredCv = parsed.data;
 
+  // Oryginalne CV (sprzed wywiadu) — opcjonalne odniesienie dla wyniku „przed"
+  // i diffu na re-runie. Walidujemy tym samym schematem; przy braku/błędzie
+  // pipeline użyje baseCv (zachowanie jak dla pierwszego przebiegu).
+  const oryginalParsed = tailoredCvSchema.safeParse(oryginalCv);
+  const oryginal: TailoredCv | undefined = oryginalParsed.success
+    ? oryginalParsed.data
+    : undefined;
+
+  // Id pytań już obsłużonych w tej sesji — tylko stringi, ignorujemy śmieci.
+  const obsluzone: string[] = Array.isArray(obsluzonePytania)
+    ? obsluzonePytania.filter((x): x is string => typeof x === "string")
+    : [];
+
   try {
-    const wynik = await uruchomDopasowanie(baseCv, jobText);
+    const wynik = await uruchomDopasowanie(baseCv, jobText, {
+      oryginalCv: oryginal,
+      obsluzonePytania: obsluzone,
+    });
 
     const tailoring = {
       id: makeId(),
@@ -77,7 +97,9 @@ export async function POST(request: Request) {
       jobUrl,
       jobText,
       template: template ?? "klasyczny",
-      baseCv,
+      // Punkt wyjścia rekordu = oryginał (gdy podany), by porównanie i historia
+      // pokazywały pełną, skumulowaną różnicę, nie tylko ostatnią rundę.
+      baseCv: oryginal ?? baseCv,
       tailoredCv: wynik.tailoredCv,
       aiMeta: wynik.aiMeta,
     };

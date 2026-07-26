@@ -72,6 +72,10 @@ export function TailorFlow({
 
   // Rekord do zastąpienia po przeliczeniu z wywiadu (żeby nie mnożyć historii).
   const zastapRef = useRef<string | null>(null);
+  // Id pytań już obsłużonych w tej sesji (potwierdzone / „nie mam" / pominięte).
+  // Kumulowane między rundami i przekazywane do pipeline, żeby te same pytania
+  // nie wracały w nieskończoność. Czyszczone przy nowej analizie.
+  const obsluzoneRef = useRef<Set<string>>(new Set());
 
   // Otwórz, gdy sygnał z zewnątrz (np. ?oferta=1) się pojawi.
   useEffect(() => {
@@ -99,6 +103,10 @@ export function TailorFlow({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           cv: bazaCv,
+          // Oryginał (aktywne CV ze store'u) jako odniesienie wyniku „przed" i
+          // diffu — na re-runie po wywiadzie `bazaCv` jest już wzbogacone.
+          oryginalCv: cv,
+          obsluzonePytania: [...obsluzoneRef.current],
           template,
           jobText: jobPosting.text,
           jobUrl: jobPosting.url,
@@ -135,8 +143,19 @@ export function TailorFlow({
   // Wywiad: nakładamy potwierdzone odpowiedzi na CV i uruchamiamy ponownie.
   const wzmocnij = (odpowiedzi: OdpowiedzWywiadu[]) => {
     const baza = pendingCv ?? cv;
+    // Wszystkie pokazane pytania są teraz obsłużone (potwierdzone lub nie) —
+    // nie zadawaj ich w kolejnych rundach. To domyka pętlę wywiadu.
+    pytania.forEach((p) => obsluzoneRef.current.add(p.id));
     zastapRef.current = tailoringId; // ten rekord skasujemy po przeliczeniu
     setPendingCv(zastosujOdpowiedzi(baza, pytania, odpowiedzi));
+    setStep("running");
+  };
+
+  // Świeża analiza od zera — czyścimy stan pętli wywiadu.
+  const nowaAnaliza = () => {
+    obsluzoneRef.current = new Set();
+    zastapRef.current = null;
+    setPendingCv(null);
     setStep("running");
   };
 
@@ -144,6 +163,8 @@ export function TailorFlow({
     resetReview();
     setPytania([]);
     setPendingCv(null);
+    obsluzoneRef.current = new Set();
+    zastapRef.current = null;
     setStep("config");
   };
 
@@ -156,7 +177,7 @@ export function TailorFlow({
             <ConfigStep
               jobPosting={jobPosting}
               setJobPosting={setJobPosting}
-              onRun={() => setStep("running")}
+              onRun={nowaAnaliza}
             />
           )}
           {step === "running" && (

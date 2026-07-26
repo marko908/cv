@@ -32,8 +32,12 @@ czytaj `node_modules/next/dist/docs/` przed pisaniem kodu Next.**
 
 ## Silnik AI — pipeline (SERCE aplikacji)
 
-Wejście: `uruchomDopasowanie(baseCv, trescOferty)` w `src/lib/ai/pipeline.ts`.
-Kolejność (co AI / co KOD):
+Wejście: `uruchomDopasowanie(baseCv, trescOferty, opcje?)` w `src/lib/ai/pipeline.ts`.
+`opcje` (`OpcjeDopasowania`, opcjonalne): `oryginalCv` — CV sprzed wywiadu; gdy
+podane, wynik „przed" i opis zmian liczone są względem NIEGO (na re-runie widać
+skumulowaną poprawę 61→89, nie chwilowe „+0"). `obsluzonePytania` — id pytań już
+obsłużonych w sesji; pipeline je odfiltrowuje, więc pętla wywiadu zbiega do 0
+(bez tego te same pytania wracały bez końca). Kolejność (co AI / co KOD):
 
 1. **oferta → wymagania z wagami** — AI, tani model — `job-offer.ts` (`parsujOferte`)
 2. **CV → rejestr faktów** — KOD — `fact-ledger.ts` (`buildLedgerFromCv`) = jedyne źródło prawdy
@@ -42,8 +46,8 @@ Kolejność (co AI / co KOD):
 5. **walidacja anty-halucynacyjna** — KOD — `validator.ts` (`validateAgainstLedger`). Odrzuca: wymyślone liczby, umiejętności, firmy, stanowiska, podniesiony poziom języka, frazesy. `pipeline.naprawCv()` cofa do oryginału TYLKO odrzucone fragmenty (nie całe CV).
 6. **wynik „po" tym samym miernikiem** — KOD — `matching.ts` ponownie
 6b. **rubryka oceny 0–100** — KOD — `scoring.ts` (`ocenCv`) → `aiMeta.scoreBreakdown` (przed/po na 9 ważonych kryteriach; wynik = suma, więc uzasadnialny i powtarzalny)
-7. **opis zmian + wskazówki** — KOD — `changes.ts` (`opiszZmiany` = „Co zmieniliśmy i dlaczego" z realnego diffa; `zbudujWskazowki` = findings edukacyjne)
-+ **wywiad** — KOD — `interview.ts` (`zbudujPytania` z luk oferty; `zbudujPytaniaOMetryki` z punktów bez liczby; `zastosujOdpowiedzi` nakłada potwierdzone odpowiedzi na KOPIĘ CV → ponowny pipeline → wynik rośnie uczciwie)
+7. **opis zmian + wskazówki** — KOD — `changes.ts` (`opiszZmiany` = „Co zmieniliśmy i dlaczego" z realnego diffa; `zbudujWskazowki` = findings edukacyjne). Straże anty-fantomowe: `znormalizuj` pomija interpunkcję/wielkość liter, więc kosmetyka (usunięta kropka, „.”→„!”) NIE jest raportowana jako poprawka; kolejność umiejętności raportowana TYLKO gdy wymagane z oferty realnie poszły w górę (i z ich nazwami), nie ze sztywnego szablonu; podsumowanie „wyeksponowaliśmy X" tylko dla wymagań faktycznie nowych vs wersja „przed"; dodane punkty (z wywiadu) opisywane jako „dodaliśmy".
++ **wywiad** — KOD — `interview.ts` (`zbudujPytania` z luk oferty; `zbudujPytaniaOMetryki` z punktów bez liczby; `zastosujOdpowiedzi` nakłada potwierdzone odpowiedzi na KOPIĘ CV, z deduplikacją dopinanych punktów → ponowny pipeline → wynik rośnie uczciwie). Domknięcie pętli: `tailor-flow` kumuluje id wszystkich pokazanych pytań (`obsluzoneRef`) i podaje je do pipeline przez `obsluzonePytania`; świeża analiza (`nowaAnaliza`)/`resetFlow` czyszczą ten zbiór.
 
 Straże jakości: `rewrite.zgubionoLiczbe()` (metryka z oryginału nie może zniknąć),
 `zlozCv` skleja punkty po `punkt_zrodlowy` (indeks źródłowy, nie po kolejności).

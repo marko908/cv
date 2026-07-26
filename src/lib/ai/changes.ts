@@ -2,6 +2,7 @@ import type { ChangeLogEntry, TailoredCv } from "@/lib/cv-schema";
 import type { ReviewFinding } from "@/lib/store";
 import type { ParsedOferta } from "./job-offer";
 import type { WynikDopasowania } from "./matching";
+import { pluralize } from "@/lib/utils";
 
 /**
  * KROK 7 PIPELINE'U: opis zmian i wskazówki.
@@ -12,10 +13,21 @@ import type { WynikDopasowania } from "./matching";
  * jest w pliku.
  */
 
+/**
+ * Normalizacja do PORÓWNANIA — pomija interpunkcję, wielkość liter i zwielokrotnione
+ * spacje. Dzięki temu zmiana czysto kosmetyczna (usunięta kropka, „.” → „!”) NIE
+ * jest raportowana jako przeredagowanie merytoryczne. Liczy się różnica w słowach,
+ * nie w znakach interpunkcyjnych.
+ */
 function znormalizuj(s: string): string {
-  return s.trim().replace(/\s+/g, " ").toLowerCase();
+  return s
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
+/** Różnica ISTOTNA — po odrzuceniu interpunkcji teksty wciąż mają inne słowa. */
 function rozne(a: string, b: string): boolean {
   return znormalizuj(a) !== znormalizuj(b);
 }
@@ -45,16 +57,24 @@ export function opiszZmiany(
   const zmiany: ChangeLogEntry[] = [];
 
   if (rozne(przed.professional_summary, po.professional_summary)) {
-    const dotyczy = czegoDotyczy(po.professional_summary, dopasowanie);
+    const dotyczyPrzed = new Set(
+      czegoDotyczy(przed.professional_summary, dopasowanie)
+    );
+    // Tylko wymagania, które NAPRAWDĘ pojawiły się nowe w podsumowaniu (nie było
+    // ich w wersji „przed") — inaczej twierdzilibyśmy, że coś wyeksponowaliśmy,
+    // choć było tam od początku.
+    const nowe = czegoDotyczy(po.professional_summary, dopasowanie).filter(
+      (d) => !dotyczyPrzed.has(d)
+    );
     zmiany.push({
       section: "Podsumowanie zawodowe",
       change:
         "Przeredagowaliśmy podsumowanie tak, aby od pierwszego zdania odpowiadało na to, czego szuka ta oferta.",
-      reason: dotyczy.length
-        ? `Rekruter czyta podsumowanie jako pierwsze. Wyeksponowaliśmy w nim: ${dotyczy
+      reason: nowe.length
+        ? `Rekruter czyta podsumowanie jako pierwsze. Wyeksponowaliśmy w nim: ${nowe
             .slice(0, 3)
             .join(", ")}.`
-        : `Dopasowaliśmy je do stanowiska „${oferta.stanowisko}”.`,
+        : `Dopasowaliśmy brzmienie do stanowiska „${oferta.stanowisko}” — bez dopisywania czegokolwiek, czego nie ma w Twoim CV.`,
     });
   }
 
@@ -64,16 +84,44 @@ export function opiszZmiany(
     const zmienione = poExp.bullets.filter(
       (b, j) => exp.bullets[j] !== undefined && rozne(exp.bullets[j], b)
     );
-    if (zmienione.length === 0) return;
+    // Punkty dopisane (np. z wywiadu) — realne „co dodaliśmy", nie zmyślenie.
+    const dodane = Math.max(0, poExp.bullets.length - exp.bullets.length);
+    if (zmienione.length === 0 && dodane === 0) return;
 
     const dotyczy = [
       ...new Set(zmienione.flatMap((b) => czegoDotyczy(b, dopasowanie))),
     ];
+
+    // Opis składamy z tego, co FAKTYCZNIE zaszło (przeformułowania i/lub dodania).
+    const czesci: string[] = [];
+    if (zmienione.length > 0) {
+      czesci.push(
+        `przeformułowaliśmy ${pluralize(
+          zmienione.length,
+          "punkt",
+          "punkty",
+          "punktów"
+        )}`
+      );
+    }
+    if (dodane > 0) {
+      czesci.push(
+        `dodaliśmy ${pluralize(
+          dodane,
+          "punkt",
+          "punkty",
+          "punktów"
+        )} na podstawie Twojej odpowiedzi w wywiadzie`
+      );
+    }
+    const opis = czesci.join(" i ");
     zmiany.push({
       section: `Doświadczenie — ${exp.role || "pozycja"}${
         exp.company ? ` (${exp.company})` : ""
       }`,
-      change: `Przeformułowaliśmy ${zmienione.length === 1 ? "jeden punkt" : `${zmienione.length} punkty`}, zachowując wszystkie liczby i technologie z Twojego oryginału.`,
+      change: `${opis.charAt(0).toUpperCase()}${opis.slice(
+        1
+      )}, zachowując wszystkie liczby i technologie z Twojego oryginału.`,
       reason: dotyczy.length
         ? `Użyliśmy słownictwa z ogłoszenia tam, gdzie opisuje to samo, co już robiłeś — dzięki temu CV lepiej przechodzi przez filtry ATS. Dotyczy: ${dotyczy
             .slice(0, 3)
@@ -82,17 +130,47 @@ export function opiszZmiany(
     });
   });
 
+  // Kolejność umiejętności: raportujemy TYLKO gdy wymagane w ofercie realnie
+  // poszły w górę. Wcześniej był sztywny opis „są teraz na początku", który
+  // potrafił kłamać (przy odwrotnym ruchu albo braku wymaganych skilli w CV).
   if (
     przed.skills.technical.join("|") !== po.skills.technical.join("|") &&
     przed.skills.technical.length === po.skills.technical.length
   ) {
-    zmiany.push({
-      section: "Umiejętności",
-      change:
-        "Zmieniliśmy kolejność umiejętności — te wymagane w ofercie są teraz na początku listy.",
-      reason:
-        "Rekruter skanuje CV przez kilka sekund. Kolejność decyduje o tym, co zauważy najpierw. Żadna umiejętność nie została dodana ani usunięta.",
-    });
+    const slowaOferty = new Set(
+      oferta.wymagania
+        .flatMap((w) => w.slowa_kluczowe)
+        .map(znormalizuj)
+        .filter(Boolean)
+    );
+    const czyWymagany = (skill: string): boolean => {
+      const n = znormalizuj(skill);
+      if (!n) return false;
+      return [...slowaOferty].some((s) => n.includes(s) || s.includes(n));
+    };
+    const wymagane = po.skills.technical.filter(czyWymagany);
+    const sredniaPozycja = (lista: string[]): number => {
+      const idx = wymagane
+        .map((s) => lista.findIndex((x) => znormalizuj(x) === znormalizuj(s)))
+        .filter((i) => i >= 0);
+      return idx.length ? idx.reduce((a, b) => a + b, 0) / idx.length : Infinity;
+    };
+    const poszlyWGore =
+      wymagane.length > 0 &&
+      sredniaPozycja(po.skills.technical) < sredniaPozycja(przed.skills.technical);
+
+    if (poszlyWGore) {
+      zmiany.push({
+        section: "Umiejętności",
+        change: `Przenieśliśmy wyżej umiejętności wymagane w tej ofercie: ${wymagane
+          .slice(0, 4)
+          .join(", ")}.`,
+        reason:
+          "Rekruter skanuje CV przez kilka sekund — to, czego szuka oferta, powinno rzucać się w oczy najpierw. Żadna umiejętność nie została dodana ani usunięta.",
+      });
+    }
+    // Jeśli kolejność się zmieniła, ale wymagane NIE poszły w górę — nie
+    // raportujemy nic (to była nieistotna zmiana kolejności, nie poprawa).
   }
 
   return zmiany;

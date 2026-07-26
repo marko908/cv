@@ -25,6 +25,22 @@ import {
  *  7. opis zmian z realnego diffa      (kod)
  */
 
+export type OpcjeDopasowania = {
+  /**
+   * Oryginalne CV (sprzed wywiadu). Gdy podane, wynik „przed" i opis zmian
+   * liczymy względem NIEGO, a nie względem `baseCv`. Dzięki temu re-run po
+   * wywiadzie pokazuje SKUMULOWANĄ poprawę (np. 61→89), a nie chwilowe „+0"
+   * względem już wzbogaconego CV.
+   */
+  oryginalCv?: TailoredCv;
+  /**
+   * Id pytań już obsłużonych w tej sesji (zadane/potwierdzone/„nie mam"/
+   * pominięte). Nie zadajemy ich ponownie — inaczej te same pytania wracałyby
+   * w nieskończoność.
+   */
+  obsluzonePytania?: string[];
+};
+
 export type WynikPipeline = {
   jobTitle: string;
   oferta: ParsedOferta;
@@ -97,7 +113,8 @@ function tytulDopasowania(oferta: ParsedOferta): string {
 
 export async function uruchomDopasowanie(
   baseCv: TailoredCv,
-  trescOferty: string
+  trescOferty: string,
+  opcje: OpcjeDopasowania = {}
 ): Promise<WynikPipeline> {
   const start = Date.now();
   let tokenyWejscie = 0;
@@ -133,7 +150,16 @@ export async function uruchomDopasowanie(
   // 6b. Rubryka oceny 0–100 — wynik rozłożony na jawne, ważone kryteria.
   //     Ten sam rachunek dla „przed” i „po”, więc różnica na każdym kryterium
   //     jest realną, wytłumaczalną miarą tego, co poprawiliśmy.
-  const ocenaPrzed = ocenCv(baseCv, przed);
+  // Odniesienie dla wyniku „przed" i opisu zmian: oryginalne CV (gdy podane —
+  // czyli na re-runie po wywiadzie), inaczej samo baseCv. Dzięki temu po
+  // wywiadzie widać skumulowaną poprawę względem punktu wyjścia, a nie względem
+  // już wzbogaconego CV (które fałszywie pokazywało „+0").
+  const odniesienie = opcje.oryginalCv ?? baseCv;
+  const dopOdniesienie =
+    odniesienie === baseCv
+      ? przed
+      : dopasuj(oferta, buildLedgerFromCv(odniesienie));
+  const ocenaPrzed = ocenCv(odniesienie, dopOdniesienie);
   const ocenaPo = ocenCv(tailoredCv, po);
   const scoreBreakdown: ScoreCriterion[] = ocenaPo.kryteria.map((k) => {
     const przedK = ocenaPrzed.kryteria.find((x) => x.id === k.id);
@@ -148,8 +174,9 @@ export async function uruchomDopasowanie(
     };
   });
 
-  // 7. Opis zmian z rzeczywistej różnicy.
-  const changesLog = opiszZmiany(baseCv, tailoredCv, oferta, po);
+  // 7. Opis zmian z rzeczywistej różnicy — względem odniesienia (oryginału na
+  //    re-runie), żeby dziennik zmian obejmował całą skumulowaną pracę.
+  const changesLog = opiszZmiany(odniesienie, tailoredCv, oferta, po);
   const findings = zbudujWskazowki(oferta, po, changesLog.length);
 
   const addedKeywords = [
@@ -162,10 +189,16 @@ export async function uruchomDopasowanie(
 
   // Pytania wywiadu: najpierw luki wobec oferty (najważniejsze), potem
   // uzupełnienie o metryki dla mętnych punktów. Limit, by nie przytłoczyć.
+  // Odfiltrowujemy pytania już obsłużone w tej sesji — bez tego te same pytania
+  // (odrzucona luka „nie mam", pominięta metryka) wracałyby w każdej rundzie
+  // bez końca. To domyka pętlę wywiadu.
+  const obsluzone = new Set(opcje.obsluzonePytania ?? []);
   const pytania = [
     ...zbudujPytania(po.luki),
     ...zbudujPytaniaOMetryki(tailoredCv),
-  ].slice(0, 5);
+  ]
+    .filter((p) => !obsluzone.has(p.id))
+    .slice(0, 5);
 
   return {
     jobTitle: tytulDopasowania(oferta),

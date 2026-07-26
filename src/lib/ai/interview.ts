@@ -140,6 +140,11 @@ export function zbudujPytaniaOMetryki(cv: TailoredCv): PytanieWywiadu[] {
   return pytania;
 }
 
+/** Klucz porównania punktu — do deduplikacji (trim + zwężenie spacji + lower). */
+function znormalizujBullet(s: string): string {
+  return s.trim().replace(/\s+/g, " ").toLowerCase();
+}
+
 function dodajUnikalne(lista: string[], nowe: string[]): string[] {
   const zbior = new Set(lista.map((s) => s.toLowerCase().trim()));
   const wynik = [...lista];
@@ -209,12 +214,26 @@ export function zastosujOdpowiedzi(
     noweMiekkie
   );
 
-  // Konkrety z wywiadu dopinamy do najnowszej pozycji doświadczenia.
+  // Konkrety z wywiadu dopinamy do najnowszej pozycji doświadczenia —
+  // pomijając te, które już tam są (inaczej wielokrotne „Mam to” z tym samym
+  // szczegółem dublowałoby punkty).
   if (noweBullety.length > 0 && wynik.experience.length > 0) {
-    wynik.experience[0] = {
-      ...wynik.experience[0],
-      bullets: [...wynik.experience[0].bullets, ...noweBullety],
-    };
+    const istniejace = new Set(
+      wynik.experience[0].bullets.map((b) => znormalizujBullet(b))
+    );
+    const doDodania: string[] = [];
+    for (const b of noweBullety) {
+      const klucz = znormalizujBullet(b);
+      if (istniejace.has(klucz)) continue;
+      istniejace.add(klucz);
+      doDodania.push(b);
+    }
+    if (doDodania.length > 0) {
+      wynik.experience[0] = {
+        ...wynik.experience[0],
+        bullets: [...wynik.experience[0].bullets, ...doDodania],
+      };
+    }
   }
 
   return wynik;
