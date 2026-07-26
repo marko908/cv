@@ -1,0 +1,140 @@
+# STRUKTURA — CV Copilot PL (mapa projektu dla AI)
+
+> **Ten plik jest auto-wczytywany co sesję (przez `@import` w CLAUDE.md).** Ma dać
+> pełny kontekst BEZ przeszukiwania repo. **Aktualizuj go w tym samym commicie, w
+> którym zmieniasz architekturę / dodajesz plik / zmieniasz przepływ danych.**
+> Jeśli coś tu nie zgadza się z kodem — kod ma rację, popraw ten plik.
+
+## Czym jest aplikacja
+
+MVP SaaS: dopasowuje/poprawia CV pod konkretną ofertę pracy, rynek PL (RODO, ton
+stonowany bez amerykańskiego hype'u, B2B/UoP, ATS). Folder repo: `cv-copilot/`
+(repo git tu, nie w `Projekt CV/` — screenshoty/PDF-y/pakiety wiedzy są poza repo).
+
+**ZASADA NACZELNA (nienaruszalna): AI NIE tworzy treści CV.** AI wybiera,
+porządkuje i przeformułowuje fakty, które podał użytkownik. Żadnych zmyślonych
+liczb, technologii, firm, stanowisk, poziomów języka. Gwarancją nie jest prompt,
+tylko KOD (walidator + straż przepisywania + deterministyczny matcher).
+
+**UI (nienaruszalne): styl Spotify, dark-only.** Tła #121212/#181818/#1f1f1f,
+jedyny akcent zieleń #1ed760 (tylko funkcjonalnie: CTA, stany aktywne), przyciski
+pill `rounded-full` uppercase, ciężkie cienie, bez szarych ramek, font Figtree.
+Dokument CV zachowuje granatowy akcent #0057D9 (nie zielony). Layout szablonu CV
+ZABLOKOWANY pod ATS (jedna kolumna) — użytkownik edytuje tylko treść.
+
+## Stack
+
+Next.js 16 (App Router, Turbopack) · React 19 · Tailwind v4 · shadcn/ui (radix) ·
+Zustand 5 (persist w localStorage) · Zod 4 · AI SDK `ai` **v7** (`generateObject`,
+`system`→**`instructions`**) · `@ai-sdk/google` · `@react-pdf/renderer` (eksport
+PDF) · `unpdf`+`mammoth` (import PDF/DOCX). **AGENTS.md: to nie jest znany Next —
+czytaj `node_modules/next/dist/docs/` przed pisaniem kodu Next.**
+
+## Silnik AI — pipeline (SERCE aplikacji)
+
+Wejście: `uruchomDopasowanie(baseCv, trescOferty)` w `src/lib/ai/pipeline.ts`.
+Kolejność (co AI / co KOD):
+
+1. **oferta → wymagania z wagami** — AI, tani model — `job-offer.ts` (`parsujOferte`)
+2. **CV → rejestr faktów** — KOD — `fact-ledger.ts` (`buildLedgerFromCv`) = jedyne źródło prawdy
+3. **dopasowanie fakt↔wymaganie → wynik pokrycia** — KOD — `matching.ts` (`dopasuj`); zarazem plan zmian; używa `slownik.ts` (kuratowana wiedza branżowa + odmiana PL + granice słowa, żeby „Java"≠„JavaScript")
+4. **przepisanie zmiennych części CV** — AI, mocny model — `rewrite.ts` (`przepiszCv` → `zlozCv`). Model dotyka TYLKO: podsumowania, punktów doświadczenia/projektów, kolejności umiejętności. Dane twarde (firmy, stanowiska, okresy, edukacja, języki, dane osobowe) kopiowane z oryginału w kodzie — model ich nie zwraca.
+5. **walidacja anty-halucynacyjna** — KOD — `validator.ts` (`validateAgainstLedger`). Odrzuca: wymyślone liczby, umiejętności, firmy, stanowiska, podniesiony poziom języka, frazesy. `pipeline.naprawCv()` cofa do oryginału TYLKO odrzucone fragmenty (nie całe CV).
+6. **wynik „po" tym samym miernikiem** — KOD — `matching.ts` ponownie
+6b. **rubryka oceny 0–100** — KOD — `scoring.ts` (`ocenCv`) → `aiMeta.scoreBreakdown` (przed/po na 9 ważonych kryteriach; wynik = suma, więc uzasadnialny i powtarzalny)
+7. **opis zmian + wskazówki** — KOD — `changes.ts` (`opiszZmiany` = „Co zmieniliśmy i dlaczego" z realnego diffa; `zbudujWskazowki` = findings edukacyjne)
++ **wywiad** — KOD — `interview.ts` (`zbudujPytania` z luk oferty; `zbudujPytaniaOMetryki` z punktów bez liczby; `zastosujOdpowiedzi` nakłada potwierdzone odpowiedzi na KOPIĘ CV → ponowny pipeline → wynik rośnie uczciwie)
+
+Straże jakości: `rewrite.zgubionoLiczbe()` (metryka z oryginału nie może zniknąć),
+`zlozCv` skleja punkty po `punkt_zrodlowy` (indeks źródłowy, nie po kolejności).
+
+## Modele AI — `src/lib/ai/models.ts`
+
+`MODEL_TANI` (`google/gemini-3.1-flash-lite`), `MODEL_SREDNI` / `MODEL_MOCNY`
+(`google/gemini-3.6-flash`). Nadpisywalne przez env `CV_MODEL_TANI/SREDNI/MOCNY`
+(format „dostawca/model"). Klucz: `AI_GATEWAY_API_KEY` (Gateway) LUB
+`GOOGLE_GENERATIVE_AI_API_KEY` (bezpośredni — TAK jest w `.env.local` i na Vercel).
+`czyAiDostepne()` sprawdza obecność klucza. Bez klucza trasy zwracają 503.
+
+## Model danych
+
+- **`TailoredCv`** (`cv-schema.ts`, Zod) — pojedyncze źródło typu CV: `personal_info`,
+  `professional_summary`, `experience[]{company,role,location?,period,bullets[]}`,
+  `projects[]`, `skills{technical[],soft_and_tools[]}`, `education[]`, `languages[]`,
+  `rodo_clause`. Też: `ChangeLogEntry`, `ScoreCriterion`, helpery `cvChecklist`,
+  `isCvComplete`, `DEFAULT_RODO_CLAUSE`, `emptyCv`.
+- **Store** (`store.ts`, Zustand persist `cv-copilot-store`): `cv`, `template`,
+  `enabledSections`, `jobPosting`, `aiMeta`, `tailorings[]`, `cvs[]` (biblioteka CV),
+  `activeCvId`. Typy: `AiMeta{matchScoreBefore/After, addedKeywords, changesLog,
+  findings?, scoreBreakdown?, categories?, unlocked?}`, `ReviewFinding`, `Tailoring`
+  (rekord historii: baseCv+tailoredCv+aiMeta+jobText), `SavedCv`. Akcje: `newCv`,
+  `newCvFrom` (auto-włącza sekcje z danymi), `openCv`, `loadCv`, `syncActiveCv`,
+  `renameCv`, `deleteCv`, `setAiMeta`, `addTailoring`/`removeTailoring`,
+  `unlockReview`/`unlockTailoring`, `resetReview`.
+- **Mock** (`mock-review.ts`): fallback bez klucza (`buildTailoring`, `runMockReview`)
+  — deterministyczny, celowo krytyczny (≥3 poprawki dla paywalla). Od 2026-07-25 też
+  liczy rubrykę (`stubDopasowanie`+`ocenCv`), spójnie z produkcją.
+
+## Pliki wg odpowiedzialności
+
+**`src/lib/ai/`**: `pipeline.ts` (orkiestracja) · `job-offer.ts` (oferta→wymagania,
+AI) · `fact-ledger.ts` (CV→fakty, `digitsIn`/`normalize`) · `matching.ts` (dopasowanie,
+wynik pokrycia, werdykt) · `slownik.ts` (wiedza branżowa, synonimy, rdzenie PL) ·
+`rewrite.ts` (przepisanie, AI + straże) · `validator.ts` (anty-halucynacja) ·
+`scoring.ts` (rubryka 0–100) · `changes.ts` (opis zmian + findings) · `interview.ts`
+(pytania+aplikacja odpowiedzi) · `parse-cv.ts` (import: ekstrakcja tekstu + mapowanie AI) · `models.ts` (wybór modeli+klucz).
+
+**`src/lib/`**: `cv-schema.ts` · `store.ts` · `cv-templates.ts` (lista szablonów) ·
+`sample-cv.ts` (Anna Kowalska — demo) · `sections.ts` (definicje sekcji edytora) ·
+`utils.ts` (`cn`, `pluralize`) · `mock-review.ts`.
+
+**`src/components/`**: `app-shell/` (sidebar+topbar mobilny drawer) · `builder/`
+(edytor: `builder.tsx`, `section-list.tsx`, `section-dialogs.tsx`, `field-inputs.tsx`,
+`readiness.tsx`, `match-results.tsx`, `tailor-flow.tsx` [modal dopasowania:
+config→running→interview→result], `paywall-dialog.tsx`, `score-breakdown.tsx`
+[„Z czego wynika wynik"], `cv-document.tsx` [podgląd HTML], `template-picker.tsx`) ·
+`new-cv-dialog.tsx` (modal wyboru szablonu, sticky stopka) · `cv-import-button.tsx`
+(import CV) · `cv-compare-dialog.tsx` · `cv-pdf.tsx`+`download-pdf-button.tsx` (eksport
+PDF, font Lato z `public/fonts`) · `template-thumb.tsx` (miniatura = przeskalowany
+CvDocument) · `select-cv-dialog.tsx` · `cv-library-sync.tsx` (autosync aktywne CV→biblioteka) · `store-hydration.tsx` · `ui/` (shadcn).
+
+**Trasy** (`src/app/`): `/` landing · `/app` Start (onboarding/hub) · `/app/kreator`
+lista „Moje CV" (+ Dodaj nowe, + Wgraj CV) · `/app/kreator/edytor` edytor ·
+`/app/dopasowania` historia · `/app/dopasowania/[id]` szczegóły (score-breakdown,
+compare, changes, findings, paywall) · `/app/ustawienia`. API: `/api/dopasuj`
+(pipeline), `/api/parsuj-cv` (import), `/api/zglos-blad` (stub, TODO Resend). Wszystkie
+API: `runtime nodejs`, `maxDuration 60`.
+
+## Gdzie zmienić X
+
+- **Logika wyniku / wagi / kryteria** → `scoring.ts` (rubryka) + `matching.ts` (pokrycie)
+- **Co model wolno/nie wolno pisać** → `rewrite.ts` (prompt+straże) + `validator.ts` (twarde reguły)
+- **Reguły odrzucania (frazesy, liczby, języki)** → `validator.ts`
+- **Pytania wywiadu** → `interview.ts`
+- **Parsowanie oferty** → `job-offer.ts` · **wiedza branżowa/synonimy** → `slownik.ts`
+- **Import CV (ekstrakcja/mapowanie)** → `parse-cv.ts` + `/api/parsuj-cv`
+- **Opis „co zmieniliśmy/dlaczego"** → `changes.ts`
+- **Model danych CV** → `cv-schema.ts` (zmiana schematu = zmiana w store, edytorze, PDF)
+- **Stan/persist/biblioteka CV** → `store.ts`
+- **Szablony (wygląd)** → `cv-templates.ts` + `cv-document.tsx` (HTML) + `cv-pdf.tsx` (PDF) — TRZYMAJ SPÓJNE
+- **Wybór modelu AI** → env `CV_MODEL_*` (bez ruszania kodu)
+
+## Konwencje i pułapki
+
+- **Cudzysłowy PL:** w stringach JS w `"..."` NIE może być prostego `"` w środku —
+  użyj „ " (U+201E/U+201D). Złamało build w `scoring.ts`. W backtickach `` ` `` proste `"` OK.
+- **Build po usunięciu trasy:** wyczyść `.next` (stary type-validator odwołuje się do usuniętej trasy).
+- **React StrictMode w dev dubluje** wywołanie AI (2× koszt) — w produkcji nie; `tailor-flow` ma na to zabezpieczenie (`produkcjaRef`).
+- **Mobile:** modale flex-col ze sticky stopką / poziomym scrollem; unikać poziomego overflow (min-w-0 w gridzie).
+- **Commity:** po polsku, kończyć `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`. Repo: github.com/marko908/cv (branch `main`, Vercel auto-deploy z main; live: cv-eight-black-32.vercel.app).
+
+## Komendy
+
+Testy (tsx): `npm run test:walidator` (8) · `test:dopasowanie` (24) · `test:wywiad`
+(18). Na żywo (wymagają klucza, `--env-file=.env.local`): `test:oferta`, `test:pipeline`.
+`npm run build` (pełny), `npm run dev`. Typy: `npx tsc --noEmit`.
+
+## Baza wiedzy (poza repo, w `Projekt CV/`)
+
+`wiedza-cv-z-transkryptow.md` (synteza 16 poradników: rubryka 0–100, red flags, czasowniki, sprzeczności rozstrzygnięte) · `prompt-analiza-transkryptow-cv.md`.
+Pamięć AI (cross-session): `MEMORY.md` + pliki `cv-copilot-pl-project`, `cv-copilot-ai-architecture`, `cv-wiedza-z-tutoriali`.
