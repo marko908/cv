@@ -149,7 +149,11 @@ API: `runtime nodejs`, `maxDuration 60`.
 ## Komendy
 
 Testy (tsx): `npm run test:walidator` (8) · `test:dopasowanie` (24) · `test:wywiad`
-(18). Na żywo (wymagają klucza, `--env-file=.env.local`): `test:oferta`, `test:pipeline`.
+(18) · `test:petla` (zbieżność pętli wywiadu + dedup) · `test:zmiany` (anty-fantomy
+w changes.ts) · `test:straz` (straż słów kluczowych + podłoga wyniku). Na żywo
+(wymagają klucza, `--env-file=.env.local`): `test:oferta`, `test:pipeline`,
+`test-podloga-live.ts`, `test-koszt-live.ts` (pomiar tokenów/kosztu).
+Dane testowe (20 CV + 18 ofert + pary): `scripts/dane-testowe.ts`.
 `npm run build` (pełny), `npm run dev`. Typy: `npx tsc --noEmit`.
 
 ## Baza wiedzy (poza repo, w `Projekt CV/`)

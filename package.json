@@ -10,6 +10,9 @@
     "test:walidator": "tsx scripts/test-validator.ts",
     "test:dopasowanie": "tsx scripts/test-matching.ts",
     "test:wywiad": "tsx scripts/test-interview.ts",
+    "test:petla": "tsx scripts/test-petla.ts",
+    "test:zmiany": "tsx scripts/test-zmiany.ts",
+    "test:straz": "tsx scripts/test-straz.ts",
     "verify:pdf": "tsx scripts/render-template.ts",
     "test:oferta": "node --env-file=.env.local --import tsx scripts/test-oferta-live.ts",
     "test:pipeline": "node --env-file=.env.local --import tsx scripts/test-pipeline-live.ts"
