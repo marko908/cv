@@ -100,21 +100,21 @@ AI) · `fact-ledger.ts` (CV→fakty, `digitsIn`/`normalize`) · `matching.ts` (d
 wynik pokrycia, werdykt) · `slownik.ts` (wiedza branżowa, synonimy, rdzenie PL) ·
 `rewrite.ts` (przepisanie, AI + straże) · `validator.ts` (anty-halucynacja) ·
 `scoring.ts` (rubryka 0–100) · `changes.ts` (opis zmian + findings) · `interview.ts`
-(pytania+aplikacja odpowiedzi) · `parse-cv.ts` (import: ekstrakcja tekstu + mapowanie AI) · `models.ts` (wybór modeli+klucz).
+(pytania+aplikacja odpowiedzi) · `parse-cv.ts` (import: ekstrakcja tekstu + HIPERŁĄCZA z adnotacji PDF/hrefów DOCX + mapowanie AI) · `fetch-oferta.ts` (pobranie treści ogłoszenia z linku: JSON-LD JobPosting → HTML→tekst; `czyPoprawnyLink`, `BladPobraniaOferty`) · `models.ts` (wybór modeli+klucz).
 
 **`src/lib/`**: `cv-schema.ts` · `store.ts` · `cv-templates.ts` (lista szablonów) ·
 `sample-cv.ts` (Anna Kowalska — demo) · `sections.ts` (definicje sekcji edytora) ·
 `utils.ts` (`cn`, `pluralize`) · `mock-review.ts`.
 
 **`src/components/`**: `app-shell/` (sidebar+topbar mobilny drawer) · `builder/`
-(edytor: `builder.tsx`, `section-list.tsx`, `section-dialogs.tsx`, `field-inputs.tsx`,
+(edytor: `builder.tsx`, `section-list.tsx` [na górze działający import CV: `CvImportButton variant="row" mode="replace"`], `section-dialogs.tsx`, `field-inputs.tsx`,
 `readiness.tsx`, `match-results.tsx`, `tailor-flow.tsx` [modal dopasowania:
 config→running→interview→result], `paywall-dialog.tsx`, `score-breakdown.tsx`
 [„Z czego wynika wynik"], `cv-document.tsx` [podgląd HTML], `template-picker.tsx`) ·
 `new-cv-dialog.tsx` (modal wyboru szablonu, sticky stopka) · `cv-import-button.tsx`
 (import CV) · `cv-compare-dialog.tsx` · `cv-pdf.tsx`+`download-pdf-button.tsx` (eksport
 PDF, font Lato z `public/fonts`) · `template-thumb.tsx` (miniatura = przeskalowany
-CvDocument) · `select-cv-dialog.tsx` · `cv-library-sync.tsx` (autosync aktywne CV→biblioteka) · `store-hydration.tsx` · `ui/` (shadcn).
+CvDocument; `full` = pełny dokument na wiele stron z liniami podziału — używane w porównaniu) · `select-cv-dialog.tsx` · `cv-library-sync.tsx` (autosync aktywne CV→biblioteka) · `store-hydration.tsx` · `ui/` (shadcn).
 
 **Trasy** (`src/app/`): `/` landing · `/app` Start (onboarding/hub) · `/app/kreator`
 lista „Moje CV" (+ Dodaj nowe, + Wgraj CV) · `/app/kreator/edytor` edytor ·
@@ -130,7 +130,8 @@ API: `runtime nodejs`, `maxDuration 60`.
 - **Reguły odrzucania (frazesy, liczby, języki)** → `validator.ts`
 - **Pytania wywiadu** → `interview.ts`
 - **Parsowanie oferty** → `job-offer.ts` · **wiedza branżowa/synonimy** → `slownik.ts`
-- **Import CV (ekstrakcja/mapowanie)** → `parse-cv.ts` + `/api/parsuj-cv`
+- **Import CV (ekstrakcja/mapowanie/linki)** → `parse-cv.ts` + `/api/parsuj-cv`
+- **Pobieranie oferty z linku** → `fetch-oferta.ts` (wpięte w `/api/dopasuj`; przy niepowodzeniu 422 `kod:"link-nieudany"` → UI prosi o wklejenie treści)
 - **Opis „co zmieniliśmy/dlaczego"** → `changes.ts`
 - **Model danych CV** → `cv-schema.ts` (zmiana schematu = zmiana w store, edytorze, PDF)
 - **Stan/persist/biblioteka CV** → `store.ts`

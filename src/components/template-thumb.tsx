@@ -1,33 +1,74 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import type { TailoredCv } from "@/lib/cv-schema";
 import type { TemplateId } from "@/lib/store";
 import { CvDocument } from "@/components/builder/cv-document";
 import { cn } from "@/lib/utils";
 
 const SHEET_WIDTH = 794; // szerokość A4 przy 96 dpi
+const SHEET_HEIGHT = 1123; // wysokość A4 przy 96 dpi
 
-/** Prawdziwa miniatura CV (wzorzec z ResuMax) — przeskalowany CvDocument. */
+/**
+ * Prawdziwa miniatura CV (wzorzec z ResuMax) — przeskalowany CvDocument.
+ *
+ * Tryb domyślny przycina zawartość do proporcji jednej strony (miniatury na
+ * listach). Tryb `full` pokazuje CAŁY dokument — rośnie na tyle stron, ile
+ * trzeba, i rysuje linie podziału stron. Bez tego dłuższe CV wyglądało na ucięte
+ * w porównaniu „przed / po", mimo że eksport PDF paginuje je poprawnie.
+ */
 export function TemplateThumb({
   template,
   cv,
   width = 210,
+  full = false,
   className,
 }: {
   template: TemplateId;
   cv: TailoredCv;
   width?: number;
+  /** Pokaż cały dokument (wiele stron) zamiast przyciętej miniatury. */
+  full?: boolean;
   className?: string;
 }) {
   const scale = width / SHEET_WIDTH;
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [contentHeight, setContentHeight] = useState(SHEET_HEIGHT);
+
+  // W trybie pełnym mierzymy realną wysokość dokumentu, żeby kontener urósł
+  // dokładnie tyle, ile trzeba (ResizeObserver — treść zmienia się na żywo).
+  useEffect(() => {
+    if (!full) return;
+    const el = contentRef.current;
+    if (!el) return;
+    const update = () => setContentHeight(el.scrollHeight || SHEET_HEIGHT);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [full, cv, template]);
+
+  // Ile stron A4 zajmie dokument (min. 1) — do rysowania linii podziału.
+  const strony = full ? Math.max(1, Math.ceil(contentHeight / SHEET_HEIGHT)) : 1;
+  // Dopełniamy do pełnych stron, żeby ostatnia kartka nie była obcięta w połowie.
+  const wysokoscArkuszy = full ? strony * SHEET_HEIGHT : SHEET_HEIGHT;
+
   return (
     <div
       aria-hidden
       className={cn(
-        "pointer-events-none select-none overflow-hidden rounded-md bg-white",
+        "pointer-events-none relative select-none overflow-hidden rounded-md bg-white",
         className
       )}
-      style={{ width, height: Math.round(width * 1.35) }}
+      style={{
+        width,
+        height: Math.round(
+          full ? wysokoscArkuszy * scale : width * 1.35
+        ),
+      }}
     >
       <div
+        ref={contentRef}
         style={{
           width: SHEET_WIDTH,
           transform: `scale(${scale})`,
@@ -36,6 +77,16 @@ export function TemplateThumb({
       >
         <CvDocument cv={cv} template={template} />
       </div>
+
+      {/* Linie podziału stron — użytkownik widzi, gdzie kończy się kartka. */}
+      {full &&
+        Array.from({ length: strony - 1 }, (_, i) => (
+          <div
+            key={i}
+            className="absolute left-0 right-0 border-t border-dashed border-black/25"
+            style={{ top: Math.round((i + 1) * SHEET_HEIGHT * scale) }}
+          />
+        ))}
     </div>
   );
 }

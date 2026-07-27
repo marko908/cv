@@ -32,3 +32,40 @@ export function pluralize(
 ): string {
   return `${n} ${plural(n, one, few, many)}`
 }
+
+/**
+ * Zamienia adres profilu na parę: krótka etykieta + pełny adres.
+ *
+ * W CV lepiej wygląda klikalne „LinkedIn" niż surowy adres na pół linijki, ale
+ * pod spodem musi zostać PRAWDZIWY odnośnik — inaczej rekruter widzi napis,
+ * którego nie da się kliknąć (realny błąd zgłoszony przez użytkownika).
+ * Zwraca null, gdy pole jest puste.
+ */
+export function opisLinku(
+  surowy?: string
+): { etykieta: string; href: string | null } | null {
+  const t = (surowy ?? "").trim()
+  if (!t) return null
+
+  const href = /^https?:\/\//i.test(t) ? t : `https://${t}`
+  let host = ""
+  try {
+    host = new URL(href).hostname.replace(/^www\./, "").toLowerCase()
+  } catch {
+    // Nie da się sparsować — pokazujemy to, co wpisał użytkownik, jako tekst.
+    return { etykieta: t, href: null }
+  }
+
+  // Sam napis („LinkedIn") bez domeny to NIE jest adres — renderujemy go jako
+  // zwykły tekst, zamiast robić martwy odnośnik do „https://LinkedIn".
+  if (!host.includes(".")) return { etykieta: t, href: null }
+
+  if (host.includes("linkedin")) return { etykieta: "LinkedIn", href }
+  if (host.includes("github")) return { etykieta: "GitHub", href }
+  if (host.includes("behance")) return { etykieta: "Behance", href }
+  if (host.includes("dribbble")) return { etykieta: "Dribbble", href }
+  if (host.includes("gitlab")) return { etykieta: "GitLab", href }
+
+  // Nieznany serwis: pokazujemy adres bez protokołu i bez końcowego ukośnika.
+  return { etykieta: href.replace(/^https?:\/\//i, "").replace(/\/$/, ""), href }
+}

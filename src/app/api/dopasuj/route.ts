@@ -3,6 +3,11 @@ import { tailoredCvSchema, type TailoredCv } from "@/lib/cv-schema";
 import { czyAiDostepne } from "@/lib/ai/models";
 import { uruchomDopasowanie } from "@/lib/ai/pipeline";
 import { ofertaSchema } from "@/lib/ai/job-offer";
+import {
+  BladPobraniaOferty,
+  czyPoprawnyLink,
+  pobierzTrescOferty,
+} from "@/lib/ai/fetch-oferta";
 
 /**
  * Uruchamia prawdziwe dopasowanie CV do oferty (pipeline AI).
@@ -57,11 +62,34 @@ export async function POST(request: Request) {
     jobUrl?: string;
   };
 
-  if (!jobText || jobText.trim().length < 40) {
-    return NextResponse.json(
-      { ok: false, error: "Wklej pełną treść ogłoszenia (min. 40 znaków)." },
-      { status: 400 }
-    );
+  // Wystarczy JEDNO z dwóch: treść albo link. Gdy jest sam link, próbujemy
+  // pobrać treść tutaj; gdy się nie uda, prosimy o ręczne wklejenie (kod
+  // „link-nieudany"), żeby model zawsze dostał komplet informacji.
+  let trescOferty = (jobText ?? "").trim();
+  if (trescOferty.length < 40) {
+    if (!czyPoprawnyLink(jobUrl ?? "")) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Podaj link do oferty albo wklej treść ogłoszenia.",
+        },
+        { status: 400 }
+      );
+    }
+    try {
+      trescOferty = await pobierzTrescOferty(jobUrl);
+    } catch (e) {
+      const powod =
+        e instanceof BladPobraniaOferty ? e.message : "Nie udało się pobrać oferty.";
+      return NextResponse.json(
+        {
+          ok: false,
+          kod: "link-nieudany",
+          error: `${powod} Skopiuj całą treść ogłoszenia i wklej ją poniżej — wtedy dopasowanie policzymy dokładnie.`,
+        },
+        { status: 422 }
+      );
+    }
   }
 
   // Walidujemy CV schematem — nie ufamy kształtowi z klienta.
@@ -93,7 +121,7 @@ export async function POST(request: Request) {
   const ofertaCache = ofertaParsed.success ? ofertaParsed.data : undefined;
 
   try {
-    const wynik = await uruchomDopasowanie(baseCv, jobText, {
+    const wynik = await uruchomDopasowanie(baseCv, trescOferty, {
       oryginalCv: oryginal,
       obsluzonePytania: obsluzone,
       oferta: ofertaCache,
@@ -104,7 +132,7 @@ export async function POST(request: Request) {
       createdAt: Date.now(),
       jobTitle: wynik.jobTitle,
       jobUrl,
-      jobText,
+      jobText: trescOferty,
       template: template ?? "klasyczny",
       // Punkt wyjścia rekordu = oryginał (gdy podany), by porównanie i historia
       // pokazywały pełną, skumulowaną różnicę, nie tylko ostatnią rundę.

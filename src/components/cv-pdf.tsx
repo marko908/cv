@@ -7,10 +7,12 @@ import {
   View,
   StyleSheet,
   Font,
+  Link,
   pdf,
 } from "@react-pdf/renderer";
 import type { TailoredCv } from "@/lib/cv-schema";
 import type { TemplateId } from "@/lib/store";
+import { opisLinku } from "@/lib/utils";
 
 // Font z pełną obsługą polskich znaków (wbudowane Helvetica ich nie ma).
 Font.register({
@@ -149,11 +151,12 @@ export function CvPdf({
 }) {
   const s = makeStyles(PDF_TEMPLATE_STYLES[template]);
 
+  // Link musi zostac klikalny takze w PDF — inaczej rekruter widzi sam napis.
+  const link = opisLinku(cv.personal_info.linkedin_or_github);
   const contact = [
     cv.personal_info.email,
     cv.personal_info.phone,
     cv.personal_info.location,
-    cv.personal_info.linkedin_or_github,
   ]
     .filter(Boolean)
     .join("  •  ");
@@ -172,7 +175,23 @@ export function CvPdf({
           {cv.personal_info.title ? (
             <Text style={s.title}>{cv.personal_info.title}</Text>
           ) : null}
-          {contact ? <Text style={s.contact}>{contact}</Text> : null}
+          {contact || link ? (
+            <Text style={s.contact}>
+              {contact}
+              {link ? (
+                <>
+                  {contact ? "  •  " : ""}
+                  {link.href ? (
+                    <Link src={link.href} style={s.contact}>
+                      {link.etykieta}
+                    </Link>
+                  ) : (
+                    link.etykieta
+                  )}
+                </>
+              ) : null}
+            </Text>
+          ) : null}
         </View>
 
         {/* Podsumowanie */}

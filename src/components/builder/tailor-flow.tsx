@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
+  AlertCircle,
   ArrowRight,
   Check,
   Download,
@@ -35,6 +36,7 @@ import {
   type PytanieWywiadu,
 } from "@/lib/ai/interview";
 import type { ParsedOferta } from "@/lib/ai/job-offer";
+import { czyPoprawnyLink } from "@/lib/ai/fetch-oferta";
 import { PaywallDialog } from "./paywall-dialog";
 import { ScoreBreakdown } from "./score-breakdown";
 import { cn, pluralize } from "@/lib/utils";
@@ -48,6 +50,13 @@ type Produkt = {
   /** Sparsowana oferta — do odesłania przy re-runie (cache, brak drgania). */
   oferta?: ParsedOferta;
 };
+
+/**
+ * Wynik produkcji: gotowe dopasowanie albo błąd wymagający reakcji użytkownika
+ * (np. nie udało się pobrać oferty z linku — trzeba wkleić treść ręcznie).
+ * Takiego błędu NIE zastępujemy demo-mockiem, bo użytkownik musi go zobaczyć.
+ */
+type WynikProdukcji = Produkt | { blad: string };
 
 export function TailorFlow({
   trigger,
@@ -63,6 +72,8 @@ export function TailorFlow({
   const [pytania, setPytania] = useState<PytanieWywiadu[]>([]);
   // Wzbogacone CV z wywiadu — baza kolejnego przebiegu (null = CV ze store'u).
   const [pendingCv, setPendingCv] = useState<TailoredCv | null>(null);
+  // Komunikat, gdy nie dało się pobrać oferty z linku (prośba o wklejenie treści).
+  const [bladOferty, setBladOferty] = useState<string | null>(null);
 
   const {
     cv,
@@ -105,7 +116,7 @@ export function TailorFlow({
    * bez konfiguracji. Klient nigdy nie widzi klucza; cała praca z modelem jest
    * po stronie serwera.
    */
-  const produce = async (bazaCv: TailoredCv): Promise<Produkt> => {
+  const produce = async (bazaCv: TailoredCv): Promise<WynikProdukcji> => {
     try {
       const res = await fetch("/api/dopasuj", {
         method: "POST",
@@ -123,8 +134,12 @@ export function TailorFlow({
           jobUrl: jobPosting.url,
         }),
       });
+      const data = await res.json().catch(() => null);
+      // Link nie dał treści — użytkownik musi wkleić ogłoszenie ręcznie.
+      if (res.status === 422 && data?.kod === "link-nieudany") {
+        return { blad: data.error as string };
+      }
       if (res.ok) {
-        const data = await res.json();
         if (data?.ok && data.tailoring) {
           return {
             tailoring: data.tailoring as Tailoring,
@@ -139,7 +154,14 @@ export function TailorFlow({
     return { tailoring: buildTailoring(bazaCv, jobPosting, template), pytania: [] };
   };
 
-  const zapiszWynik = ({ tailoring: t, pytania: p, oferta: o }: Produkt) => {
+  const zapiszWynik = (res: WynikProdukcji) => {
+    // Błąd pobrania oferty: wracamy do konfiguracji z prośbą o wklejenie treści.
+    if ("blad" in res) {
+      setBladOferty(res.blad);
+      setStep("config");
+      return;
+    }
+    const { tailoring: t, pytania: p, oferta: o } = res;
     addTailoring(t);
     // Przeliczenie z wywiadu zastępuje poprzedni rekord, nie mnoży historii.
     if (zastapRef.current && zastapRef.current !== t.id) {
@@ -193,7 +215,11 @@ export function TailorFlow({
             <ConfigStep
               jobPosting={jobPosting}
               setJobPosting={setJobPosting}
-              onRun={nowaAnaliza}
+              blad={bladOferty}
+              onRun={() => {
+                setBladOferty(null);
+                nowaAnaliza();
+              }}
             />
           )}
           {step === "running" && (
@@ -232,13 +258,20 @@ export function TailorFlow({
 function ConfigStep({
   jobPosting,
   setJobPosting,
+  blad,
   onRun,
 }: {
   jobPosting: { url: string; text: string };
   setJobPosting: (patch: { url?: string; text?: string }) => void;
+  blad: string | null;
   onRun: () => void;
 }) {
-  const canRun = jobPosting.text.trim().length >= 40;
+  // Wystarczy JEDNO z dwóch: wklejona treść albo link do oferty. Gdy jest sam
+  // link, treść pobieramy po stronie serwera; jeśli się nie uda, poprosimy
+  // o ręczne wklejenie (komunikat `blad`).
+  const maTresc = jobPosting.text.trim().length >= 40;
+  const maLink = czyPoprawnyLink(jobPosting.url);
+  const canRun = maTresc || maLink;
   return (
     <>
       <DialogHeader>
@@ -257,7 +290,7 @@ function ConfigStep({
         <div className="grid gap-1.5">
           <Label htmlFor="flow-url" className="flex items-center gap-1.5">
             <Link2 className="size-3.5" />
-            Link do oferty (opcjonalnie)
+            Link do oferty
           </Label>
           <Input
             id="flow-url"
@@ -267,7 +300,9 @@ function ConfigStep({
           />
         </div>
         <div className="grid gap-1.5">
-          <Label htmlFor="flow-text">Treść ogłoszenia</Label>
+          <Label htmlFor="flow-text">
+            Treść ogłoszenia{maLink ? " (opcjonalnie)" : ""}
+          </Label>
           <Textarea
             id="flow-text"
             rows={8}
@@ -276,10 +311,17 @@ function ConfigStep({
             placeholder="Wklej pełną treść — wymagania, obowiązki, mile widziane. Im więcej szczegółów, tym trafniejszy wynik."
           />
           <p className="text-xs text-muted-foreground">
-            Jeśli pobranie z linku się nie powiedzie, poprosimy o wklejenie
-            treści — to zawsze działa.
+            Wystarczy link albo wklejona treść — możesz podać jedno lub oba.
+            Wklejone ogłoszenie daje najdokładniejszy wynik.
           </p>
         </div>
+
+        {blad && (
+          <div className="flex items-start gap-2 rounded-lg border border-destructive/40 bg-destructive/10 p-3">
+            <AlertCircle className="mt-0.5 size-4 shrink-0 text-destructive" />
+            <p className="text-xs text-foreground">{blad}</p>
+          </div>
+        )}
       </div>
 
       <div className="flex items-center justify-between">
@@ -305,8 +347,8 @@ function RunningStep({
   onDone,
   onCancel,
 }: {
-  produce: () => Promise<Produkt>;
-  onDone: (res: Produkt) => void;
+  produce: () => Promise<WynikProdukcji>;
+  onDone: (res: WynikProdukcji) => void;
   onCancel: () => void;
 }) {
   const [doneCount, setDoneCount] = useState(0);
@@ -319,13 +361,13 @@ function RunningStep({
   // efekt dwa razy — bez tego pipeline (a więc płatny model) odpalałby się
   // dwukrotnie. Oba przebiegi efektu współdzielą tę samą obietnicę, więc
   // realne wywołanie modelu jest jedno. W produkcji StrictMode i tak nie dubluje.
-  const produkcjaRef = useRef<Promise<Produkt> | null>(null);
+  const produkcjaRef = useRef<Promise<WynikProdukcji> | null>(null);
 
   useEffect(() => {
     const total = REVIEW_SPECIALISTS.length;
     let cancelled = false;
     let finished = false;
-    let wynik: Produkt | null = null;
+    let wynik: WynikProdukcji | null = null;
     let minPo = false; // czy minęła minimalna animacja
 
     const timers: ReturnType<typeof setTimeout>[] = [];
@@ -354,7 +396,15 @@ function RunningStep({
     }
 
     const finalize = () => {
-      if (cancelled || finished || !wynik || !minPo) return;
+      if (cancelled || finished || !wynik) return;
+      // Błąd oferty pokazujemy NATYCHMIAST — nie każemy czekać na animację
+      // udawanej analizy, skoro i tak trzeba wrócić i wkleić treść.
+      if ("blad" in wynik) {
+        finished = true;
+        doneRef.current(wynik);
+        return;
+      }
+      if (!minPo) return;
       finished = true;
       const ostatni = REVIEW_SPECIALISTS[total - 1];
       setDoneCount(total);

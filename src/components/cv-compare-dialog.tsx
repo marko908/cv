@@ -42,6 +42,7 @@ function FittedCvSheet({
           cv={cv}
           template={template}
           width={width}
+          full
           className="w-full"
         />
       )}

@@ -2,6 +2,7 @@ import type { TailoredCv } from "@/lib/cv-schema";
 import { cvChecklist } from "@/lib/cv-schema";
 import { digitsIn, normalize } from "./fact-ledger";
 import type { WynikDopasowania } from "./matching";
+import { pluralize } from "@/lib/utils";
 
 /**
  * RUBRYKA OCENY CV 0–100.
@@ -67,6 +68,49 @@ const CZASOWNIKI = [
   "optymalizowalam","automatyzowalem","automatyzowalam","testowalem","testowalam",
 ];
 
+/**
+ * Czasowniki DOKONANE (co zrobiłem i skończyłem) — „Wdrożyłem", „Przeprowadziłem".
+ * Rekomendowana forma w CV: pokazuje zamknięty efekt, nie proces.
+ */
+const DOKONANE = [
+  "wdrozylem","wdrozylam","zoptymalizowalem","zoptymalizowalam","zredukowalem",
+  "zredukowalam","zwiekszylem","zwiekszylam","obnizylem","obnizylam","opracowalem",
+  "opracowalam","zbudowalem","zbudowalam","uruchomilem","uruchomilam",
+  "wynegocjowalem","wynegocjowalam","pozyskalem","pozyskalam","skrocilem",
+  "skrocilam","zautomatyzowalem","zautomatyzowalam","skoordynowalem",
+  "skoordynowalam","przeszkolilem","przeszkolilam","wprowadzilem","wprowadzilam",
+  "usprawnilem","usprawnilam","przyspieszylem","przyspieszylam","podnioslem",
+  "podnioslam","stworzylem","stworzylam","zaprojektowalem","zaprojektowalam",
+  "zrealizowalem","zrealizowalam","dostarczylem","dostarczylam","przeprowadzilem",
+  "przeprowadzilam","zidentyfikowalem","zidentyfikowalam","przelozylem",
+  "przelozylam","przygotowalem","przygotowalam","zorganizowalem","zorganizowalam",
+  "nawiazalem","nawiazalam","zawarlem","zawarlam","wypracowalem","wypracowalam",
+  "rozliczylem","rozliczylam","zweryfikowalem","zweryfikowalam","przeanalizowalem",
+  "przeanalizowalam","zaplanowalem","zaplanowalam","wykonalem","wykonalam",
+  "osiagnalem","osiagnelam","zdobylem","zdobylam","utworzylem","utworzylam",
+  "zredagowalem","zredagowalam","napisalem","napisalam","ukonczylem","ukonczylam",
+];
+
+/**
+ * Czasowniki NIEDOKONANE (opis trwającej czynności) — „Prowadziłem", „Tworzyłem".
+ * Same w sobie nie są błędem, ale MIESZANIE ich z dokonanymi w jednej pozycji
+ * czyta się niechlujnie (realne zgłoszenie: „Przeprowadziłem research…" tuż nad
+ * „Tworzyłem treści…”).
+ */
+const NIEDOKONANE = [
+  "prowadzilem","prowadzilam","tworzylem","tworzylam","utrzymywalem","utrzymywalam",
+  "wykorzystywalem","wykorzystywalam","opracowywalem","opracowywalam","nawiazywalem",
+  "nawiazywalam","zajmowalem","zajmowalam","wspieralem","wspieralam","realizowalem",
+  "realizowalam","budowalem","budowalam","pomagalem","pomagalam","odpowiadalem",
+  "odpowiadalam","dbalem","dbalam","rozwijalem","rozwijalam","testowalem","testowalam",
+  "obslugiwalem","obslugiwalam","wprowadzalem","wprowadzalam","nadzorowalem",
+  "nadzorowalam","kierowalem","kierowalam","wspolpracowalem","wspolpracowalam",
+  "szkolilem","szkolilam","negocjowalem","negocjowalam","optymalizowalem",
+  "optymalizowalam","automatyzowalem","automatyzowalam","zarzadzalem","zarzadzalam",
+  "wdrazalem","wdrazalam","przygotowywalem","przygotowywalam","analizowalem",
+  "analizowalam","planowalem","planowalam","organizowalem","organizowalam",
+];
+
 /** Sformułowania „obowiązkowe" — słabsze niż osiągnięcie. */
 const OBOWIAZEK = [
   "odpowiedzialny za","odpowiedzialna za","bylem odpowiedzialny","bylam odpowiedzialna",
@@ -110,6 +154,23 @@ function pierwszeSlowo(tekst: string): string {
 function zawiera(tekst: string, frazy: string[]): boolean {
   const n = normalize(tekst);
   return frazy.some((f) => n.includes(f));
+}
+
+/**
+ * Ile pozycji doświadczenia miesza aspekt dokonany z niedokonanym.
+ * Liczymy w obrębie JEDNEJ pozycji — tam niespójność najbardziej razi.
+ */
+function pozycjeZMieszanymAspektem(cv: TailoredCv): number {
+  const grupy = [
+    ...cv.experience.map((e) => e.bullets),
+    ...cv.projects.map((p) => p.bullets),
+  ];
+  return grupy.filter((bullets) => {
+    const slowa = bullets.filter(Boolean).map(pierwszeSlowo);
+    const dok = slowa.some((s) => DOKONANE.includes(s));
+    const nie = slowa.some((s) => NIEDOKONANE.includes(s));
+    return dok && nie;
+  }).length;
 }
 
 /** Czy punkt jest „osiągnięciowy": mocny czasownik lub liczba, bez frazy obowiązku. */
@@ -266,17 +327,26 @@ export function ocenCv(
   const paskiSkill = [...cv.skills.technical, ...cv.skills.soft_and_tools].filter(
     (s) => /\d+\s*%|\d\s*\/\s*10|★|●|▮/.test(s)
   ).length;
-  const format = Math.max(0, spojneDaty - Math.min(0.5, paskiSkill * 0.25));
+  // Spójność językowa: mieszanie aspektu w obrębie jednej pozycji.
+  const mieszanyAspekt = pozycjeZMieszanymAspektem(cv);
+  const format = Math.max(
+    0,
+    spojneDaty -
+      Math.min(0.5, paskiSkill * 0.25) -
+      Math.min(0.4, mieszanyAspekt * 0.2)
+  );
   push(
     "RUB-10",
-    "Spójny format",
+    "Spójny format i język",
     6,
     format * 6,
-    paskiSkill
-      ? `Przy umiejętnościach pojawiają się paski/procenty poziomu (${paskiSkill}) — rekruterowi nic nie mówią; użyj skali A1–C2 dla języków, a przy narzędziach po prostu ich wymień.`
-      : okresy.length && spojneDaty < 1
-        ? `Daty są zapisane na ${wzorce.size} różne sposoby (${[...wzorce].join(", ")}) — ujednolić je do jednego formatu w całym CV.`
-        : "Daty zapisane jednolicie w całym CV, bez pasków poziomu przy umiejętnościach.",
+    mieszanyAspekt
+      ? `W ${pluralize(mieszanyAspekt, "pozycji", "pozycjach", "pozycjach")} mieszasz formy dokonane („Wdrożyłem") z niedokonanymi („Wdrażałem") — trzymaj jedną konwencję w obrębie stanowiska, najlepiej dokonaną.`
+      : paskiSkill
+        ? `Przy umiejętnościach pojawiają się paski/procenty poziomu (${paskiSkill}) — rekruterowi nic nie mówią; użyj skali A1–C2 dla języków, a przy narzędziach po prostu ich wymień.`
+        : okresy.length && spojneDaty < 1
+          ? `Daty są zapisane na ${wzorce.size} różne sposoby (${[...wzorce].join(", ")}) — ujednolić je do jednego formatu w całym CV.`
+          : "Daty i formy czasowników spójne w całym CV, bez pasków poziomu przy umiejętnościach.",
     false
   );
 

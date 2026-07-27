@@ -1,6 +1,6 @@
 import type { TailoredCv } from "@/lib/cv-schema";
 import type { TemplateId } from "@/lib/store";
-import { cn } from "@/lib/utils";
+import { cn, opisLinku } from "@/lib/utils";
 
 /**
  * Czysty render dokumentu CV (bez store'a i bez ramki arkusza).
@@ -68,14 +68,13 @@ export function CvDocument({
     },
   }[template];
 
-  const contactLine = [
+  // Link zostaje klikalny — sam napis „LinkedIn" bez adresu jest bezużyteczny.
+  const link = opisLinku(cv.personal_info.linkedin_or_github);
+  const contactParts = [
     cv.personal_info.email,
     cv.personal_info.phone,
     cv.personal_info.location,
-    cv.personal_info.linkedin_or_github,
-  ]
-    .filter(Boolean)
-    .join("  •  ");
+  ].filter(Boolean);
 
   return (
     <div
@@ -97,8 +96,27 @@ export function CvDocument({
             {cv.personal_info.title}
           </p>
         )}
-        {contactLine && (
-          <p className="mt-2 text-xs text-neutral-500">{contactLine}</p>
+        {(contactParts.length > 0 || link) && (
+          <p className="mt-2 text-xs text-neutral-500">
+            {contactParts.join("  •  ")}
+            {link && (
+              <>
+                {contactParts.length > 0 && "  •  "}
+                {link.href ? (
+                  <a
+                    href={link.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="underline decoration-neutral-300 underline-offset-2"
+                  >
+                    {link.etykieta}
+                  </a>
+                ) : (
+                  link.etykieta
+                )}
+              </>
+            )}
+          </p>
         )}
       </header>
 

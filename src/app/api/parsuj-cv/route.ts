@@ -3,7 +3,7 @@ import { czyAiDostepne } from "@/lib/ai/models";
 import {
   czyObslugiwanyPlik,
   parsujCvZTekstu,
-  wyodrebnijTekst,
+  wyodrebnijTekstZLinkami,
 } from "@/lib/ai/parse-cv";
 
 /**
@@ -58,7 +58,9 @@ export async function POST(request: Request) {
 
   try {
     const bytes = new Uint8Array(await plik.arrayBuffer());
-    const tekst = await wyodrebnijTekst(bytes, plik.name);
+    // Razem z tekstem zbieramy adresy ukryte pod hiperłączami (np. napis
+    // „LinkedIn" podpięty pod prawdziwy adres profilu).
+    const { tekst, linki } = await wyodrebnijTekstZLinkami(bytes, plik.name);
 
     if (tekst.replace(/\s+/g, "").length < 40) {
       return NextResponse.json(
@@ -71,12 +73,13 @@ export async function POST(request: Request) {
       );
     }
 
-    const wynik = await parsujCvZTekstu(tekst);
+    const wynik = await parsujCvZTekstu(tekst, linki);
 
     // Diagnostyka tylko do logów serwera — pomaga oceniać jakość parsera.
     console.log("[parsuj-cv]", {
       plik: plik.name,
       dlugoscTekstu: wynik.dlugoscTekstu,
+      linki: linki.length,
       pozycje: wynik.cv.experience.length,
       umiejetnosci: wynik.cv.skills.technical.length,
       tokeny: wynik.zuzycie,
@@ -86,6 +89,7 @@ export async function POST(request: Request) {
       ok: true,
       cv: wynik.cv,
       dlugoscTekstu: wynik.dlugoscTekstu,
+      linki: linki.length,
     });
   } catch (e) {
     console.error("[parsuj-cv] błąd:", e);
