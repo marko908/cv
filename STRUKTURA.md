@@ -19,8 +19,10 @@ tylko KOD (walidator + straż przepisywania + deterministyczny matcher).
 **UI (nienaruszalne): styl Spotify, dark-only.** Tła #121212/#181818/#1f1f1f,
 jedyny akcent zieleń #1ed760 (tylko funkcjonalnie: CTA, stany aktywne), przyciski
 pill `rounded-full` uppercase, ciężkie cienie, bez szarych ramek, font Figtree.
-Dokument CV zachowuje granatowy akcent #0057D9 (nie zielony). Layout szablonu CV
-ZABLOKOWANY pod ATS (jedna kolumna) — użytkownik edytuje tylko treść.
+Dokument CV zachowuje granatowy akcent #0057D9 (nie zielony). Szablony JEDNOKOLUMNOWE
+są domyślne (ATS-safe); od 2026-07-27 istnieje też układ dwukolumnowy ze zdjęciem
+(`boczny`) — świadomy wybór użytkownika, ładniejszy dla człowieka, słabszy dla ATS.
+Użytkownik edytuje tylko treść, nie layout.
 
 ## Stack
 
@@ -102,7 +104,7 @@ wynik pokrycia, werdykt) · `slownik.ts` (wiedza branżowa, synonimy, rdzenie PL
 `scoring.ts` (rubryka 0–100) · `changes.ts` (opis zmian + findings) · `interview.ts`
 (pytania+aplikacja odpowiedzi) · `parse-cv.ts` (import: ekstrakcja tekstu + HIPERŁĄCZA z adnotacji PDF/hrefów DOCX + mapowanie AI) · `fetch-oferta.ts` (pobranie treści ogłoszenia z linku: JSON-LD JobPosting → HTML→tekst; `czyPoprawnyLink`, `BladPobraniaOferty`) · `models.ts` (wybór modeli+klucz).
 
-**`src/lib/`**: `cv-schema.ts` · `store.ts` · `cv-templates.ts` (lista szablonów) ·
+**`src/lib/`**: `cv-schema.ts` · `store.ts` · `cv-templates.ts` (lista szablonów + `withPhoto`/`templateUsesPhoto`) ·
 `sample-cv.ts` (Anna Kowalska — demo) · `sections.ts` (definicje sekcji edytora) ·
 `utils.ts` (`cn`, `pluralize`) · `mock-review.ts`.
 
@@ -110,10 +112,10 @@ wynik pokrycia, werdykt) · `slownik.ts` (wiedza branżowa, synonimy, rdzenie PL
 (edytor: `builder.tsx`, `section-list.tsx` [na górze działający import CV: `CvImportButton variant="row" mode="replace"`], `section-dialogs.tsx`, `field-inputs.tsx`,
 `readiness.tsx`, `match-results.tsx`, `tailor-flow.tsx` [modal dopasowania:
 config→running→interview→result], `paywall-dialog.tsx`, `score-breakdown.tsx`
-[„Z czego wynika wynik"], `cv-document.tsx` [podgląd HTML], `template-picker.tsx`) ·
+[„Z czego wynika wynik"], `cv-document.tsx` [podgląd HTML; dla `boczny` deleguje do `cv-document-boczny.tsx`], `photo-input.tsx` [wgrywanie zdjęcia: kadr do kwadratu 360px, JPEG q0.72, ~5-40 kB — localStorage], `template-picker.tsx`) ·
 `new-cv-dialog.tsx` (modal wyboru szablonu, sticky stopka) · `cv-import-button.tsx`
-(import CV) · `cv-compare-dialog.tsx` · `cv-pdf.tsx`+`download-pdf-button.tsx` (eksport
-PDF, font Lato z `public/fonts`) · `template-thumb.tsx` (miniatura = przeskalowany
+(import CV) · `cv-compare-dialog.tsx` · `cv-pdf.tsx`+`cv-pdf-boczny.tsx`+`download-pdf-button.tsx` (eksport
+PDF, font Lato z `public/fonts`; `CvPdf` deleguje układ `boczny` do `CvPdfBoczny`) · `template-thumb.tsx` (miniatura = przeskalowany
 CvDocument; `full` = pełny dokument na wiele stron z liniami podziału — używane w porównaniu) · `select-cv-dialog.tsx` · `cv-library-sync.tsx` (autosync aktywne CV→biblioteka) · `store-hydration.tsx` · `ui/` (shadcn).
 
 **Trasy** (`src/app/`): `/` landing · `/app` Start (onboarding/hub) · `/app/kreator`
@@ -135,7 +137,8 @@ API: `runtime nodejs`, `maxDuration 60`.
 - **Opis „co zmieniliśmy/dlaczego"** → `changes.ts`
 - **Model danych CV** → `cv-schema.ts` (zmiana schematu = zmiana w store, edytorze, PDF)
 - **Stan/persist/biblioteka CV** → `store.ts`
-- **Szablony (wygląd)** → `cv-templates.ts` + `cv-document.tsx` (HTML) + `cv-pdf.tsx` (PDF) — TRZYMAJ SPÓJNE
+- **Szablony (wygląd)** → `cv-templates.ts` + `cv-document.tsx` (HTML) + `cv-pdf.tsx` (PDF) — TRZYMAJ SPÓJNE. Układ dwukolumnowy: `cv-document-boczny.tsx` + `cv-pdf-boczny.tsx`. Nowy szablon = wpis w `CV_TEMPLATES`, gałąź w obu rendererach, wpis w `PDF_TEMPLATE_STYLES` i w mapie stylów `cv-document.tsx` (oba są `Record<TemplateId,...>`).
+- **Weryfikacja wizualna PDF** → `npx tsx scripts/verify-boczny.ts` (renderuje prawdziwy PDF do PNG w `scripts/_podglad/`, poza repo)
 - **Wybór modelu AI** → env `CV_MODEL_*` (bez ruszania kodu)
 
 ## Konwencje i pułapki

@@ -18,6 +18,12 @@ export const personalInfoSchema = z.object({
     .string()
     .optional()
     .describe("Link do LinkedIn lub GitHub (opcjonalnie)"),
+  photo: z
+    .string()
+    .optional()
+    .describe(
+      "NIE WYPEŁNIAJ. Zdjęcie kandydata (data URL) wgrywane ręcznie w edytorze — używane tylko przez szablony ze zdjęciem."
+    ),
 });
 
 export const experienceItemSchema = z.object({

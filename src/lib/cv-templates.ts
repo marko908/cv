@@ -5,6 +5,13 @@ export interface CvTemplate {
   name: string;
   description: string;
   recommended?: boolean;
+  /** Szablon ma miejsce na zdjęcie kandydata (edytor pokaże wgrywanie). */
+  withPhoto?: boolean;
+}
+
+/** Czy dany szablon korzysta ze zdjęcia kandydata. */
+export function templateUsesPhoto(id: TemplateId): boolean {
+  return CV_TEMPLATES.find((t) => t.id === id)?.withPhoto === true;
 }
 
 /** Wspólny rejestr szablonów dostępnych w obu miejscach wyboru CV. */
@@ -33,6 +40,13 @@ export const CV_TEMPLATES: CvTemplate[] = [
     name: "Elegancki",
     description:
       "Stonowany granat i bardziej reprezentacyjny nagłówek dla ról eksperckich.",
+  },
+  {
+    id: "boczny",
+    name: "Boczny panel",
+    description:
+      "Dwie kolumny z miejscem na zdjęcie — kontakt i umiejętności w bocznym pasku. Efektowny dla rekrutera; przy automatach ATS bezpieczniejszy jest układ jednokolumnowy.",
+    withPhoto: true,
   },
   {
     id: "kompaktowy",

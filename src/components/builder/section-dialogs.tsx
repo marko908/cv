@@ -13,6 +13,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { PhotoInput } from "./photo-input";
+import { templateUsesPhoto } from "@/lib/cv-templates";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -76,7 +78,11 @@ function SectionShell({
 export function PersonalInfoDialog({ trigger }: { trigger: ReactNode }) {
   const cv = useCvStore((s) => s.cv);
   const setPersonal = useCvStore((s) => s.setPersonal);
+  const template = useCvStore((s) => s.template);
   const p = cv.personal_info;
+  // Zdjęcie pokazujemy tylko tam, gdzie szablon faktycznie je wyświetla —
+  // inaczej użytkownik wgrywa plik, którego nigdzie nie widać.
+  const zeZdjeciem = templateUsesPhoto(template);
 
   return (
     <SectionShell section="personal" trigger={trigger}>
@@ -99,6 +105,12 @@ export function PersonalInfoDialog({ trigger }: { trigger: ReactNode }) {
             placeholder="Frontend Developer"
           />
         </div>
+        {zeZdjeciem && (
+          <PhotoInput
+            value={p.photo}
+            onChange={(photo) => setPersonal({ photo })}
+          />
+        )}
         <div className="grid grid-cols-2 gap-4">
           <div className="grid gap-1.5">
             <Label htmlFor="pi-email">E-mail *</Label>

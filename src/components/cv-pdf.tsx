@@ -13,6 +13,7 @@ import {
 import type { TailoredCv } from "@/lib/cv-schema";
 import type { TemplateId } from "@/lib/store";
 import { opisLinku } from "@/lib/utils";
+import { CvPdfBoczny } from "./cv-pdf-boczny";
 
 // Font z pełną obsługą polskich znaków (wbudowane Helvetica ich nie ma).
 Font.register({
@@ -68,6 +69,14 @@ const PDF_TEMPLATE_STYLES: Record<TemplateId, PdfTemplateStyle> = {
     nameTransform: "uppercase", sectionMarginTop: 17, headingLetterSpacing: 1.3,
     headingPaddingBottom: 4, headingMarginBottom: 7, itemMarginBottom: 10,
     rodoMarginTop: 18,
+  },
+  // Układ „boczny" renderuje osobny komponent (CvPdfBoczny) — ten wpis istnieje
+  // tylko po to, by mapa pokrywała cały typ TemplateId.
+  boczny: {
+    accent: "#1F2937", pagePaddingVertical: 30, pagePaddingHorizontal: 26,
+    fontSize: 9.5, lineHeight: 1.45, nameFontSize: 22, sectionMarginTop: 12,
+    headingLetterSpacing: 1.8, headingPaddingBottom: 3, headingMarginBottom: 9,
+    itemMarginBottom: 10, rodoMarginTop: 16,
   },
   kompaktowy: {
     accent: "#0057D9", pagePaddingVertical: 32, pagePaddingHorizontal: 34,
@@ -149,6 +158,9 @@ export function CvPdf({
   cv: TailoredCv;
   template: TemplateId;
 }) {
+  // Układ dwukolumnowy ma własny dokument — inny szkielet, te same dane.
+  if (template === "boczny") return <CvPdfBoczny cv={cv} />;
+
   const s = makeStyles(PDF_TEMPLATE_STYLES[template]);
 
   // Link musi zostac klikalny takze w PDF — inaczej rekruter widzi sam napis.
