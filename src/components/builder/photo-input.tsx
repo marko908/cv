@@ -1,50 +1,93 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ImagePlus, Loader2, Trash2 } from "lucide-react";
+import { Crop, ImagePlus, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PhotoCropper, type Kadr } from "./photo-cropper";
 
 /**
- * Wgrywanie zdjęcia kandydata (szablony ze zdjęciem).
+ * Wgrywanie i kadrowanie zdjęcia kandydata (szablony ze zdjęciem).
  *
- * Zdjęcie zapisujemy jako data URL wewnątrz CV, a CV siedzi w localStorage —
- * dlatego plik z aparatu (kilka MB) MUSI zostać przeskalowany, inaczej
- * przepełnimy magazyn przeglądarki. Skalujemy do kwadratu 360 px i zapisujemy
- * jako JPEG, co daje ~30–50 kB przy zachowaniu dobrej jakości druku w CV.
+ * Trzymamy DWA obrazy:
+ *  - `photo` — gotowy kwadratowy kadr, to renderują szablony,
+ *  - `photo_source` — pomniejszony oryginał, wyłącznie po to, by dało się
+ *    poprawić kadr później bez utraty jakości.
+ *
+ * Wszystko siedzi w localStorage razem z CV, więc oba obrazy są mocno
+ * zmniejszane: oryginał do 640 px dłuższego boku, kadr do 360 px, JPEG.
+ * Realnie daje to ~40–90 kB łącznie zamiast kilku megabajtów z aparatu.
  */
 
-const BOK = 360;
+const BOK_ORYGINALU = 640;
+const BOK_KADRU = 360;
 const JAKOSC = 0.72;
 
-/** Skaluje i przycina obraz do kwadratu, zwraca data URL (JPEG). */
-async function przeskaluj(plik: File): Promise<string> {
+/** Pomniejsza obraz z zachowaniem proporcji i zwraca data URL (JPEG). */
+async function pomniejsz(plik: File, maxBok: number): Promise<string> {
   const bitmapa = await createImageBitmap(plik);
-  const bok = Math.min(bitmapa.width, bitmapa.height);
-  // Kadrujemy centralnie do kwadratu — portret zwykle jest wyśrodkowany.
-  const sx = (bitmapa.width - bok) / 2;
-  const sy = (bitmapa.height - bok) / 2;
+  const skala = Math.min(1, maxBok / Math.max(bitmapa.width, bitmapa.height));
+  const w = Math.round(bitmapa.width * skala);
+  const h = Math.round(bitmapa.height * skala);
 
   const canvas = document.createElement("canvas");
-  canvas.width = BOK;
-  canvas.height = BOK;
+  canvas.width = w;
+  canvas.height = h;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Brak kontekstu canvas");
-  ctx.drawImage(bitmapa, sx, sy, bok, bok, 0, 0, BOK, BOK);
+  ctx.drawImage(bitmapa, 0, 0, w, h);
   bitmapa.close();
-
   return canvas.toDataURL("image/jpeg", JAKOSC);
 }
 
+/** Wycina wyśrodkowany kwadrat z data URL — kadr domyślny po wgraniu. */
+async function kadrujSrodek(dataUrl: string): Promise<string> {
+  const obraz = await new Promise<HTMLImageElement>((ok, err) => {
+    const i = new window.Image();
+    i.onload = () => ok(i);
+    i.onerror = err;
+    i.src = dataUrl;
+  });
+  const bok = Math.min(obraz.width, obraz.height);
+  const canvas = document.createElement("canvas");
+  canvas.width = BOK_KADRU;
+  canvas.height = BOK_KADRU;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Brak kontekstu canvas");
+  ctx.drawImage(
+    obraz,
+    (obraz.width - bok) / 2,
+    (obraz.height - bok) / 2,
+    bok,
+    bok,
+    0,
+    0,
+    BOK_KADRU,
+    BOK_KADRU
+  );
+  return canvas.toDataURL("image/jpeg", JAKOSC);
+}
+
+export type ZmianaZdjecia = {
+  photo?: string;
+  photo_source?: string;
+  photo_crop?: Kadr;
+};
+
 export function PhotoInput({
   value,
+  source,
+  kadr,
   onChange,
 }: {
   value?: string;
-  onChange: (photo: string | undefined) => void;
+  source?: string;
+  kadr?: Kadr;
+  onChange: (zmiana: ZmianaZdjecia) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [stan, setStan] = useState<"idle" | "praca">("idle");
   const [blad, setBlad] = useState<string | null>(null);
+  const [kadrowanie, setKadrowanie] = useState(false);
 
   const onPlik = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const plik = e.target.files?.[0];
@@ -58,7 +101,16 @@ export function PhotoInput({
     setStan("praca");
     setBlad(null);
     try {
-      onChange(await przeskaluj(plik));
+      const oryginal = await pomniejsz(plik, BOK_ORYGINALU);
+      const kadrDomyslny = await kadrujSrodek(oryginal);
+      // Nowe zdjęcie = nowy kadr; kasujemy zapamiętane ustawienia poprzedniego.
+      onChange({
+        photo: kadrDomyslny,
+        photo_source: oryginal,
+        photo_crop: undefined,
+      });
+      // Od razu proponujemy dopasowanie — rzadko kiedy środek to właściwy kadr.
+      setKadrowanie(true);
     } catch {
       setBlad("Nie udało się wczytać tego zdjęcia. Spróbuj inny plik.");
     } finally {
@@ -104,13 +156,33 @@ export function PhotoInput({
               ) : null}
               {value ? "Zmień zdjęcie" : "Wgraj zdjęcie"}
             </Button>
+
+            {value && source && (
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                className="btn-label gap-1.5 font-bold"
+                onClick={() => setKadrowanie(true)}
+              >
+                <Crop className="size-3.5" />
+                Dopasuj
+              </Button>
+            )}
+
             {value && (
               <Button
                 type="button"
                 size="sm"
                 variant="ghost"
                 className="btn-label gap-1.5 font-bold text-muted-foreground"
-                onClick={() => onChange(undefined)}
+                onClick={() =>
+                  onChange({
+                    photo: undefined,
+                    photo_source: undefined,
+                    photo_crop: undefined,
+                  })
+                }
               >
                 <Trash2 className="size-3.5" />
                 Usuń
@@ -118,11 +190,25 @@ export function PhotoInput({
             )}
           </div>
           <p className="text-xs text-muted-foreground">
-            Widoczne tylko w szablonach ze zdjęciem. Kadrujemy do kwadratu.
+            {value && !source
+              ? "Wgraj zdjęcie ponownie, aby móc poprawiać kadr."
+              : "Widoczne tylko w szablonach ze zdjęciem."}
           </p>
         </div>
       </div>
       {blad && <p className="text-xs text-destructive">{blad}</p>}
+
+      {source && kadrowanie && (
+        <PhotoCropper
+          source={source}
+          kadr={kadr}
+          onZapisz={(photo, nowyKadr) => {
+            onChange({ photo, photo_source: source, photo_crop: nowyKadr });
+            setKadrowanie(false);
+          }}
+          onAnuluj={() => setKadrowanie(false)}
+        />
+      )}
     </div>
   );
 }

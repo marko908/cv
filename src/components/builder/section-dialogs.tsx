@@ -108,7 +108,9 @@ export function PersonalInfoDialog({ trigger }: { trigger: ReactNode }) {
         {zeZdjeciem && (
           <PhotoInput
             value={p.photo}
-            onChange={(photo) => setPersonal({ photo })}
+            source={p.photo_source}
+            kadr={p.photo_crop}
+            onChange={(zmiana) => setPersonal(zmiana)}
           />
         )}
         <div className="grid grid-cols-2 gap-4">

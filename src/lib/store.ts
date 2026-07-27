@@ -13,6 +13,28 @@ import type {
 } from "./cv-schema";
 import { emptyCv } from "./cv-schema";
 
+/**
+ * Kopia CV bez pomniejszonego oryginału zdjęcia. Oryginał jest potrzebny tylko
+ * w edytorze (do ponownego kadrowania), a w historii dopasowań niepotrzebnie
+ * podwajałby zajętość localStorage.
+ */
+function cvBezOryginaluZdjecia(cv: TailoredCv): TailoredCv {
+  if (!cv?.personal_info?.photo_source) return cv;
+  return {
+    ...cv,
+    personal_info: { ...cv.personal_info, photo_source: undefined },
+  };
+}
+
+function bezOryginaluZdjecia(t: Tailoring): Tailoring {
+  return {
+    ...t,
+    baseCv: cvBezOryginaluZdjecia(t.baseCv),
+    tailoredCv: cvBezOryginaluZdjecia(t.tailoredCv),
+  };
+}
+
+
 export type CvPath = "tailor" | "create";
 export type TemplateId =
   | "klasyczny"
@@ -415,7 +437,11 @@ export const useCvStore = create<CvState>()(
         }),
 
       addTailoring: (t) =>
-        set((s) => ({ tailorings: [t, ...s.tailorings] })),
+        // Rekord historii trzyma DWA komplety CV, a te siedzą w localStorage.
+        // Pomniejszony oryginał zdjęcia służy wyłącznie do poprawiania kadru
+        // w edytorze, więc w historii jest zbędny — usuwamy go, żeby kilkanaście
+        // dopasowań nie przepełniło magazynu przeglądarki.
+        set((s) => ({ tailorings: [bezOryginaluZdjecia(t), ...s.tailorings] })),
       removeTailoring: (id) =>
         set((s) => ({ tailorings: s.tailorings.filter((t) => t.id !== id) })),
       updateTailoringCv: (id, tailoredCv) =>

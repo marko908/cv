@@ -120,7 +120,7 @@ wynik pokrycia, werdykt) · `slownik.ts` (wiedza branżowa, synonimy, rdzenie PL
 (edytor: `builder.tsx`, `section-list.tsx` [na górze działający import CV: `CvImportButton variant="row" mode="replace"`], `section-dialogs.tsx`, `field-inputs.tsx`,
 `readiness.tsx`, `match-results.tsx`, `tailor-flow.tsx` [modal dopasowania:
 config→running→interview→result], `paywall-dialog.tsx`, `score-breakdown.tsx`
-[„Z czego wynika wynik"], `cv-document.tsx` [podgląd HTML; dla `boczny` deleguje do `cv-document-boczny.tsx`], `photo-input.tsx` [wgrywanie zdjęcia: kadr do kwadratu 360px, JPEG q0.72, ~5-40 kB — localStorage], `template-picker.tsx`) ·
+[„Z czego wynika wynik"], `cv-document.tsx` [podgląd HTML; dla `boczny` deleguje do `cv-document-boczny.tsx`], `photo-input.tsx` + `photo-cropper.tsx` [zdjęcie: pomniejszony oryginał `photo_source` (max 640px) + gotowy kadr `photo` (360px) + `photo_crop{zoom,ox,oy}`; kadrowanie zoom/przeciąganie to panel INLINE, nie modal (zagnieżdżony Radix Dialog nie domykał animacji wyjścia). `store.addTailoring` usuwa `photo_source` z historii, żeby nie dublować obrazów w localStorage], `template-picker.tsx`) ·
 `new-cv-dialog.tsx` (modal wyboru szablonu, sticky stopka) · `cv-import-button.tsx`
 (import CV) · `cv-compare-dialog.tsx` · `cv-pdf.tsx`+`cv-pdf-boczny.tsx`+`download-pdf-button.tsx` (eksport
 PDF, font Lato z `public/fonts`; `CvPdf` deleguje układ `boczny` do `CvPdfBoczny`) · `template-thumb.tsx` (miniatura = przeskalowany

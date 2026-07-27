@@ -22,8 +22,24 @@ export const personalInfoSchema = z.object({
     .string()
     .optional()
     .describe(
-      "NIE WYPEŁNIAJ. Zdjęcie kandydata (data URL) wgrywane ręcznie w edytorze — używane tylko przez szablony ze zdjęciem."
+      "NIE WYPEŁNIAJ. Gotowe, wykadrowane zdjęcie kandydata (data URL) — to renderują szablony ze zdjęciem."
     ),
+  photo_source: z
+    .string()
+    .optional()
+    .describe(
+      "NIE WYPEŁNIAJ. Pomniejszony oryginał zdjęcia — potrzebny wyłącznie po to, by dało się PONOWNIE dopasować kadr bez utraty jakości."
+    ),
+  photo_crop: z
+    .object({
+      /** Powiększenie względem kadru „wypełnij" (1 = całe zdjęcie w ramce). */
+      zoom: z.number(),
+      /** Przesunięcie w jednostkach ramki podglądu (ułamek jej boku). */
+      ox: z.number(),
+      oy: z.number(),
+    })
+    .optional()
+    .describe("NIE WYPEŁNIAJ. Zapamiętane ustawienia kadru zdjęcia."),
 });
 
 export const experienceItemSchema = z.object({
