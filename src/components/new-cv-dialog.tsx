@@ -13,11 +13,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { TemplateThumb } from "@/components/template-thumb";
+import { TemplateGallery } from "@/components/template-gallery";
 import { useCvStore, type TemplateId } from "@/lib/store";
 import { sampleCv } from "@/lib/sample-cv";
 import { CV_TEMPLATES } from "@/lib/cv-templates";
-import { cn } from "@/lib/utils";
 
 /**
  * Modal wyboru szablonu (wzorzec z ResuMax) z prawdziwymi miniaturami CV.
@@ -67,45 +66,14 @@ export function NewCvDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Środkowa, przewijana sekcja. Mobile: poziomy pasek (treść niska).
-            sm+: siatka 2-kolumnowa przewijana pionowo. */}
+        {/* Środkowa, przewijana sekcja: kategorie w pionie, szablony w poziomie. */}
         <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
-        <div className="flex min-w-0 snap-x snap-mandatory gap-4 overflow-x-auto pb-1 sm:grid sm:grid-cols-2 sm:overflow-x-visible sm:pb-0">
-          {CV_TEMPLATES.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => setSelected(t.id)}
-              className={cn(
-                "relative w-64 shrink-0 snap-start rounded-lg bg-secondary p-3 text-left transition-all sm:w-auto",
-                selected === t.id
-                  ? "shadow-elevated ring-2 ring-primary"
-                  : "hover:bg-accent"
-              )}
-            >
-              {t.recommended && (
-                <span className="eyebrow absolute left-5 top-5 z-10 rounded-full bg-primary px-2 py-0.5 text-primary-foreground">
-                  Polecany
-                </span>
-              )}
-              {selected === t.id && (
-                <span className="absolute right-5 top-5 z-10 flex size-5 items-center justify-center rounded-full bg-primary">
-                  <Check className="size-3 text-primary-foreground" />
-                </span>
-              )}
-              <TemplateThumb
-                template={t.id}
-                cv={thumbCv}
-                width={220}
-                className="mx-auto"
-              />
-              <span className="mt-3 block text-sm font-bold">{t.name}</span>
-              <span className="mt-0.5 block text-xs text-muted-foreground">
-                {t.description}
-              </span>
-            </button>
-          ))}
-        </div>
+          <TemplateGallery
+            cv={thumbCv}
+            selected={selected}
+            onSelect={setSelected}
+            thumbWidth={200}
+          />
         </div>
 
         <DialogFooter className="mx-0 mb-0 shrink-0 items-center sm:justify-between">

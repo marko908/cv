@@ -112,7 +112,7 @@ wynik pokrycia, werdykt) · `slownik.ts` (wiedza branżowa, synonimy, rdzenie PL
 `scoring.ts` (rubryka 0–100) · `changes.ts` (opis zmian + findings) · `interview.ts`
 (pytania+aplikacja odpowiedzi) · `parse-cv.ts` (import: ekstrakcja tekstu + HIPERŁĄCZA z adnotacji PDF/hrefów DOCX + mapowanie AI) · `fetch-oferta.ts` (pobranie treści ogłoszenia z linku: JSON-LD JobPosting → HTML→tekst; `czyPoprawnyLink`, `BladPobraniaOferty`) · `models.ts` (wybór modeli+klucz).
 
-**`src/lib/`**: `cv-schema.ts` · `store.ts` · `cv-templates.ts` (lista szablonów + `withPhoto`/`templateUsesPhoto`) ·
+**`src/lib/`**: `cv-schema.ts` · `store.ts` · `cv-templates.ts` (rejestr szablonów: `withPhoto`/`templateUsesPhoto`, `tags: TemplateTag[]` + `templatesByTag`, `TEMPLATE_CATEGORIES` = wiersze galerii, `STOCK_PHOTO` = zdjęcie poglądowe `public/stock/kandydat.jpg`) ·
 `sample-cv.ts` (Anna Kowalska — demo) · `sections.ts` (definicje sekcji edytora) ·
 `utils.ts` (`cn`, `pluralize`) · `mock-review.ts`.
 
@@ -123,8 +123,8 @@ config→running→interview→result], `paywall-dialog.tsx`, `score-breakdown.t
 [„Z czego wynika wynik"], `cv-document.tsx` [podgląd HTML; dla `boczny` deleguje do `cv-document-boczny.tsx`], `photo-input.tsx` + `photo-cropper.tsx` [zdjęcie: pomniejszony oryginał `photo_source` (max 640px) + gotowy kadr `photo` (360px) + `photo_crop{zoom,ox,oy}`; kadrowanie zoom/przeciąganie to panel INLINE, nie modal (zagnieżdżony Radix Dialog nie domykał animacji wyjścia). `store.addTailoring` usuwa `photo_source` z historii, żeby nie dublować obrazów w localStorage], `template-picker.tsx`) ·
 `new-cv-dialog.tsx` (modal wyboru szablonu, sticky stopka) · `cv-import-button.tsx`
 (import CV) · `cv-compare-dialog.tsx` · `cv-pdf.tsx`+`cv-pdf-boczny.tsx`+`download-pdf-button.tsx` (eksport
-PDF, font Lato z `public/fonts`; `CvPdf` deleguje układ `boczny` do `CvPdfBoczny`) · `template-thumb.tsx` (miniatura = przeskalowany
-CvDocument; `full` = pełny dokument na wiele stron z liniami podziału — używane w porównaniu) · `select-cv-dialog.tsx` · `cv-library-sync.tsx` (autosync aktywne CV→biblioteka) · `store-hydration.tsx` · `ui/` (shadcn).
+PDF, font Lato z `public/fonts`; `CvPdf` deleguje układ `boczny` do `CvPdfBoczny`) · `template-gallery.tsx` (galeria: wiersz na kategorię, przewijanie w bok; używana przez `template-picker.tsx` i `new-cv-dialog.tsx`) · `template-thumb.tsx` (miniatura = przeskalowany
+CvDocument; `demo` podstawia `STOCK_PHOTO` w układach ze zdjęciem, gdy użytkownik nie wgrał własnego — TYLKO w galerii, nigdy w CV ani PDF; `full` = pełny dokument na wiele stron z liniami podziału — używane w porównaniu) · `select-cv-dialog.tsx` · `cv-library-sync.tsx` (autosync aktywne CV→biblioteka) · `store-hydration.tsx` · `ui/` (shadcn).
 
 **Trasy** (`src/app/`): `/` landing · `/app` Start (onboarding/hub) · `/app/kreator`
 lista „Moje CV" (+ Dodaj nowe, + Wgraj CV) · `/app/kreator/edytor` edytor ·

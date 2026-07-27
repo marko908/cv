@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { TailoredCv } from "@/lib/cv-schema";
 import type { TemplateId } from "@/lib/store";
 import { CvDocument } from "@/components/builder/cv-document";
+import { STOCK_PHOTO, templateUsesPhoto } from "@/lib/cv-templates";
 import { cn } from "@/lib/utils";
 
 const SHEET_WIDTH = 794; // szerokość A4 przy 96 dpi
@@ -22,6 +23,7 @@ export function TemplateThumb({
   cv,
   width = 210,
   full = false,
+  demo = false,
   className,
 }: {
   template: TemplateId;
@@ -29,8 +31,21 @@ export function TemplateThumb({
   width?: number;
   /** Pokaż cały dokument (wiele stron) zamiast przyciętej miniatury. */
   full?: boolean;
+  /**
+   * Miniatura w galerii szablonów: gdy układ ma miejsce na zdjęcie, a
+   * użytkownik żadnego nie wgrał, podstawiamy zdjęcie poglądowe. Dzięki temu
+   * widać, że szablon przewiduje zdjęcie. Do CV ani do PDF to nie trafia.
+   */
+  demo?: boolean;
   className?: string;
 }) {
+  const cvDoPodgladu: TailoredCv =
+    demo && templateUsesPhoto(template) && !cv.personal_info.photo
+      ? {
+          ...cv,
+          personal_info: { ...cv.personal_info, photo: STOCK_PHOTO },
+        }
+      : cv;
   const scale = width / SHEET_WIDTH;
   const contentRef = useRef<HTMLDivElement>(null);
   const [contentHeight, setContentHeight] = useState(SHEET_HEIGHT);
@@ -75,7 +90,7 @@ export function TemplateThumb({
           transformOrigin: "top left",
         }}
       >
-        <CvDocument cv={cv} template={template} />
+        <CvDocument cv={cvDoPodgladu} template={template} />
       </div>
 
       {/* Linie podziału stron — użytkownik widzi, gdzie kończy się kartka. */}
