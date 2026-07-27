@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { tailoredCvSchema, type TailoredCv } from "@/lib/cv-schema";
 import { czyAiDostepne } from "@/lib/ai/models";
 import { uruchomDopasowanie } from "@/lib/ai/pipeline";
+import { ofertaSchema } from "@/lib/ai/job-offer";
 
 /**
  * Uruchamia prawdziwe dopasowanie CV do oferty (pipeline AI).
@@ -42,6 +43,7 @@ export async function POST(request: Request) {
     cv,
     oryginalCv,
     obsluzonePytania,
+    oferta,
     template,
     jobText,
     jobUrl = "",
@@ -49,6 +51,7 @@ export async function POST(request: Request) {
     cv?: unknown;
     oryginalCv?: unknown;
     obsluzonePytania?: unknown;
+    oferta?: unknown;
     template?: string;
     jobText?: string;
     jobUrl?: string;
@@ -84,10 +87,16 @@ export async function POST(request: Request) {
     ? obsluzonePytania.filter((x): x is string => typeof x === "string")
     : [];
 
+  // Sparsowana oferta z wcześniejszej rundy — walidujemy schematem; przy
+  // braku/niepoprawnej pipeline sparsuje ofertę od nowa (jak pierwszy przebieg).
+  const ofertaParsed = ofertaSchema.safeParse(oferta);
+  const ofertaCache = ofertaParsed.success ? ofertaParsed.data : undefined;
+
   try {
     const wynik = await uruchomDopasowanie(baseCv, jobText, {
       oryginalCv: oryginal,
       obsluzonePytania: obsluzone,
+      oferta: ofertaCache,
     });
 
     const tailoring = {
@@ -112,7 +121,13 @@ export async function POST(request: Request) {
       ...wynik.diagnostyka,
     });
 
-    return NextResponse.json({ ok: true, tailoring, pytania: wynik.pytania });
+    // Zwracamy sparsowaną ofertę, by klient odesłał ją przy re-runie (cache).
+    return NextResponse.json({
+      ok: true,
+      tailoring,
+      pytania: wynik.pytania,
+      oferta: wynik.oferta,
+    });
   } catch (e) {
     console.error("[dopasuj] błąd pipeline:", e);
     return NextResponse.json(

@@ -39,6 +39,13 @@ export type OpcjeDopasowania = {
    * w nieskończoność.
    */
   obsluzonePytania?: string[];
+  /**
+   * Sparsowana oferta z wcześniejszej rundy tej samej sesji. Gdy podana,
+   * pomijamy ponowne parsowanie AI — wymagania są wtedy identyczne co rundę,
+   * więc wynik „przed"/„po" nie drga z niedeterminizmu modelu, a koszt spada
+   * (jedno wywołanie taniego modelu mniej na rundę).
+   */
+  oferta?: ParsedOferta;
 };
 
 export type WynikPipeline = {
@@ -121,9 +128,19 @@ export async function uruchomDopasowanie(
   let tokenyWyjscie = 0;
 
   // 1-3. Oferta, fakty, dopasowanie przed zmianami.
-  const { oferta, zuzycie: zuzycieOferty } = await parsujOferte(trescOferty);
-  tokenyWejscie += zuzycieOferty.wejscie;
-  tokenyWyjscie += zuzycieOferty.wyjscie;
+  //   Ofertę parsujemy RAZ na sesję: na re-runie klient odsyła sparsowaną
+  //   ofertę (opcje.oferta), więc pomijamy ponowne wywołanie AI. To usuwa
+  //   drganie wyniku (te same wymagania co rundę) i obniża koszt.
+  let oferta: ParsedOferta;
+  if (opcje.oferta) {
+    oferta = opcje.oferta;
+  } else {
+    const { oferta: sparsowana, zuzycie: zuzycieOferty } =
+      await parsujOferte(trescOferty);
+    oferta = sparsowana;
+    tokenyWejscie += zuzycieOferty.wejscie;
+    tokenyWyjscie += zuzycieOferty.wyjscie;
+  }
 
   const ledger: FactLedger = buildLedgerFromCv(baseCv);
   const przed: WynikDopasowania = dopasuj(oferta, ledger);

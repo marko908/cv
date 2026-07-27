@@ -34,6 +34,7 @@ import {
   type OdpowiedzWywiadu,
   type PytanieWywiadu,
 } from "@/lib/ai/interview";
+import type { ParsedOferta } from "@/lib/ai/job-offer";
 import { PaywallDialog } from "./paywall-dialog";
 import { ScoreBreakdown } from "./score-breakdown";
 import { cn, pluralize } from "@/lib/utils";
@@ -41,7 +42,12 @@ import { cn, pluralize } from "@/lib/utils";
 type Step = "config" | "running" | "interview" | "result";
 
 /** Wynik produkcji dopasowania: rekord + pytania wywiadu (nieutrwalane). */
-type Produkt = { tailoring: Tailoring; pytania: PytanieWywiadu[] };
+type Produkt = {
+  tailoring: Tailoring;
+  pytania: PytanieWywiadu[];
+  /** Sparsowana oferta — do odesłania przy re-runie (cache, brak drgania). */
+  oferta?: ParsedOferta;
+};
 
 export function TailorFlow({
   trigger,
@@ -76,6 +82,9 @@ export function TailorFlow({
   // Kumulowane między rundami i przekazywane do pipeline, żeby te same pytania
   // nie wracały w nieskończoność. Czyszczone przy nowej analizie.
   const obsluzoneRef = useRef<Set<string>>(new Set());
+  // Sparsowana oferta z pierwszego przebiegu — odsyłana przy re-runach, żeby
+  // pipeline nie parsował oferty od nowa (koniec drgania wyniku + niższy koszt).
+  const ofertaRef = useRef<ParsedOferta | null>(null);
 
   // Otwórz, gdy sygnał z zewnątrz (np. ?oferta=1) się pojawi.
   useEffect(() => {
@@ -107,6 +116,8 @@ export function TailorFlow({
           // diffu — na re-runie po wywiadzie `bazaCv` jest już wzbogacone.
           oryginalCv: cv,
           obsluzonePytania: [...obsluzoneRef.current],
+          // Sparsowana oferta z pierwszego przebiegu (null = pipeline sparsuje).
+          oferta: ofertaRef.current ?? undefined,
           template,
           jobText: jobPosting.text,
           jobUrl: jobPosting.url,
@@ -118,6 +129,7 @@ export function TailorFlow({
           return {
             tailoring: data.tailoring as Tailoring,
             pytania: (data.pytania ?? []) as PytanieWywiadu[],
+            oferta: (data.oferta ?? undefined) as ParsedOferta | undefined,
           };
         }
       }
@@ -127,13 +139,15 @@ export function TailorFlow({
     return { tailoring: buildTailoring(bazaCv, jobPosting, template), pytania: [] };
   };
 
-  const zapiszWynik = ({ tailoring: t, pytania: p }: Produkt) => {
+  const zapiszWynik = ({ tailoring: t, pytania: p, oferta: o }: Produkt) => {
     addTailoring(t);
     // Przeliczenie z wywiadu zastępuje poprzedni rekord, nie mnoży historii.
     if (zastapRef.current && zastapRef.current !== t.id) {
       removeTailoring(zastapRef.current);
     }
     zastapRef.current = null;
+    // Zapamiętaj sparsowaną ofertę — re-run ją odeśle, więc nie parsujemy od nowa.
+    if (o) ofertaRef.current = o;
     setAiMeta(t.aiMeta);
     setTailoringId(t.id);
     setPytania(p);
@@ -151,9 +165,10 @@ export function TailorFlow({
     setStep("running");
   };
 
-  // Świeża analiza od zera — czyścimy stan pętli wywiadu.
+  // Świeża analiza od zera — czyścimy stan pętli wywiadu i cache oferty.
   const nowaAnaliza = () => {
     obsluzoneRef.current = new Set();
+    ofertaRef.current = null;
     zastapRef.current = null;
     setPendingCv(null);
     setStep("running");
@@ -164,6 +179,7 @@ export function TailorFlow({
     setPytania([]);
     setPendingCv(null);
     obsluzoneRef.current = new Set();
+    ofertaRef.current = null;
     zastapRef.current = null;
     setStep("config");
   };

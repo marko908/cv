@@ -37,7 +37,12 @@ Wejście: `uruchomDopasowanie(baseCv, trescOferty, opcje?)` w `src/lib/ai/pipeli
 podane, wynik „przed" i opis zmian liczone są względem NIEGO (na re-runie widać
 skumulowaną poprawę 61→89, nie chwilowe „+0"). `obsluzonePytania` — id pytań już
 obsłużonych w sesji; pipeline je odfiltrowuje, więc pętla wywiadu zbiega do 0
-(bez tego te same pytania wracały bez końca). Kolejność (co AI / co KOD):
+(bez tego te same pytania wracały bez końca). `oferta` — sparsowana oferta z
+wcześniejszej rundy; gdy podana, pipeline POMIJA `parsujOferte` (AI), więc
+wymagania są identyczne co rundę → wynik „przed"/„po" nie drga z niedeterminizmu
+modelu, a koszt spada. Trasa `/api/dopasuj` zwraca `oferta`, a `tailor-flow`
+odsyła ją przy re-runie (`ofertaRef`, czyszczone przy nowej analizie).
+Kolejność (co AI / co KOD):
 
 1. **oferta → wymagania z wagami** — AI, tani model — `job-offer.ts` (`parsujOferte`)
 2. **CV → rejestr faktów** — KOD — `fact-ledger.ts` (`buildLedgerFromCv`) = jedyne źródło prawdy
