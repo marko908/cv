@@ -14,6 +14,7 @@ import type { TailoredCv } from "@/lib/cv-schema";
 import type { TemplateId } from "@/lib/store";
 import { opisLinku } from "@/lib/utils";
 import { CvPdfBoczny } from "./cv-pdf-boczny";
+import { CvPdfPrestizowy } from "./cv-pdf-prestizowy";
 
 // Font z pełną obsługą polskich znaków (wbudowane Helvetica ich nie ma).
 Font.register({
@@ -70,8 +71,14 @@ const PDF_TEMPLATE_STYLES: Record<TemplateId, PdfTemplateStyle> = {
     headingPaddingBottom: 4, headingMarginBottom: 7, itemMarginBottom: 10,
     rodoMarginTop: 18,
   },
-  // Układ „boczny" renderuje osobny komponent (CvPdfBoczny) — ten wpis istnieje
-  // tylko po to, by mapa pokrywała cały typ TemplateId.
+  // Układy „boczny" i „prestizowy" renderują osobne komponenty — te wpisy
+  // istnieją tylko po to, by mapa pokrywała cały typ TemplateId.
+  prestizowy: {
+    accent: "#12716A", pagePaddingVertical: 34, pagePaddingHorizontal: 40,
+    fontSize: 9.5, lineHeight: 1.45, nameFontSize: 23, sectionMarginTop: 14,
+    headingLetterSpacing: 1.6, headingPaddingBottom: 3, headingMarginBottom: 7,
+    itemMarginBottom: 9, rodoMarginTop: 12,
+  },
   boczny: {
     accent: "#1F2937", pagePaddingVertical: 30, pagePaddingHorizontal: 26,
     fontSize: 9.5, lineHeight: 1.45, nameFontSize: 22, sectionMarginTop: 12,
@@ -160,6 +167,7 @@ export function CvPdf({
 }) {
   // Układ dwukolumnowy ma własny dokument — inny szkielet, te same dane.
   if (template === "boczny") return <CvPdfBoczny cv={cv} />;
+  if (template === "prestizowy") return <CvPdfPrestizowy cv={cv} />;
 
   const s = makeStyles(PDF_TEMPLATE_STYLES[template]);
 

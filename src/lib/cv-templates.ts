@@ -49,6 +49,13 @@ export const CV_TEMPLATES: CvTemplate[] = [
     withPhoto: true,
   },
   {
+    id: "prestizowy",
+    name: "Prestiżowy",
+    description:
+      "Jedna kolumna, okrągłe zdjęcie w nagłówku i jeden stonowany akcent w morskiej zieleni. Dużo światła — czyta się jak dokument premium.",
+    withPhoto: true,
+  },
+  {
     id: "kompaktowy",
     name: "Kompaktowy",
     description:

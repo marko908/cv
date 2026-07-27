@@ -2,6 +2,7 @@ import type { TailoredCv } from "@/lib/cv-schema";
 import type { TemplateId } from "@/lib/store";
 import { cn, opisLinku } from "@/lib/utils";
 import { CvBoczny } from "./cv-document-boczny";
+import { CvPrestizowy } from "./cv-document-prestizowy";
 
 /**
  * Czysty render dokumentu CV (bez store'a i bez ramki arkusza).
@@ -28,6 +29,7 @@ export function CvDocument({
   };
   // Układ dwukolumnowy ma własny render — inny szkielet, te same dane.
   if (template === "boczny") return <CvBoczny cv={cv} />;
+  if (template === "prestizowy") return <CvPrestizowy cv={cv} />;
 
   const styles = {
     nowoczesny: {
@@ -61,6 +63,14 @@ export function CvDocument({
       rule: "border-[#1E3A5F]/30",
       heading: "pb-1.5 tracking-[0.16em]",
       sectionGap: "gap-4",
+    },
+    prestizowy: {
+      page: "gap-5 px-12 py-10 text-[13px] leading-relaxed",
+      name: "text-3xl tracking-tight text-[#26303B]",
+      accent: "text-[#12716A]",
+      rule: "border-neutral-200",
+      heading: "pb-1 tracking-widest",
+      sectionGap: "gap-3.5",
     },
     boczny: {
       page: "gap-5 px-12 py-10 text-[13px] leading-relaxed",

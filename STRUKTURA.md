@@ -145,7 +145,7 @@ API: `runtime nodejs`, `maxDuration 60`.
 - **Opis „co zmieniliśmy/dlaczego"** → `changes.ts`
 - **Model danych CV** → `cv-schema.ts` (zmiana schematu = zmiana w store, edytorze, PDF)
 - **Stan/persist/biblioteka CV** → `store.ts`
-- **Szablony (wygląd)** → `cv-templates.ts` + `cv-document.tsx` (HTML) + `cv-pdf.tsx` (PDF) — TRZYMAJ SPÓJNE. Układ dwukolumnowy: `cv-document-boczny.tsx` + `cv-pdf-boczny.tsx`. Nowy szablon = wpis w `CV_TEMPLATES`, gałąź w obu rendererach, wpis w `PDF_TEMPLATE_STYLES` i w mapie stylów `cv-document.tsx` (oba są `Record<TemplateId,...>`).
+- **Szablony (wygląd)** → `cv-templates.ts` + `cv-document.tsx` (HTML) + `cv-pdf.tsx` (PDF) — TRZYMAJ SPÓJNE. Układy własne (osobne komponenty, ta sama struktura danych): `boczny` = `cv-document-boczny.tsx` + `cv-pdf-boczny.tsx` (dwie kolumny, beżowy panel); `prestizowy` = `cv-document-prestizowy.tsx` + `cv-pdf-prestizowy.tsx` (jedna kolumna, okrągłe zdjęcie, akcent #12716A, kafelki umiejętności). Nowy szablon = wpis w `CV_TEMPLATES`, gałąź w obu rendererach, wpis w `PDF_TEMPLATE_STYLES` i w mapie stylów `cv-document.tsx` (oba są `Record<TemplateId,...>`).
 - **Weryfikacja wizualna PDF** → `npx tsx scripts/verify-boczny.ts` (renderuje prawdziwy PDF do PNG w `scripts/_podglad/`, poza repo)
 - **Wybór modelu AI** → env `CV_MODEL_*` (bez ruszania kodu)
 
