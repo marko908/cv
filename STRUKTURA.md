@@ -19,10 +19,18 @@ tylko KOD (walidator + straż przepisywania + deterministyczny matcher).
 **UI (nienaruszalne): styl Spotify, dark-only.** Tła #121212/#181818/#1f1f1f,
 jedyny akcent zieleń #1ed760 (tylko funkcjonalnie: CTA, stany aktywne), przyciski
 pill `rounded-full` uppercase, ciężkie cienie, bez szarych ramek, font Figtree.
-Dokument CV zachowuje granatowy akcent #0057D9 (nie zielony). Szablony JEDNOKOLUMNOWE
-są domyślne (ATS-safe); od 2026-07-27 istnieje też układ dwukolumnowy ze zdjęciem
-(`boczny`) — świadomy wybór użytkownika, ładniejszy dla człowieka, słabszy dla ATS.
-Użytkownik edytuje tylko treść, nie layout.
+Dokument CV zachowuje granatowy akcent #0057D9 (nie zielony). Użytkownik edytuje
+tylko treść, nie layout.
+
+**Szablony mają wyglądać DOBRZE DLA CZŁOWIEKA — to rekruter je ogląda.** Układy
+wielokolumnowe i zdjęcia są w pełni dozwolone (od 2026-07-27: `boczny`). Zgodność
+z systemami rekrutacyjnymi zapewniamy nie przez zubażanie wyglądu, tylko przez
+**kolejność tekstu w strumieniu PDF**: nazwisko, podsumowanie i doświadczenie MUSZĄ
+iść przed panelem bocznym. W układzie dwukolumnowym osiąga się to przez
+`flexDirection: "row-reverse"` + kolumnę główną PIERWSZĄ w drzewie (wizualnie panel
+dalej jest po lewej). Zweryfikowane ekstrakcją tekstu z gotowego PDF-a.
+Pozostałe zasady: prawdziwy tekst (nigdy grafika), bez tabel, bez nagłówków
+i stopek stron.
 
 ## Stack
 

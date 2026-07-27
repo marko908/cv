@@ -37,7 +37,10 @@ const s = StyleSheet.create({
     fontSize: 9.5,
     lineHeight: 1.45,
     color: K.tekst,
-    flexDirection: "row",
+    // row-reverse: kolumna główna jest PIERWSZA w drzewie, więc w strumieniu
+    // tekstu PDF nazwisko i doświadczenie idą przed panelem bocznym (tak czyta
+    // je parser ATS), a wizualnie panel dalej jest po lewej.
+    flexDirection: "row-reverse",
   },
   // Tło lewej kolumny — osobna warwa, żeby ciągnęło się przez całą stronę.
   tloPanelu: {
@@ -168,60 +171,6 @@ export function CvPdfBoczny({ cv }: { cv: TailoredCv }) {
       <Page size="A4" style={s.page}>
         <View style={s.tloPanelu} fixed />
 
-        {/* ---------- Lewa kolumna ---------- */}
-        <View style={s.panel}>
-          {p.photo ? <Image src={p.photo} style={s.foto} /> : null}
-
-          {p.email || p.phone || p.location || link ? (
-            <SekcjaPanelu tytul="Kontakt">
-              {p.email ? <Text style={s.pozycjaPanelu}>{p.email}</Text> : null}
-              {p.phone ? <Text style={s.pozycjaPanelu}>{p.phone}</Text> : null}
-              {p.location ? (
-                <Text style={s.pozycjaPanelu}>{p.location}</Text>
-              ) : null}
-              {link ? (
-                link.href ? (
-                  <Link src={link.href} style={s.pozycjaPanelu}>
-                    {link.etykieta}
-                  </Link>
-                ) : (
-                  <Text style={s.pozycjaPanelu}>{link.etykieta}</Text>
-                )
-              ) : null}
-            </SekcjaPanelu>
-          ) : null}
-
-          {cv.skills.technical.filter(Boolean).length > 0 ? (
-            <SekcjaPanelu tytul="Umiejętności">
-              {cv.skills.technical.filter(Boolean).map((x, i) => (
-                <Text key={i} style={s.pozycjaPanelu}>
-                  • {x}
-                </Text>
-              ))}
-            </SekcjaPanelu>
-          ) : null}
-
-          {cv.skills.soft_and_tools.filter(Boolean).length > 0 ? (
-            <SekcjaPanelu tytul="Mocne strony">
-              {cv.skills.soft_and_tools.filter(Boolean).map((x, i) => (
-                <Text key={i} style={s.pozycjaPanelu}>
-                  • {x}
-                </Text>
-              ))}
-            </SekcjaPanelu>
-          ) : null}
-
-          {cv.languages.filter(Boolean).length > 0 ? (
-            <SekcjaPanelu tytul="Języki obce">
-              {cv.languages.filter(Boolean).map((x, i) => (
-                <Text key={i} style={s.pozycjaPanelu}>
-                  {x}
-                </Text>
-              ))}
-            </SekcjaPanelu>
-          ) : null}
-        </View>
-
         {/* ---------- Prawa kolumna ---------- */}
         <View style={s.glowna}>
           <View>
@@ -300,6 +249,60 @@ export function CvPdfBoczny({ cv }: { cv: TailoredCv }) {
             <Text style={s.rodo}>{cv.rodo_clause}</Text>
           ) : null}
         </View>
+        {/* ---------- Lewa kolumna ---------- */}
+        <View style={s.panel}>
+          {p.photo ? <Image src={p.photo} style={s.foto} /> : null}
+
+          {p.email || p.phone || p.location || link ? (
+            <SekcjaPanelu tytul="Kontakt">
+              {p.email ? <Text style={s.pozycjaPanelu}>{p.email}</Text> : null}
+              {p.phone ? <Text style={s.pozycjaPanelu}>{p.phone}</Text> : null}
+              {p.location ? (
+                <Text style={s.pozycjaPanelu}>{p.location}</Text>
+              ) : null}
+              {link ? (
+                link.href ? (
+                  <Link src={link.href} style={s.pozycjaPanelu}>
+                    {link.etykieta}
+                  </Link>
+                ) : (
+                  <Text style={s.pozycjaPanelu}>{link.etykieta}</Text>
+                )
+              ) : null}
+            </SekcjaPanelu>
+          ) : null}
+
+          {cv.skills.technical.filter(Boolean).length > 0 ? (
+            <SekcjaPanelu tytul="Umiejętności">
+              {cv.skills.technical.filter(Boolean).map((x, i) => (
+                <Text key={i} style={s.pozycjaPanelu}>
+                  • {x}
+                </Text>
+              ))}
+            </SekcjaPanelu>
+          ) : null}
+
+          {cv.skills.soft_and_tools.filter(Boolean).length > 0 ? (
+            <SekcjaPanelu tytul="Mocne strony">
+              {cv.skills.soft_and_tools.filter(Boolean).map((x, i) => (
+                <Text key={i} style={s.pozycjaPanelu}>
+                  • {x}
+                </Text>
+              ))}
+            </SekcjaPanelu>
+          ) : null}
+
+          {cv.languages.filter(Boolean).length > 0 ? (
+            <SekcjaPanelu tytul="Języki obce">
+              {cv.languages.filter(Boolean).map((x, i) => (
+                <Text key={i} style={s.pozycjaPanelu}>
+                  {x}
+                </Text>
+              ))}
+            </SekcjaPanelu>
+          ) : null}
+        </View>
+
       </Page>
     </Document>
   );

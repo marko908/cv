@@ -45,7 +45,7 @@ export const CV_TEMPLATES: CvTemplate[] = [
     id: "boczny",
     name: "Boczny panel",
     description:
-      "Dwie kolumny z miejscem na zdjęcie — kontakt i umiejętności w bocznym pasku. Efektowny dla rekrutera; przy automatach ATS bezpieczniejszy jest układ jednokolumnowy.",
+      "Dwie kolumny ze zdjęciem — kontakt, umiejętności i języki w bocznym pasku. Efektowny dla rekrutera, a tekst zapisujemy w kolejności czytelnej także dla systemów rekrutacyjnych.",
     withPhoto: true,
   },
   {
