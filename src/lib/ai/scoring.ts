@@ -49,6 +49,22 @@ const CZASOWNIKI = [
   "podnioslem","podnioslam","stworzylem","stworzylam","zaprojektowalem",
   "zaprojektowalam","wdrozylismy","zrealizowalem","zrealizowalam","dostarczylem",
   "dostarczylam","rozwinolem","rozwinelam","wdrazalem","wdrazalam",
+  // Dokonane czasowniki sprawcze spoza IT — bez nich rubryka zaniżała wynik
+  // CV z PR, marketingu, sprzedaży czy administracji (realny przypadek:
+  // „Przeprowadziłem", „Zidentyfikowałem", „Przełożyłem" były odrzucane).
+  "przeprowadzilem","przeprowadzilam","zidentyfikowalem","zidentyfikowalam",
+  "przelozylem","przelozylam","przygotowalem","przygotowalam","zorganizowalem",
+  "zorganizowalam","nawiazalem","nawiazalam","zawarlem","zawarlam",
+  "wypracowalem","wypracowalam","rozliczylem","rozliczylam","zweryfikowalem",
+  "zweryfikowalam","przeanalizowalem","przeanalizowalam","zaplanowalem",
+  "zaplanowalam","wykonalem","wykonalam","osiagnalem","osiagnelam",
+  "zdobylem","zdobylam","obslugiwalem","obslugiwalam","prowadzilem","prowadzilam",
+  "utworzylem","utworzylam","wdrozylismy","zredagowalem","zredagowalam",
+  "napisalem","napisalam","przeszedlem","przeszlam","ukonczylem","ukonczylam",
+  "wprowadzalem","wprowadzalam","nadzorowalem","nadzorowalam","kierowalem",
+  "kierowalam","wspolpracowalem","wspolpracowalam","szkolilem","szkolilam",
+  "sprzedalem","sprzedalam","negocjowalem","negocjowalam","optymalizowalem",
+  "optymalizowalam","automatyzowalem","automatyzowalam","testowalem","testowalam",
 ];
 
 /** Sformułowania „obowiązkowe" — słabsze niż osiągnięcie. */
@@ -225,10 +241,26 @@ export function ocenCv(
     ...cv.experience.map((e) => e.period),
     ...cv.education.map((e) => e.period),
   ].filter(Boolean);
-  const dataOk = (p: string) =>
-    /\d{1,2}\.\d{4}/.test(p) || /obecnie|obecny|present/i.test(p);
+  // Kryterium mierzy SPÓJNOŚĆ, nie zgodność z jednym wybranym zapisem. „2023 –
+  // 2025" powtórzone w całym CV jest spójne i czytelne, więc nie ma powodu go
+  // karać (wcześniej wymagaliśmy MM.RRRR i takie CV dostawało 0/6 — mylące,
+  // zwłaszcza że dat i tak nie przepisujemy, bo to dane twarde).
+  const wzorzecDaty = (p: string): string => {
+    if (/obecnie|obecny|present|nadal/i.test(p)) return "z-obecnie";
+    if (/\d{1,2}\.\d{4}/.test(p)) return "MM.RRRR";
+    if (/\d{1,2}\/\d{4}/.test(p)) return "MM/RRRR";
+    if (/\d{4}\s*[-–—]\s*\d{4}/.test(p)) return "RRRR-RRRR";
+    if (/[a-ząćęłńóśźż]{3,}\s+\d{4}/i.test(p)) return "slownie RRRR";
+    if (/\d{4}/.test(p)) return "RRRR";
+    return "inny";
+  };
+  const wzorce = new Set(okresy.map(wzorzecDaty));
+  // Zapisy „do teraz" mieszają się z każdym formatem, więc ich nie liczymy
+  // jako osobnej niespójności.
+  wzorce.delete("z-obecnie");
+  const nierozpoznane = okresy.filter((p) => wzorzecDaty(p) === "inny").length;
   const spojneDaty = okresy.length
-    ? okresy.filter(dataOk).length / okresy.length
+    ? Math.max(0, 1 - Math.max(0, wzorce.size - 1) * 0.5 - nierozpoznane / okresy.length * 0.5)
     : 1;
   // Paski / procenty / „x/10" przy umiejętnościach — nic nie znaczą.
   const paskiSkill = [...cv.skills.technical, ...cv.skills.soft_and_tools].filter(
@@ -243,8 +275,8 @@ export function ocenCv(
     paskiSkill
       ? `Przy umiejętnościach pojawiają się paski/procenty poziomu (${paskiSkill}) — rekruterowi nic nie mówią; użyj skali A1–C2 dla języków, a przy narzędziach po prostu ich wymień.`
       : okresy.length && spojneDaty < 1
-        ? "Część dat nie jest w spójnym formacie MM.RRRR — ujednolicenie poprawia czytelność."
-        : "Daty i format są spójne (MM.RRRR, bez pasków poziomu).",
+        ? `Daty są zapisane na ${wzorce.size} różne sposoby (${[...wzorce].join(", ")}) — ujednolić je do jednego formatu w całym CV.`
+        : "Daty zapisane jednolicie w całym CV, bez pasków poziomu przy umiejętnościach.",
     false
   );
 

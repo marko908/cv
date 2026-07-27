@@ -145,6 +145,33 @@ function znormalizujBullet(s: string): string {
   return s.trim().replace(/\s+/g, " ").toLowerCase();
 }
 
+/**
+ * Czyści odpowiedź z wywiadu, zanim trafi do CV jako punkt.
+ *
+ * Użytkownik odpowiada w oknie czatu, więc pisze jak w rozmowie: „tak,
+ * korzystałem z tych narzędzi na co dzień”. Wklejenie tego wprost do CV daje
+ * punkt zaczynający się od „tak,”, małą literą i bez kropki — czyli psuje
+ * dokument, który kandydat wysyła pracodawcy. Obcinamy potwierdzenie na
+ * początku, poprawiamy wielką literę i domykamy zdanie kropką.
+ *
+ * To NIE jest zmiana treści — to higiena zapisu tego samego faktu.
+ */
+export function oczyscOdpowiedz(surowa: string): string {
+  let t = surowa.trim().replace(/\s+/g, " ");
+  if (!t) return "";
+
+  // Wstępne potwierdzenie („tak”, „owszem”, „no tak”) — w CV nic nie wnosi.
+  const potwierdzenia =
+    /^(no\s+)?(tak|owszem|zgadza się|oczywiście|jasne|pewnie|ano tak)\b[\s,.:;–—-]*/i;
+  const bez = t.replace(potwierdzenia, "").trim();
+  // Jeśli po obcięciu nic sensownego nie zostało, zachowaj oryginał.
+  if (bez.length >= 10) t = bez;
+
+  t = t.charAt(0).toUpperCase() + t.slice(1);
+  if (!/[.!?]$/.test(t)) t += ".";
+  return t;
+}
+
 function dodajUnikalne(lista: string[], nowe: string[]): string[] {
   const zbior = new Set(lista.map((s) => s.toLowerCase().trim()));
   const wynik = [...lista];
@@ -187,7 +214,7 @@ export function zastosujOdpowiedzi(
     // Pytanie o metrykę: ZASTĘPUJEMY konkretny punkt wersją z liczbą podaną
     // przez użytkownika (nie dopisujemy obok, żeby nie dublować treści).
     if (p.cel) {
-      const szczegol = odp.szczegol?.trim();
+      const szczegol = oczyscOdpowiedz(odp.szczegol ?? "");
       const poz = wynik.experience[p.cel.exp];
       if (szczegol && szczegol.length >= 10 && poz?.bullets[p.cel.bullet] !== undefined) {
         poz.bullets[p.cel.bullet] = szczegol;
@@ -197,9 +224,10 @@ export function zastosujOdpowiedzi(
 
     if (p.typ === "doswiadczenie") {
       // Twarda kompetencja: do umiejętności technicznych, a konkret (jeśli
-      // podany) jako punkt doświadczenia w słowach użytkownika.
+      // podany) jako punkt doświadczenia w słowach użytkownika — ale zapisany
+      // po ludzku, nie jako urwana odpowiedź z czatu.
       noweTech.push(...p.slowa);
-      const szczegol = odp.szczegol?.trim();
+      const szczegol = oczyscOdpowiedz(odp.szczegol ?? "");
       if (szczegol && szczegol.length >= 10) noweBullety.push(szczegol);
     } else {
       // Cecha/postawa: tylko do umiejętności miękkich. NIE robimy z niej

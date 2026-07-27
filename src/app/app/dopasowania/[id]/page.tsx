@@ -195,7 +195,7 @@ export default function DopasowanieDetailPage({
                 <>
                   <p className="mt-1 text-sm">{c.change}</p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Dlaczego: {c.reason}
+                    {c.reason}
                   </p>
                 </>
               ) : (
