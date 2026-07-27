@@ -237,7 +237,7 @@ export async function uruchomDopasowanie(
     ...zbudujPytaniaOMetryki(tailoredCv),
   ]
     .filter((p) => !obsluzone.has(p.id))
-    .slice(0, 5);
+    .slice(0, 8);
 
   return {
     jobTitle: tytulDopasowania(oferta),

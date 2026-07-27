@@ -110,17 +110,19 @@ function skrot(tekst: string, max = 60): string {
  * kandydat potrafi je uściślić metryką. To nie zmyślanie: liczbę podaje sam
  * użytkownik, a my zastępujemy nią mętny punkt.
  *
- * Pytamy tylko o dwie najnowsze pozycje (najistotniejsze) i maksymalnie o trzy
- * punkty, żeby nie przytłoczyć.
+ * Pytamy o trzy najnowsze pozycje (najistotniejsze) i maksymalnie o pięć
+ * punktów. Limit trzyma sensowną granicę, ale jest na tyle wysoki, by wypełnić
+ * pulę pytań, gdy CV nie ma wielu luk wobec oferty.
  */
 export function zbudujPytaniaOMetryki(cv: TailoredCv): PytanieWywiadu[] {
   const pytania: PytanieWywiadu[] = [];
-  const maxPozycje = Math.min(2, cv.experience.length);
+  const MAX_PYTAN = 5;
+  const maxPozycje = Math.min(3, cv.experience.length);
 
-  for (let e = 0; e < maxPozycje && pytania.length < 3; e++) {
+  for (let e = 0; e < maxPozycje && pytania.length < MAX_PYTAN; e++) {
     const exp = cv.experience[e];
     exp.bullets.forEach((b, j) => {
-      if (pytania.length >= 3) return;
+      if (pytania.length >= MAX_PYTAN) return;
       const tekst = (b ?? "").trim();
       // Istotny punkt bez liczby — kandydat do wzmocnienia metryką.
       if (tekst.length < 25) return;
