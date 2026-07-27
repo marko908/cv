@@ -145,6 +145,16 @@ export async function uruchomDopasowanie(
   const ledger: FactLedger = buildLedgerFromCv(baseCv);
   const przed: WynikDopasowania = dopasuj(oferta, ledger);
 
+  // Trafione słowa kluczowe z oferty (obecne w CV wejściowym) — straż
+  // przepisywania nie pozwoli ich zgubić, bo ich utrata obniża wynik ATS.
+  const trafioneSlowa = [
+    ...new Set(
+      przed.dopasowania
+        .filter((d) => d.pokrycie !== "brak")
+        .flatMap((d) => d.trafioneSlowa)
+    ),
+  ];
+
   // 4. Przepisanie — model dostaje wyłącznie fakty i plan.
   const { przepisanie, zuzycie: zuzycieCv } = await przepiszCv(
     ledger,
@@ -154,7 +164,7 @@ export async function uruchomDopasowanie(
   tokenyWejscie += zuzycieCv.wejscie;
   tokenyWyjscie += zuzycieCv.wyjscie;
 
-  let tailoredCv = zlozCv(baseCv, przepisanie);
+  let tailoredCv = zlozCv(baseCv, przepisanie, trafioneSlowa);
 
   // 5. Walidacja i naprawa. Rejestr faktów pochodzi z ORYGINAŁU — to on jest
   //    źródłem prawdy, a nie to, co model właśnie napisał.
@@ -162,7 +172,20 @@ export async function uruchomDopasowanie(
   tailoredCv = naprawCv(tailoredCv, baseCv, walidacja.violations);
 
   // 6. Wynik „po” liczony tym samym miernikiem co „przed”.
-  const po = dopasuj(oferta, buildLedgerFromCv(tailoredCv));
+  let po = dopasuj(oferta, buildLedgerFromCv(tailoredCv));
+  let ocenaPo = ocenCv(tailoredCv, po);
+
+  // 6a. PODŁOGA WYNIKU — dopasowanie NIE MOŻE obniżyć oceny względem CV, które
+  //     dostaliśmy na wejściu. Jeśli przepisanie mimo straży pogorszyło wynik
+  //     (np. przy bardzo krótkiej ofercie, gdzie jedno słowo waży dużo), wracamy
+  //     do CV wejściowego: użytkownik w najgorszym razie dostaje +0, nigdy minus.
+  //     To gwarancja w kodzie, nie prośba do modelu.
+  const ocenaBazy = ocenCv(baseCv, przed);
+  if (ocenaPo.wynik < ocenaBazy.wynik) {
+    tailoredCv = baseCv;
+    po = przed;
+    ocenaPo = ocenaBazy;
+  }
 
   // 6b. Rubryka oceny 0–100 — wynik rozłożony na jawne, ważone kryteria.
   //     Ten sam rachunek dla „przed” i „po”, więc różnica na każdym kryterium
@@ -177,7 +200,6 @@ export async function uruchomDopasowanie(
       ? przed
       : dopasuj(oferta, buildLedgerFromCv(odniesienie));
   const ocenaPrzed = ocenCv(odniesienie, dopOdniesienie);
-  const ocenaPo = ocenCv(tailoredCv, po);
   const scoreBreakdown: ScoreCriterion[] = ocenaPo.kryteria.map((k) => {
     const przedK = ocenaPrzed.kryteria.find((x) => x.id === k.id);
     return {

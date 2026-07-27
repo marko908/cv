@@ -55,7 +55,16 @@ Kolejność (co AI / co KOD):
 + **wywiad** — KOD — `interview.ts` (`zbudujPytania` z luk oferty; `zbudujPytaniaOMetryki` z punktów bez liczby; `zastosujOdpowiedzi` nakłada potwierdzone odpowiedzi na KOPIĘ CV, z deduplikacją dopinanych punktów → ponowny pipeline → wynik rośnie uczciwie). Domknięcie pętli: `tailor-flow` kumuluje id wszystkich pokazanych pytań (`obsluzoneRef`) i podaje je do pipeline przez `obsluzonePytania`; świeża analiza (`nowaAnaliza`)/`resetFlow` czyszczą ten zbiór.
 
 Straże jakości: `rewrite.zgubionoLiczbe()` (metryka z oryginału nie może zniknąć),
-`zlozCv` skleja punkty po `punkt_zrodlowy` (indeks źródłowy, nie po kolejności).
+`rewrite.zgubionoSlowoKluczowe()` (trafione słowo z oferty nie może zniknąć —
+jego utrata obniża pokrycie/ATS; `zlozCv(oryginal, przepisanie, slowaKluczowe)`
+cofa taki punkt do oryginału), `zlozCv` skleja punkty po `punkt_zrodlowy` (indeks
+źródłowy, nie po kolejności).
+
+**PODŁOGA WYNIKU (krok 6a w `pipeline.ts`): dopasowanie NIGDY nie obniża oceny.**
+Jeśli mimo straży `ocenCv(tailoredCv) < ocenCv(baseCv)`, wracamy w całości do CV
+wejściowego — użytkownik w najgorszym razie dostaje +0, nigdy wynik niższy niż
+przed przetworzeniem. Gwarancja w kodzie, nie prośba do modelu (realny przypadek:
+pielęgniarka + krótka oferta spadała 82→66, teraz 82→82).
 
 ## Modele AI — `src/lib/ai/models.ts`
 

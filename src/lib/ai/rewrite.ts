@@ -202,13 +202,40 @@ export function zgubionoLiczbe(oryginal: string, nowy: string): boolean {
 }
 
 /**
+ * Czy przepisana wersja zgubiła słowo kluczowe z oferty, które było w oryginale.
+ * Trafione słowo kluczowe (np. „kaniulacja", „React", „opieka nad pacjentem")
+ * decyduje o pokryciu wymagań i o wyniku ATS — jego usunięcie przez przepisanie
+ * OBNIŻA dopasowanie. To pogorszenie dokumentu, więc taki punkt cofamy do
+ * oryginału (straż analogiczna do `zgubionoLiczbe`). Porównanie dosłowne
+ * (case-insensitive), więc reagujemy tylko gdy fraza NAPRAWDĘ zniknęła.
+ */
+export function zgubionoSlowoKluczowe(
+  oryginal: string,
+  nowy: string,
+  slowaKluczowe: string[]
+): boolean {
+  const o = oryginal.toLowerCase();
+  const n = nowy.toLowerCase();
+  return slowaKluczowe.some((s) => {
+    const k = s.toLowerCase().trim();
+    if (!k) return false;
+    return o.includes(k) && !n.includes(k);
+  });
+}
+
+/**
  * Wybiera podsumowanie: nowe, o ile nie zgubiło metryki i nie jest wyraźnie
  * uboższe od oryginału. Przepisanie ma poprawiać dokument, nie skracać go
  * do listy kompetencji.
  */
-function wybierzPodsumowanie(oryginal: string, nowe: string): string {
+function wybierzPodsumowanie(
+  oryginal: string,
+  nowe: string,
+  slowaKluczowe: string[]
+): string {
   if (!nowe) return oryginal;
   if (zgubionoLiczbe(oryginal, nowe)) return oryginal;
+  if (zgubionoSlowoKluczowe(oryginal, nowe, slowaKluczowe)) return oryginal;
   return nowe;
 }
 
@@ -221,7 +248,8 @@ function wybierzPodsumowanie(oryginal: string, nowe: string): string {
  */
 export function zlozCv(
   oryginal: TailoredCv,
-  przepisanie: Przepisanie
+  przepisanie: Przepisanie,
+  slowaKluczowe: string[] = []
 ): TailoredCv {
   /**
    * Nakłada przepisane punkty na oryginalne, dopasowując po indeksie źródłowym.
@@ -249,6 +277,9 @@ export function zlozCv(
       // Metryka z oryginału nie może zniknąć — konkretna liczba jest
       // najmocniejszym elementem CV. Prompt o tym mówi, ale to jest gwarancja.
       if (zgubionoLiczbe(oryginalne[j], nowy)) continue;
+      // Trafione słowo kluczowe z oferty też nie może zniknąć — jego utrata
+      // obniża pokrycie i wynik ATS. Cofamy taki punkt do oryginału.
+      if (zgubionoSlowoKluczowe(oryginalne[j], nowy, slowaKluczowe)) continue;
       wynik[j] = nowy;
     }
     return wynik;
@@ -275,7 +306,8 @@ export function zlozCv(
     personal_info: oryginal.personal_info,
     professional_summary: wybierzPodsumowanie(
       oryginal.professional_summary,
-      przepisanie.podsumowanie.tekst.trim()
+      przepisanie.podsumowanie.tekst.trim(),
+      slowaKluczowe
     ),
     experience: oryginal.experience.map((exp, i) => ({
       ...exp,
