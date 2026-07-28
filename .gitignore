@@ -43,3 +43,7 @@ next-env.d.ts
 # Artefakty weryfikacji (PDF->PNG)
 /tmp/
 scripts/_podglad/
+
+# Robocze artefakty testow QA (PDF-y, JSON-y, zrzuty) - nie trafiaja do repo
+scripts/_qa/
+scripts/probne-*

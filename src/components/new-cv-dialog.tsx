@@ -15,7 +15,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { TemplateGallery } from "@/components/template-gallery";
 import { useCvStore, type TemplateId } from "@/lib/store";
-import { sampleCv } from "@/lib/sample-cv";
 import { CV_TEMPLATES } from "@/lib/cv-templates";
 
 /**
@@ -33,16 +32,12 @@ export function NewCvDialog({
   createNew?: boolean;
 }) {
   const router = useRouter();
-  const cv = useCvStore((s) => s.cv);
   const template = useCvStore((s) => s.template);
   const setTemplate = useCvStore((s) => s.setTemplate);
   const newCv = useCvStore((s) => s.newCv);
   const [selected, setSelected] = useState<TemplateId>(template);
   const [open, setOpen] = useState(false);
 
-  const hasData =
-    cv.personal_info.full_name.trim().length > 0 || cv.experience.length > 0;
-  const thumbCv = hasData ? cv : sampleCv;
   const selectedName = CV_TEMPLATES.find((t) => t.id === selected)?.name;
 
   return (
@@ -68,12 +63,7 @@ export function NewCvDialog({
 
         {/* Środkowa, przewijana sekcja: kategorie w pionie, szablony w poziomie. */}
         <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
-          <TemplateGallery
-            cv={thumbCv}
-            selected={selected}
-            onSelect={setSelected}
-            thumbWidth={200}
-          />
+          <TemplateGallery selected={selected} onSelect={setSelected} />
         </div>
 
         <DialogFooter className="mx-0 mb-0 shrink-0 items-center sm:justify-between">

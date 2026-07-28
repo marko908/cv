@@ -46,7 +46,11 @@ export function TemplateThumb({
           personal_info: { ...cv.personal_info, photo: STOCK_PHOTO },
         }
       : cv;
-  const scale = width / SHEET_WIDTH;
+  // Zabezpieczenie: dopóki wywołujący nie zna jeszcze swojej szerokości (pomiar
+  // w useLayoutEffect), width bywa 0/NaN — wtedy nie renderujemy nic zamiast
+  // wstawiać NaN do stylu (React zgłaszał to jako błąd w konsoli).
+  const poprawnaSzerokosc = Number.isFinite(width) && width > 0;
+  const scale = poprawnaSzerokosc ? width / SHEET_WIDTH : 0;
   const contentRef = useRef<HTMLDivElement>(null);
   const [contentHeight, setContentHeight] = useState(SHEET_HEIGHT);
 
@@ -63,6 +67,8 @@ export function TemplateThumb({
     return () => ro.disconnect();
   }, [full, cv, template]);
 
+  if (!poprawnaSzerokosc) return null;
+
   // Ile stron A4 zajmie dokument (min. 1) — do rysowania linii podziału.
   const strony = full ? Math.max(1, Math.ceil(contentHeight / SHEET_HEIGHT)) : 1;
   // Dopełniamy do pełnych stron, żeby ostatnia kartka nie była obcięta w połowie.
@@ -78,7 +84,7 @@ export function TemplateThumb({
       style={{
         width,
         height: Math.round(
-          full ? wysokoscArkuszy * scale : width * 1.35
+          full ? wysokoscArkuszy * scale : width * (SHEET_HEIGHT / SHEET_WIDTH)
         ),
       }}
     >

@@ -94,8 +94,11 @@ function Grupa({
 }
 
 function Wiersz({ k }: { k: ScoreCriterion }) {
-  const poProc = k.weight > 0 ? (k.after / k.weight) * 100 : 0;
-  const przedProc = k.weight > 0 ? (k.before / k.weight) * 100 : 0;
+  // Starsze rekordy w localStorage mogą nie mieć `before`/`after` — bez tej
+  // ochrony do stylu trafiał `NaN%` (React zgłaszał błąd w konsoli).
+  const liczba = (v: number | undefined) => (Number.isFinite(v) ? (v as number) : 0);
+  const poProc = k.weight > 0 ? (liczba(k.after) / k.weight) * 100 : 0;
+  const przedProc = k.weight > 0 ? (liczba(k.before) / k.weight) * 100 : 0;
   const wzrost = Math.round((k.after - k.before) * 10) / 10;
 
   return (

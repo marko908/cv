@@ -3,14 +3,9 @@
 import { Lock } from "lucide-react";
 import { useCvStore } from "@/lib/store";
 import { TemplateGallery } from "@/components/template-gallery";
-import { sampleCv } from "@/lib/sample-cv";
 
 export function TemplatePicker() {
-  const { cv, template, setTemplate } = useCvStore();
-
-  const hasData =
-    cv.personal_info.full_name.trim().length > 0 || cv.experience.length > 0;
-  const thumbCv = hasData ? cv : sampleCv;
+  const { template, setTemplate } = useCvStore();
 
   return (
     <div className="flex flex-col gap-4">
@@ -23,12 +18,7 @@ export function TemplatePicker() {
         </p>
       </div>
 
-      <TemplateGallery
-        cv={thumbCv}
-        selected={template}
-        onSelect={setTemplate}
-        thumbWidth={200}
-      />
+      <TemplateGallery selected={template} onSelect={setTemplate} />
     </div>
   );
 }
