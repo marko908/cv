@@ -36,44 +36,52 @@ export function czyObslugiwanyPlik(nazwa: string): boolean {
 }
 
 /**
- * Zbiera adresy URL ukryte pod hiperłączami.
+ * Zbiera adresy URL ukryte pod hiperłączami — z JUŻ otwartego dokumentu PDF.
  *
  * W CV napis „LinkedIn" bardzo często jest KLIKALNYM linkiem — sam tekst nie
  * niesie adresu. Ekstrakcja tekstu gubi taki odnośnik, więc do struktury
- * trafiał martwy napis zamiast działającego linku. Zbieramy adresy osobno i
- * dokładamy je do materiału dla modelu.
+ * trafiałby martwy napis zamiast działającego linku.
+ *
+ * WAŻNE: przyjmujemy gotowy dokument, a nie bajty. pdf.js ODŁĄCZA przekazany
+ * bufor przy tworzeniu dokumentu, więc drugie `getDocumentProxy(bytes)` na tych
+ * samych bajtach dostawało pusty bufor i cicho zwracało zero linków (realny
+ * błąd: import PDF nigdy nie odzyskiwał adresu LinkedIna).
  */
-async function zbierzLinki(
-  bytes: Uint8Array,
-  nazwa: string
-): Promise<string[]> {
-  const n = nazwa.toLowerCase();
+async function linkiZDokumentu(pdf: {
+  numPages: number;
+  getPage: (i: number) => Promise<{ getAnnotations: () => Promise<unknown[]> }>;
+}): Promise<string[]> {
   const linki = new Set<string>();
-
   try {
-    if (n.endsWith(".pdf")) {
-      const pdf = await getDocumentProxy(bytes);
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const strona = await pdf.getPage(i);
-        const adnotacje = await strona.getAnnotations();
-        for (const a of adnotacje as { url?: string; unsafeUrl?: string }[]) {
-          const url = a.url ?? a.unsafeUrl;
-          if (url) linki.add(url.trim());
-        }
-      }
-    } else if (n.endsWith(".docx")) {
-      const { value } = await mammoth.convertToHtml({
-        buffer: Buffer.from(bytes),
-      });
-      for (const m of value.matchAll(/href="([^"]+)"/g)) {
-        if (m[1]) linki.add(m[1].trim());
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const strona = await pdf.getPage(i);
+      const adnotacje = (await strona.getAnnotations()) as {
+        url?: string;
+        unsafeUrl?: string;
+      }[];
+      for (const a of adnotacje) {
+        const url = a.url ?? a.unsafeUrl;
+        if (url) linki.add(url.trim());
       }
     }
   } catch {
-    // Brak adnotacji lub uszkodzony plik — link to dodatek, nie blokujemy importu.
+    // Brak adnotacji — link to dodatek, nie blokujemy importu.
   }
-
   // Adresy mailto/tel mamy już z tekstu; interesują nas odnośniki webowe.
+  return [...linki].filter((u) => /^https?:\/\//i.test(u));
+}
+
+/** Linki z pliku DOCX (mammoth gubi je przy ekstrakcji czystego tekstu). */
+async function linkiZDocx(bytes: Uint8Array): Promise<string[]> {
+  const linki = new Set<string>();
+  try {
+    const { value } = await mammoth.convertToHtml({ buffer: Buffer.from(bytes) });
+    for (const m of value.matchAll(/href="([^"]+)"/g)) {
+      if (m[1]) linki.add(m[1].trim());
+    }
+  } catch {
+    // jw. — brak linków nie blokuje importu
+  }
   return [...linki].filter((u) => /^https?:\/\//i.test(u));
 }
 
@@ -113,11 +121,26 @@ export async function wyodrebnijTekstZLinkami(
   bytes: Uint8Array,
   nazwa: string
 ): Promise<{ tekst: string; linki: string[] }> {
-  const tekst = await wyodrebnijTekst(bytes, nazwa);
-  const linki = await zbierzLinki(bytes, nazwa);
-  return { tekst, linki };
-}
+  const n = nazwa.toLowerCase();
 
+  if (n.endsWith(".pdf")) {
+    // Jedno otwarcie dokumentu na tekst I linki — patrz uwaga przy
+    // `linkiZDokumentu` (pdf.js odłącza bufor po pierwszym użyciu).
+    const pdf = await getDocumentProxy(bytes);
+    const { text } = await extractText(pdf, { mergePages: true });
+    const tekst = (Array.isArray(text) ? text.join("\n") : text).trim();
+    return { tekst, linki: await linkiZDokumentu(pdf) };
+  }
+
+  if (n.endsWith(".docx")) {
+    return {
+      tekst: await wyodrebnijTekst(bytes, nazwa),
+      linki: await linkiZDocx(bytes),
+    };
+  }
+
+  return { tekst: await wyodrebnijTekst(bytes, nazwa), linki: [] };
+}
 const INSTRUKCJA = `Jesteś precyzyjnym parserem CV. Dostajesz surowy tekst
 wyciągnięty z pliku CV kandydata i masz przepisać go do ustrukturyzowanej formy.
 
@@ -147,6 +170,13 @@ MAPOWANIE:
 - languages: język z poziomem, np. „angielski – B2". Zachowaj poziom z CV.
 - rodo_clause: jeśli w tekście jest klauzula RODO/zgoda, przepisz ją; w przeciwnym
   razie zostaw pusty string (uzupełnimy standardową w kodzie).
+
+WIELKOŚĆ LITER.
+Wiele CV zapisuje nazwisko, stanowisko czy nazwy firm WERSALIKAMI, bo tak
+wygląda szablon — to decyzja graficzna, nie zapis danych. Przepisuj takie pola
+naturalną pisownią: „MARKO NOWAK" → „Marko Nowak", „ACCOUNT EXECUTIVE" →
+„Account Executive". Zachowaj wersaliki tylko tam, gdzie należą do nazwy
+(skróty i marki: „PR", „ADATA", „SQL", „IBM").
 
 Zachowaj oryginalne liczby i metryki w punktach — są najcenniejsze. Pisz po
 polsku (jeśli CV jest po polsku) lub w języku oryginału CV.`;

@@ -202,7 +202,7 @@ function StartOnboarding() {
       number: "01",
       title: "Uzupełnij dane CV",
       description:
-        "Wypełnij formularz w kreatorze albo zacznij od przykładu. Wgrywanie PDF/DOCX dojdzie wkrótce.",
+        "Wypełnij formularz w kreatorze lub wgraj CV, które już masz.",
       state: (cvFilled ? "done" : "now") as StepState,
       cta: (
         <Button asChild size="sm" className="gap-2">
@@ -217,12 +217,12 @@ function StartOnboarding() {
       number: "02",
       title: "Wklej ofertę pracy",
       description:
-        "Pełna treść ogłoszenia — wymagania, obowiązki, mile widziane. Im więcej, tym trafniejsze dopasowanie.",
+        "Wklej link do ogłoszenia lub jego pełną treść, abyśmy mogli jak najlepiej dopasować Twoje CV.",
       state: (jobFilled ? "done" : cvFilled ? "now" : "next") as StepState,
       cta: (
         <Button asChild size="sm" variant="secondary" className="gap-2">
           <Link href="/app/kreator">
-            Dodaj ofertę
+            Dopasuj do oferty
             <ArrowRight className="size-4" />
           </Link>
         </Button>
@@ -302,8 +302,8 @@ function StartOnboarding() {
                   <div className="card-surface mt-3 flex items-center justify-between gap-4 p-4">
                     <p className="text-sm text-muted-foreground">
                       {i === 0
-                        ? "Zacznij tutaj — reszta pójdzie sama."
-                        : "CV gotowe. Teraz pokaż nam ofertę."}
+                        ? "Zacznij tutaj i przejdź do kreatora."
+                        : "Wybierz CV z listy i dodaj ofertę, na którą chcesz aplikować."}
                     </p>
                     {step.cta}
                   </div>

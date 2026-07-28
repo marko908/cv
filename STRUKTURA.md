@@ -110,7 +110,7 @@ AI) · `fact-ledger.ts` (CV→fakty, `digitsIn`/`normalize`) · `matching.ts` (d
 wynik pokrycia, werdykt) · `slownik.ts` (wiedza branżowa, synonimy, rdzenie PL) ·
 `rewrite.ts` (przepisanie, AI + straże) · `validator.ts` (anty-halucynacja) ·
 `scoring.ts` (rubryka 0–100) · `changes.ts` (opis zmian + findings) · `interview.ts`
-(pytania+aplikacja odpowiedzi) · `parse-cv.ts` (import: ekstrakcja tekstu + HIPERŁĄCZA z adnotacji PDF/hrefów DOCX + mapowanie AI) · `fetch-oferta.ts` (pobranie treści ogłoszenia z linku: JSON-LD JobPosting → HTML→tekst; `czyPoprawnyLink`, `BladPobraniaOferty`) · `models.ts` (wybór modeli+klucz).
+(pytania+aplikacja odpowiedzi) · `parse-cv.ts` (import: ekstrakcja tekstu + HIPERŁĄCZA z adnotacji PDF/hrefów DOCX + mapowanie AI; PDF otwierany RAZ na tekst i linki — pdf.js odłącza bufor po pierwszym `getDocumentProxy`, przez co drugie wywołanie cicho zwracało 0 linków; prompt normalizuje też WERSALIKI na naturalną pisownię) · `fetch-oferta.ts` (pobranie treści ogłoszenia z linku: JSON-LD JobPosting → HTML→tekst; `czyPoprawnyLink`, `BladPobraniaOferty`) · `models.ts` (wybór modeli+klucz).
 
 **`src/lib/`**: `cv-schema.ts` · `store.ts` · `cv-templates.ts` (rejestr szablonów: `withPhoto`/`templateUsesPhoto`, `tags: TemplateTag[]` + `templatesByTag`, `TEMPLATE_CATEGORIES` = wiersze galerii, `STOCK_PHOTO` = zdjęcie poglądowe `public/stock/kandydat.jpg`) ·
 `sample-cv.ts` (Anna Kowalska — demo) · `sections.ts` (definicje sekcji edytora) ·
