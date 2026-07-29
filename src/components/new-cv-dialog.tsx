@@ -15,7 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { TemplateGallery } from "@/components/template-gallery";
 import { useCvStore, type TemplateId } from "@/lib/store";
-import { CV_TEMPLATES } from "@/lib/cv-templates";
+import { ATS_OBIETNICA, CV_TEMPLATES } from "@/lib/cv-templates";
 
 /**
  * Modal wyboru szablonu (wzorzec z ResuMax) z prawdziwymi miniaturami CV.
@@ -56,8 +56,10 @@ export function NewCvDialog({
         <DialogHeader className="shrink-0 p-4 pb-3">
           <p className="eyebrow text-muted-foreground">Szablony</p>
           <DialogTitle>Wybierz szablon</DialogTitle>
+          {/* Obietnica ATS dotyczy CAŁEJ oferty, więc stoi nad kategoriami —
+              w stałym nagłówku, który nie odjeżdża przy przewijaniu galerii. */}
           <DialogDescription>
-            Układ jest zablokowany i przyjazny dla ATS — edytujesz tylko treść.
+            {ATS_OBIETNICA} Układ jest zablokowany — edytujesz tylko treść.
           </DialogDescription>
         </DialogHeader>
 

@@ -22,6 +22,16 @@ pill `rounded-full` uppercase, ciężkie cienie, bez szarych ramek, font Figtree
 Dokument CV zachowuje granatowy akcent #0057D9 (nie zielony). Użytkownik edytuje
 tylko treść, nie layout.
 
+**POZYCJONOWANIE (decyzja Marka 2026-07-28): główny selling point to „CV czytelne
+dla systemów rekrutacyjnych (ATS)" — ale dotyczy on WSZYSTKICH szablonów, nie
+podzbioru.** Nie robimy dwóch trybów („pod ATS" vs „zwykłe CV"): szablon to czysto
+wizualna warstwa, ten sam `TailoredCv` renderuje każdy układ, więc silnik AI jest
+od tego całkowicie niezależny. Rozważane wcześniej ukrycie układów ze zdjęciem
+zostało ODRZUCONE — one też przechodzą test ATS, więc zubażanie oferty nic by nie
+dało. Obietnica ATS stoi jako `ATS_OBIETNICA` w `cv-templates.ts` (jedno źródło
+tekstu) i jest pokazywana NAD kategoriami galerii, a kategorie mówią wyłącznie
+o tym, co realnie różni układy (ze zdjęciem / bez zdjęcia).
+
 **Szablony mają wyglądać DOBRZE DLA CZŁOWIEKA — to rekruter je ogląda.** Układy
 wielokolumnowe i zdjęcia są w pełni dozwolone (od 2026-07-27: `boczny`). Zgodność
 z systemami rekrutacyjnymi zapewniamy nie przez zubażanie wyglądu, tylko przez
@@ -112,7 +122,7 @@ wynik pokrycia, werdykt) · `slownik.ts` (wiedza branżowa, synonimy, rdzenie PL
 `scoring.ts` (rubryka 0–100) · `changes.ts` (opis zmian + findings) · `interview.ts`
 (pytania+aplikacja odpowiedzi) · `parse-cv.ts` (import: ekstrakcja tekstu + HIPERŁĄCZA z adnotacji PDF/hrefów DOCX + mapowanie AI; PDF otwierany RAZ na tekst i linki — pdf.js odłącza bufor po pierwszym `getDocumentProxy`, przez co drugie wywołanie cicho zwracało 0 linków; prompt normalizuje też WERSALIKI na naturalną pisownię) · `fetch-oferta.ts` (pobranie treści ogłoszenia z linku: JSON-LD JobPosting → HTML→tekst; `czyPoprawnyLink`, `BladPobraniaOferty`) · `models.ts` (wybór modeli+klucz).
 
-**`src/lib/`**: `cv-schema.ts` · `store.ts` · `cv-templates.ts` (rejestr szablonów: `withPhoto`/`templateUsesPhoto`, `tags: TemplateTag[]` + `templatesByTag`, `TEMPLATE_CATEGORIES` = wiersze galerii, `STOCK_PHOTO` = zdjęcie poglądowe `public/stock/kandydat.jpg`) ·
+**`src/lib/`**: `cv-schema.ts` · `store.ts` · `cv-templates.ts` (rejestr szablonów: `withPhoto`/`templateUsesPhoto`, `tags: TemplateTag[]` + `templatesByTag`, `TEMPLATE_CATEGORIES` = wiersze galerii, `ATS_OBIETNICA` = jedno źródło komunikatu o zgodności z ATS (używane przez `new-cv-dialog.tsx` i `template-picker.tsx`), `STOCK_PHOTO` = zdjęcie poglądowe `public/stock/kandydat.jpg`) ·
 `sample-cv.ts` (Anna Kowalska — demo) · `sections.ts` (definicje sekcji edytora) ·
 `utils.ts` (`cn`, `pluralize`) · `mock-review.ts`.
 

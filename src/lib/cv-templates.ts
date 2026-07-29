@@ -80,6 +80,22 @@ export const CV_TEMPLATES: CvTemplate[] = [
     tags: ["ze-zdjeciem", "dwukolumnowy", "klasyczny"],
   },
   {
+    id: "grafitowy",
+    name: "Grafitowy",
+    description:
+      "Ciemny panel boczny i duże zdjęcie sięgające krawędzi. Mocny kontrast dla kandydatów, którym zależy na wyrazistym pierwszym wrażeniu.",
+    withPhoto: true,
+    tags: ["ze-zdjeciem", "dwukolumnowy", "nowoczesny"],
+  },
+  {
+    id: "pastelowy",
+    name: "Pastelowy",
+    description:
+      "Ciepła kość słoniowa, lekka typografia i duże zdjęcie sięgające krawędzi. Dla branż kreatywnych, marketingu i architektury.",
+    withPhoto: true,
+    tags: ["ze-zdjeciem", "dwukolumnowy", "minimalistyczny"],
+  },
+  {
     id: "kompaktowy",
     name: "Kompaktowy",
     description:
@@ -99,8 +115,18 @@ export function templatesByTag(tag: TemplateTag): CvTemplate[] {
 }
 
 /**
+ * Obietnica całej oferty, nie pojedynczej kategorii (decyzja Marka 2026-07-28):
+ * KAŻDY szablon jest czytelny dla systemów rekrutacyjnych, bo zgodność z ATS
+ * zapewnia kolejność tekstu w pliku PDF, a nie brak zdjęcia czy kolumn.
+ * Dlatego komunikat o ATS wisi NAD kategoriami (galeria wyboru szablonu),
+ * a kategorie mówią tylko o tym, co realnie różni układy.
+ */
+export const ATS_OBIETNICA =
+  "Każdy szablon jest czytelny dla systemów rekrutacyjnych (ATS) — pilnujemy kolejności tekstu w pliku, więc zdjęcie i boczny panel niczego nie psują.";
+
+/**
  * Kategorie widoczne w galerii — jeden wiersz na kategorię, przewijany w bok.
- * Na razie dzielimy po obecności zdjęcia; kolejne podziały wystarczy tu dopisać,
+ * Dzielimy po obecności zdjęcia; kolejne podziały wystarczy tu dopisać,
  * bo galeria czyta tę listę i nie zna konkretnych szablonów.
  */
 export const TEMPLATE_CATEGORIES: {
