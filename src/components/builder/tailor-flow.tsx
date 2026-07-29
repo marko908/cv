@@ -210,7 +210,7 @@ export function TailorFlow({
     <>
       <Dialog open={open} onOpenChange={setOpen}>
         {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-        <DialogContent className="max-h-[88vh] overflow-y-auto shadow-dialog sm:max-w-xl">
+        <DialogContent className="max-h-[88dvh] overflow-y-auto shadow-dialog sm:max-w-xl">
           {step === "config" && (
             <ConfigStep
               jobPosting={jobPosting}

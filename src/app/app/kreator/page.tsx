@@ -40,7 +40,31 @@ export default function KreatorListPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+      {/* Jedna kolumna na telefonie: miniatura jest wtedy na tyle szeroka, że
+          da się z niej rozpoznać CV. Przy dwóch kolumnach podgląd schodził
+          do ~140 px i był nieczytelny. */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        {/* Akcje tworzenia ZAWSZE pierwsze — użytkownik z rosnącą listą CV nie
+            powinien szukać „Dodaj nowe" na końcu (na telefonie to długi scroll). */}
+        <NewCvDialog
+          redirectTo="/app/kreator/edytor"
+          createNew
+          trigger={
+            <button
+              type="button"
+              className="flex min-h-[160px] flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-primary/50 bg-primary/5 p-4 text-primary transition-colors hover:border-primary hover:bg-primary/10 sm:min-h-[240px]"
+            >
+              <span className="flex size-12 items-center justify-center rounded-full border-2 border-primary/50">
+                <Plus className="size-6" />
+              </span>
+              <span className="text-sm font-bold">Dodaj nowe CV</span>
+            </button>
+          }
+        />
+
+        {/* Import zewnętrznego CV (PDF/DOCX/TXT) → parsowanie → nowe CV */}
+        <CvImportButton />
+
         {cvs.map((item) => (
           <div key={item.id} className="group flex flex-col">
             <button
@@ -48,14 +72,14 @@ export default function KreatorListPage() {
               onClick={() => open(item.id)}
               className="card-surface card-surface-hover relative overflow-hidden rounded-lg p-3 transition-shadow hover:shadow-elevated"
             >
-              <div className="overflow-hidden rounded-md">
-                <TemplateThumb
-                  template={item.template}
-                  cv={item.cv}
-                  width={220}
-                  className="w-full"
-                />
-              </div>
+              {/* Miniatura mierzy kartę, więc widać PEŁNĄ szerokość szablonu;
+                  przycinamy tylko dół (crop), żeby karta nie była bardzo wysoka. */}
+              <TemplateThumb
+                template={item.template}
+                cv={item.cv}
+                crop={0.8}
+                className="overflow-hidden rounded-md"
+              />
               <span className="mt-3 flex items-center gap-1.5 text-sm font-bold">
                 <Pencil className="size-3.5 text-primary" />
                 Otwórz
@@ -68,37 +92,18 @@ export default function KreatorListPage() {
                   Zmiana: {formatDate(item.updatedAt)}
                 </p>
               </div>
+              {/* Na dotyku nie ma hovera — kosz musi być widoczny od razu. */}
               <button
                 type="button"
                 onClick={() => deleteCv(item.id)}
                 aria-label="Usuń CV"
-                className="shrink-0 rounded-md p-1 text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
+                className="shrink-0 rounded-md p-1 text-muted-foreground transition-opacity hover:text-destructive sm:opacity-0 sm:group-hover:opacity-100"
               >
                 <Trash2 className="size-4" />
               </button>
             </div>
           </div>
         ))}
-
-        {/* Kafelek „Dodaj nowe" */}
-        <NewCvDialog
-          redirectTo="/app/kreator/edytor"
-          createNew
-          trigger={
-            <button
-              type="button"
-              className="flex min-h-[240px] flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-primary/50 bg-primary/5 p-4 text-primary transition-colors hover:border-primary hover:bg-primary/10"
-            >
-              <span className="flex size-12 items-center justify-center rounded-full border-2 border-primary/50">
-                <Plus className="size-6" />
-              </span>
-              <span className="text-sm font-bold">Dodaj nowe CV</span>
-            </button>
-          }
-        />
-
-        {/* Import zewnętrznego CV (PDF/DOCX/TXT) → parsowanie → nowe CV */}
-        <CvImportButton />
       </div>
     </div>
   );

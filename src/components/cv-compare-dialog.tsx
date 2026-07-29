@@ -76,7 +76,10 @@ export function CvCompareDialog({
       <DialogContent
         showCloseButton
         style={{ display: "flex", flexDirection: "column" }}
-        className="h-[94vh] w-[96vw] max-w-[1400px] gap-0 overflow-hidden p-0 shadow-dialog sm:max-w-[1400px]"
+        // `dvh`, nie `vh`: na telefonie `vh` liczy się do wysokości ekranu BEZ
+        // paska adresu, więc modal na 94vh wystawał pod pasek i dolne przyciski
+        // były nieosiągalne. `dvh` śledzi realnie widoczny obszar.
+        className="h-[94dvh] w-[96vw] max-w-[1400px] gap-0 overflow-hidden p-0 shadow-dialog sm:max-w-[1400px]"
       >
         <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border/60 py-3 pl-4 pr-11 lg:pr-4">
           <DialogTitle className="text-sm font-bold">

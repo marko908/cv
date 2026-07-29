@@ -52,7 +52,7 @@ export function NewCvDialog({
       {/* Układ flex-kolumnowy: nagłówek i stopka stałe, szablony w środku
           przewijają się. Dzięki temu przycisk zatwierdzenia jest ZAWSZE widoczny
           na dole — niezależnie od liczby szablonów i wysokości ekranu. */}
-      <DialogContent className="flex max-h-[88vh] flex-col gap-0 p-0 shadow-dialog sm:max-w-3xl">
+      <DialogContent className="flex max-h-[88dvh] flex-col gap-0 p-0 shadow-dialog sm:max-w-3xl">
         <DialogHeader className="shrink-0 p-4 pb-3">
           <p className="eyebrow text-muted-foreground">Szablony</p>
           <DialogTitle>Wybierz szablon</DialogTitle>

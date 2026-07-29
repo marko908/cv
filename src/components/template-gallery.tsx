@@ -36,10 +36,31 @@ import { cn } from "@/lib/utils";
  * na skalowanie okna dialogowego (pomiar w JS się przy nim rozjeżdżał).
  */
 const SZEROKOSC_KARTY =
-  "w-[calc((100%-12px)/1.32)] sm:w-[calc((100%-24px)/2.32)] lg:w-[calc((100%-36px)/3.32)]";
+  "w-[calc((100%-24px)/2.32)] lg:w-[calc((100%-36px)/3.32)]";
 /** Ile pikseli kolejnej kategorii musi być widoczne na dole. */
 const PODGLAD_KATEGORII = 56;
-const ODSTEP = 12; // gap-3
+
+/**
+ * Poniżej tej szerokości rezygnujemy z karuzeli na rzecz zwykłej siatki.
+ * Powód: karuzela to poziome przewijanie ZAGNIEŻDŻONE w pionowo przewijanym
+ * modalu — na dotyku gest ciągle trafia nie tam, gdzie trzeba, a strzałki są
+ * za małe na palec. W siatce widać wszystkie szablony naraz i nic się nie
+ * przewija w bok.
+ */
+const PROG_SIATKI = 640; // = breakpoint `sm` w Tailwindzie
+
+/** Czy jesteśmy na wąskim ekranie (śledzone na żywo przy obrocie telefonu). */
+function useWaskiEkran(): boolean {
+  const [waski, setWaski] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${PROG_SIATKI - 1}px)`);
+    const update = () => setWaski(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+  return waski;
+}
 
 export function TemplateGallery({
   selected,
@@ -52,10 +73,16 @@ export function TemplateGallery({
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [wysokosc, setWysokosc] = useState<number | undefined>();
+  const waski = useWaskiEkran();
 
   // Docinamy wysokość tak, by dolna krawędź wypadła w środku kolejnego wiersza.
   // Dzięki temu użytkownik zawsze widzi, że pod spodem jest jeszcze kategoria.
+  // Na wąskim ekranie nie docinamy nic — modal przewija się normalnie.
   useLayoutEffect(() => {
+    if (waski) {
+      setWysokosc(undefined);
+      return;
+    }
     const el = scrollRef.current;
     if (!el) return;
 
@@ -85,7 +112,7 @@ export function TemplateGallery({
     ro.observe(el);
     if (el.parentElement) ro.observe(el.parentElement);
     return () => ro.disconnect();
-  }, []);
+  }, [waski]);
 
   return (
     <div
@@ -104,6 +131,7 @@ export function TemplateGallery({
             szablony={szablony}
             selected={selected}
             onSelect={onSelect}
+            siatka={waski}
           />
         );
       })}
@@ -117,12 +145,15 @@ function WierszKategorii({
   szablony,
   selected,
   onSelect,
+  siatka = false,
 }: {
   label: string;
   opis: string;
   szablony: CvTemplate[];
   selected: TemplateId;
   onSelect: (id: TemplateId) => void;
+  /** Wąski ekran: zwykła siatka zamiast karuzeli (bez przewijania w bok). */
+  siatka?: boolean;
 }) {
   const pasRef = useRef<HTMLDivElement>(null);
   const [wLewo, setWLewo] = useState(false);
@@ -161,33 +192,47 @@ function WierszKategorii({
       </div>
       <p className="mt-0.5 px-1 text-xs text-muted-foreground">{opis}</p>
 
-      <div className="relative mt-3">
-        <div
-          ref={pasRef}
-          onScroll={odswiezStrzalki}
-          className="flex snap-x gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
+      {siatka ? (
+        <div className="mt-3 grid grid-cols-2 gap-3">
           {szablony.map((t) => (
             <KartaSzablonu
               key={t.id}
               szablon={t}
               wybrany={selected === t.id}
               onSelect={onSelect}
+              siatka
             />
           ))}
         </div>
+      ) : (
+        <div className="relative mt-3">
+          <div
+            ref={pasRef}
+            onScroll={odswiezStrzalki}
+            className="flex snap-x gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            {szablony.map((t) => (
+              <KartaSzablonu
+                key={t.id}
+                szablon={t}
+                wybrany={selected === t.id}
+                onSelect={onSelect}
+              />
+            ))}
+          </div>
 
-        <StrzalkaPrzewijania
-          kierunek="lewo"
-          widoczna={wLewo}
-          onClick={() => przewin(-1)}
-        />
-        <StrzalkaPrzewijania
-          kierunek="prawo"
-          widoczna={wPrawo}
-          onClick={() => przewin(1)}
-        />
-      </div>
+          <StrzalkaPrzewijania
+            kierunek="lewo"
+            widoczna={wLewo}
+            onClick={() => przewin(-1)}
+          />
+          <StrzalkaPrzewijania
+            kierunek="prawo"
+            widoczna={wPrawo}
+            onClick={() => przewin(1)}
+          />
+        </div>
+      )}
     </section>
   );
 }
@@ -222,34 +267,22 @@ function KartaSzablonu({
   szablon: t,
   wybrany,
   onSelect,
+  siatka = false,
 }: {
   szablon: CvTemplate;
   wybrany: boolean;
   onSelect: (id: TemplateId) => void;
+  /** Karta w siatce zajmuje całą komórkę; w karuzeli ma stałą część wiersza. */
+  siatka?: boolean;
 }) {
-  // Szerokość karty ustala CSS, więc miniaturę skalujemy do realnie zmierzonej
-  // szerokości wnętrza — dzięki temu podgląd zawsze wypełnia kartę co do piksela.
-  const wnetrzeRef = useRef<HTMLDivElement>(null);
-  const [szerMiniatury, setSzerMiniatury] = useState(0);
-
-  useLayoutEffect(() => {
-    const el = wnetrzeRef.current;
-    if (!el) return;
-    const zmierz = () => setSzerMiniatury(el.clientWidth);
-    zmierz();
-    const ro = new ResizeObserver(zmierz);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-
   return (
     <button
       type="button"
       onClick={() => onSelect(t.id)}
       aria-pressed={wybrany}
       className={cn(
-        "relative min-w-0 shrink-0 snap-start rounded-lg bg-secondary p-3 text-left transition-all",
-        SZEROKOSC_KARTY,
+        "relative min-w-0 rounded-lg bg-secondary p-3 text-left transition-all",
+        siatka ? "w-full" : cn("shrink-0 snap-start", SZEROKOSC_KARTY),
         wybrany ? "shadow-elevated ring-2 ring-primary" : "hover:bg-accent"
       )}
     >
@@ -264,17 +297,9 @@ function KartaSzablonu({
         </span>
       )}
 
-      {/* Te same dane i proporcje A4 → miniatury wyrównane i w pełni wypełnione. */}
-      <div ref={wnetrzeRef} className="w-full">
-        {szerMiniatury > 0 && (
-          <TemplateThumb
-            template={t.id}
-            cv={demoCv}
-            width={szerMiniatury}
-            demo
-          />
-        )}
-      </div>
+      {/* Te same dane i proporcje A4 → miniatury wyrównane i w pełni wypełnione.
+          Miniatura sama mierzy kartę, więc nigdy nie wystaje poza jej krawędź. */}
+      <TemplateThumb template={t.id} cv={demoCv} demo />
 
       <span className="mt-3 block truncate text-sm font-bold">{t.name}</span>
       <span className="mt-1 line-clamp-2 block text-xs text-muted-foreground">

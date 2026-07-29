@@ -141,14 +141,14 @@ export default function DopasowanieDetailPage({
         />
       </div>
       <div className="mt-3 grid gap-4 sm:grid-cols-2">
-        <div className="card-surface flex flex-col items-center p-4">
-          <p className="eyebrow mb-3 text-muted-foreground">Przed</p>
-          <TemplateThumb template={template} cv={baseCv} width={300} />
+        <div className="card-surface flex flex-col p-4">
+          <p className="eyebrow mb-3 text-center text-muted-foreground">Przed</p>
+          <TemplateThumb template={template} cv={baseCv} crop={0.9} />
         </div>
-        <div className="card-surface relative flex flex-col items-center p-4">
-          <p className="eyebrow mb-3 text-primary">Po dopasowaniu</p>
-          <div className={cn(!unlocked && "blur-sm")}>
-            <TemplateThumb template={template} cv={tailoredCv} width={300} />
+        <div className="card-surface relative flex flex-col p-4">
+          <p className="eyebrow mb-3 text-center text-primary">Po dopasowaniu</p>
+          <div className={cn("w-full", !unlocked && "blur-sm")}>
+            <TemplateThumb template={template} cv={tailoredCv} crop={0.9} />
           </div>
           {!unlocked && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-lg bg-background/60 p-4 text-center backdrop-blur-[2px]">

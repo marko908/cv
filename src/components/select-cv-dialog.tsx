@@ -66,7 +66,23 @@ export function SelectCvDialog({ trigger }: { trigger: React.ReactNode }) {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          // Jedna kolumna na telefonie — przy dwóch miniatura CV robiła się
+          // nieczytelna, a wcześniej sztywne `width={200}` w węższej kolumnie
+          // ucinało podgląd w połowie.
+          <div className="grid max-h-[60dvh] grid-cols-1 gap-3 overflow-y-auto sm:grid-cols-3">
+            {/* „Dodaj nowe" → lista Moje CV (tam tworzenie CV). Pierwsze
+                w kolejności, żeby nie szukać go pod listą CV. */}
+            <button
+              type="button"
+              onClick={goToList}
+              className="flex min-h-[120px] flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-primary/50 bg-primary/5 p-4 text-primary transition-colors hover:border-primary hover:bg-primary/10 sm:min-h-[200px]"
+            >
+              <span className="flex size-11 items-center justify-center rounded-full border-2 border-primary/50">
+                <Plus className="size-5" />
+              </span>
+              <span className="text-sm font-bold">Dodaj nowe CV</span>
+            </button>
+
             {cvs.map((item) => (
               <button
                 key={item.id}
@@ -82,31 +98,17 @@ export function SelectCvDialog({ trigger }: { trigger: React.ReactNode }) {
                     <Check className="size-3 text-primary-foreground" />
                   </span>
                 )}
-                <div className="overflow-hidden rounded-md">
-                  <TemplateThumb
-                    template={item.template}
-                    cv={item.cv}
-                    width={200}
-                    className="w-full"
-                  />
-                </div>
+                <TemplateThumb
+                  template={item.template}
+                  cv={item.cv}
+                  crop={0.7}
+                  className="overflow-hidden rounded-md"
+                />
                 <span className="mt-2 block truncate text-sm font-bold">
                   {item.name}
                 </span>
               </button>
             ))}
-
-            {/* „Dodaj nowe" → lista Moje CV (tam tworzenie CV) */}
-            <button
-              type="button"
-              onClick={goToList}
-              className="flex min-h-[200px] flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-primary/50 bg-primary/5 p-4 text-primary transition-colors hover:border-primary hover:bg-primary/10"
-            >
-              <span className="flex size-11 items-center justify-center rounded-full border-2 border-primary/50">
-                <Plus className="size-5" />
-              </span>
-              <span className="text-sm font-bold">Dodaj nowe CV</span>
-            </button>
           </div>
         )}
       </DialogContent>

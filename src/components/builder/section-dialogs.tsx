@@ -54,7 +54,7 @@ function SectionShell({
     <Dialog>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent
-        className={`max-h-[86vh] overflow-y-auto shadow-dialog ${
+        className={`max-h-[86dvh] overflow-y-auto shadow-dialog ${
           wide ? "sm:max-w-2xl" : "sm:max-w-xl"
         }`}
       >
@@ -113,7 +113,9 @@ export function PersonalInfoDialog({ trigger }: { trigger: ReactNode }) {
             onChange={(zmiana) => setPersonal(zmiana)}
           />
         )}
-        <div className="grid grid-cols-2 gap-4">
+        {/* Na telefonie pola idą jedno pod drugim i są pełnej szerokości —
+            w dwóch kolumnach e-mail i telefon były wąskie i trudne w dotyku. */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="grid gap-1.5">
             <Label htmlFor="pi-email">E-mail *</Label>
             <Input
@@ -134,7 +136,7 @@ export function PersonalInfoDialog({ trigger }: { trigger: ReactNode }) {
             />
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="grid gap-1.5">
             <Label htmlFor="pi-loc">Miasto</Label>
             <Input
@@ -217,7 +219,7 @@ export function ExperienceDialog({ trigger }: { trigger: ReactNode }) {
               </Button>
             </div>
             <div className="grid gap-3">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="grid gap-1.5">
                   <Label>Stanowisko *</Label>
                   <Input
@@ -235,7 +237,7 @@ export function ExperienceDialog({ trigger }: { trigger: ReactNode }) {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="grid gap-1.5">
                   <Label>Lokalizacja / tryb</Label>
                   <Input
@@ -325,7 +327,7 @@ export function ProjectsDialog({ trigger }: { trigger: ReactNode }) {
                   placeholder="React, D3.js, Vite…"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="grid gap-1.5">
                   <Label>Link (opcjonalnie)</Label>
                   <Input
@@ -448,7 +450,7 @@ export function EducationDialog({ trigger }: { trigger: ReactNode }) {
                   placeholder="Informatyka, inż."
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="grid gap-1.5">
                   <Label>Miasto</Label>
                   <Input

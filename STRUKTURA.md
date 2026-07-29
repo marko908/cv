@@ -134,7 +134,7 @@ config→running→interview→result], `paywall-dialog.tsx`, `score-breakdown.t
 `new-cv-dialog.tsx` (modal wyboru szablonu, sticky stopka) · `cv-import-button.tsx`
 (import CV) · `cv-compare-dialog.tsx` · `cv-pdf.tsx`+`cv-pdf-boczny.tsx`+`cv-pdf-prestizowy.tsx`+`cv-pdf-grafitowy.tsx`+`cv-pdf-pastelowy.tsx`+`download-pdf-button.tsx` (eksport
 PDF, font Lato z `public/fonts`; `CvPdf` deleguje układy własne do dedykowanych komponentów) · `template-gallery.tsx` (galeria: wiersz na kategorię, przewijanie w bok; używana przez `template-picker.tsx` i `new-cv-dialog.tsx`) · `template-thumb.tsx` (miniatura = przeskalowany
-CvDocument; `demo` podstawia `STOCK_PHOTO` w układach ze zdjęciem, gdy użytkownik nie wgrał własnego — TYLKO w galerii, nigdy w CV ani PDF; `full` = pełny dokument na wiele stron z liniami podziału — używane w porównaniu) · `select-cv-dialog.tsx` · `cv-library-sync.tsx` (autosync aktywne CV→biblioteka) · `store-hydration.tsx` · `ui/` (shadcn).
+CvDocument; bez propa `width` MIERZY kontener i wypełnia go — nie da się wtedy uciąć CV w szerokości; `crop` = przycięcie tylko w pionie; `demo` podstawia `STOCK_PHOTO` w układach ze zdjęciem, gdy użytkownik nie wgrał własnego — TYLKO w galerii, nigdy w CV ani PDF; `full` = pełny dokument na wiele stron z liniami podziału — używane w porównaniu) · `select-cv-dialog.tsx` · `cv-library-sync.tsx` (autosync aktywne CV→biblioteka) · `store-hydration.tsx` · `ui/` (shadcn).
 
 **Trasy** (`src/app/`): `/` landing · `/app` Start (onboarding/hub) · `/app/kreator`
 lista „Moje CV" (+ Dodaj nowe, + Wgraj CV) · `/app/kreator/edytor` edytor ·
@@ -168,6 +168,13 @@ API: `runtime nodejs`, `maxDuration 60`.
 - **Build po usunięciu trasy:** wyczyść `.next` (stary type-validator odwołuje się do usuniętej trasy).
 - **React StrictMode w dev dubluje** wywołanie AI (2× koszt) — w produkcji nie; `tailor-flow` ma na to zabezpieczenie (`produkcjaRef`).
 - **Mobile:** modale flex-col ze sticky stopką / poziomym scrollem; unikać poziomego overflow (min-w-0 w gridzie).
+- **Miniatura CV nigdy nie dostaje sztywnego `width`** — `TemplateThumb` bez tego propa MIERZY swój kontener i wypełnia go. Sztywne `width={220}` w kolumnie o szerokości 140 px ucinało jedną trzecią CV (realny bug na telefonie w „Moje CV", `SelectCvDialog` i szczegółach dopasowania). Ucinać wolno TYLKO w pionie — prop `crop` (wielokrotność szerokości, np. `0.8`); obcięty bok wygląda jak zepsuty layout, obcięty dół czyta się jak dalszy ciąg strony.
+- **Podgląd CV renderuje się ZAWSZE w 794 px (A4) i jest SKALOWANY** (`cv-preview.tsx`, `template-thumb.tsx`). Nigdy nie dawać `CvDocument` szerokości kontenera — tekst przelewa się wtedy inaczej niż w PDF i użytkownik ogląda układ, którego nie dostanie. Skala podglądu jest ograniczona do 1 (bez rozdmuchiwania kartki).
+- **Wysokości modali w `dvh`, nie `vh`** — `vh` na telefonie liczy się do ekranu BEZ paska adresu, więc `h-[94vh]` chowa dolne przyciski pod paskiem.
+- **Modale nie zabierają fokusu polom tekstowym** — `DialogContent` ma domyślny `onOpenAutoFocus`, który zatrzymuje fokus na oknie. Bez tego na telefonie klawiatura wyskakiwała natychmiast po otwarciu (np. „Dopasuj do oferty") i zasłaniała treść, zanim użytkownik zdążył ją przeczytać. Fokus-trap, Esc i czytniki ekranu działają bez zmian.
+- **Kafelek „Dodaj nowe" ZAWSZE pierwszy** w siatkach CV (`/app/kreator`, `SelectCvDialog`) — na telefonie lista jest jednokolumnowa, więc kafelek na końcu oznaczał długi scroll.
+- **Pary pól w formularzach dostają `grid-cols-1 sm:grid-cols-2`** — na telefonie e-mail/telefon idą jedno pod drugim, pełną szerokością. `Input` ma `h-10 md:h-8` (cel dotykowy) i `text-base` na mobile (mniejszy font wymusza w iOS Safari auto-zoom przy fokusie).
+- **Galeria szablonów poniżej 640 px to SIATKA, nie karuzela** (`useWaskiEkran` w `template-gallery.tsx`) — poziome przewijanie zagnieżdżone w pionowo przewijanym modalu jest na dotyku nieobsługiwalne.
 - **Commity:** po polsku, kończyć `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`. Repo: github.com/marko908/cv (branch `main`, Vercel auto-deploy z main; live: cv-eight-black-32.vercel.app).
 
 ## Komendy

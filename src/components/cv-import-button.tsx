@@ -135,7 +135,7 @@ export function CvImportButton({
           type="button"
           onClick={wybierz}
           disabled={stan === "ladowanie"}
-          className="flex min-h-[240px] flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-border bg-secondary/40 p-4 text-center transition-colors hover:border-primary/60 hover:bg-secondary disabled:opacity-70"
+          className="flex min-h-[160px] flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-border bg-secondary/40 p-4 text-center transition-colors hover:border-primary/60 hover:bg-secondary disabled:opacity-70 sm:min-h-[240px]"
         >
           <span className="flex size-12 items-center justify-center rounded-full border-2 border-border">
             {stan === "ladowanie" ? (
