@@ -21,7 +21,10 @@ export function CvPreview() {
         <span className="text-primary">{template}</span>
       </p>
 
-      <div className="min-h-[1050px] w-full overflow-hidden rounded-lg bg-white shadow-dialog">
+      {/* Kolumna flex: dokument dostaje `grow` i rozciąga się na całą wysokość
+          arkusza. Bez tego przy krótkim CV kolorowy panel szablonu kończył się
+          w połowie kartki i pod spodem zostawał biały pas. */}
+      <div className="flex min-h-[1050px] w-full flex-col overflow-hidden rounded-lg bg-white shadow-dialog">
         {isEmpty ? (
           <div className="flex h-[900px] flex-col items-center justify-center text-neutral-400">
             <FileText className="mb-4 size-10" />

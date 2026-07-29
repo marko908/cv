@@ -92,6 +92,12 @@ export function TemplateThumb({
         ref={contentRef}
         style={{
           width: SHEET_WIDTH,
+          // Kolumna flex + minimum jednej kartki: dokument (z `grow`) rozciąga
+          // się na całą stronę, więc kolorowy panel szablonu nie urywa się
+          // w połowie, zostawiając biały pas na dole miniatury.
+          display: "flex",
+          flexDirection: "column",
+          minHeight: SHEET_HEIGHT,
           transform: `scale(${scale})`,
           transformOrigin: "top left",
         }}

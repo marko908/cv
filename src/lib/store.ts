@@ -43,7 +43,9 @@ export type TemplateId =
   | "elegancki"
   | "kompaktowy"
   | "boczny"
-  | "prestizowy";
+  | "prestizowy"
+  | "grafitowy"
+  | "pastelowy";
 
 /** Identyfikatory sekcji CV widocznych na liście edytora. */
 export type SectionId =

@@ -54,7 +54,7 @@ export function CvBoczny({ cv }: { cv: TailoredCv }) {
 
   return (
     <div
-      className="flex min-h-full bg-white text-[12.5px] leading-relaxed"
+      className="flex min-h-full grow bg-white text-[12.5px] leading-relaxed"
       style={{
         fontFamily: "var(--font-cv), Lato, system-ui, sans-serif",
         color: BOCZNY.tekst,

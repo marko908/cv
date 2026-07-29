@@ -120,10 +120,10 @@ wynik pokrycia, werdykt) · `slownik.ts` (wiedza branżowa, synonimy, rdzenie PL
 (edytor: `builder.tsx`, `section-list.tsx` [na górze działający import CV: `CvImportButton variant="row" mode="replace"`], `section-dialogs.tsx`, `field-inputs.tsx`,
 `readiness.tsx`, `match-results.tsx`, `tailor-flow.tsx` [modal dopasowania:
 config→running→interview→result], `paywall-dialog.tsx`, `score-breakdown.tsx`
-[„Z czego wynika wynik"], `cv-document.tsx` [podgląd HTML; dla `boczny` deleguje do `cv-document-boczny.tsx`], `photo-input.tsx` + `photo-cropper.tsx` [zdjęcie: pomniejszony oryginał `photo_source` (max 640px) + gotowy kadr `photo` (360px) + `photo_crop{zoom,ox,oy}`; kadrowanie zoom/przeciąganie to panel INLINE, nie modal (zagnieżdżony Radix Dialog nie domykał animacji wyjścia). `store.addTailoring` usuwa `photo_source` z historii, żeby nie dublować obrazów w localStorage], `template-picker.tsx`) ·
+[„Z czego wynika wynik"], `cv-document.tsx` [podgląd HTML; układy własne deleguje do `cv-document-boczny.tsx` / `-prestizowy.tsx` / `-grafitowy.tsx` / `-pastelowy.tsx`], `photo-input.tsx` + `photo-cropper.tsx` [zdjęcie: pomniejszony oryginał `photo_source` (max 640px) + gotowy kadr `photo` (360px) + `photo_crop{zoom,ox,oy}`; kadrowanie zoom/przeciąganie to panel INLINE, nie modal (zagnieżdżony Radix Dialog nie domykał animacji wyjścia). `store.addTailoring` usuwa `photo_source` z historii, żeby nie dublować obrazów w localStorage], `template-picker.tsx`) ·
 `new-cv-dialog.tsx` (modal wyboru szablonu, sticky stopka) · `cv-import-button.tsx`
-(import CV) · `cv-compare-dialog.tsx` · `cv-pdf.tsx`+`cv-pdf-boczny.tsx`+`download-pdf-button.tsx` (eksport
-PDF, font Lato z `public/fonts`; `CvPdf` deleguje układ `boczny` do `CvPdfBoczny`) · `template-gallery.tsx` (galeria: wiersz na kategorię, przewijanie w bok; używana przez `template-picker.tsx` i `new-cv-dialog.tsx`) · `template-thumb.tsx` (miniatura = przeskalowany
+(import CV) · `cv-compare-dialog.tsx` · `cv-pdf.tsx`+`cv-pdf-boczny.tsx`+`cv-pdf-prestizowy.tsx`+`cv-pdf-grafitowy.tsx`+`cv-pdf-pastelowy.tsx`+`download-pdf-button.tsx` (eksport
+PDF, font Lato z `public/fonts`; `CvPdf` deleguje układy własne do dedykowanych komponentów) · `template-gallery.tsx` (galeria: wiersz na kategorię, przewijanie w bok; używana przez `template-picker.tsx` i `new-cv-dialog.tsx`) · `template-thumb.tsx` (miniatura = przeskalowany
 CvDocument; `demo` podstawia `STOCK_PHOTO` w układach ze zdjęciem, gdy użytkownik nie wgrał własnego — TYLKO w galerii, nigdy w CV ani PDF; `full` = pełny dokument na wiele stron z liniami podziału — używane w porównaniu) · `select-cv-dialog.tsx` · `cv-library-sync.tsx` (autosync aktywne CV→biblioteka) · `store-hydration.tsx` · `ui/` (shadcn).
 
 **Trasy** (`src/app/`): `/` landing · `/app` Start (onboarding/hub) · `/app/kreator`
@@ -145,14 +145,16 @@ API: `runtime nodejs`, `maxDuration 60`.
 - **Opis „co zmieniliśmy/dlaczego"** → `changes.ts`
 - **Model danych CV** → `cv-schema.ts` (zmiana schematu = zmiana w store, edytorze, PDF)
 - **Stan/persist/biblioteka CV** → `store.ts`
-- **Szablony (wygląd)** → `cv-templates.ts` + `cv-document.tsx` (HTML) + `cv-pdf.tsx` (PDF) — TRZYMAJ SPÓJNE. Układy własne (osobne komponenty, ta sama struktura danych): `boczny` = `cv-document-boczny.tsx` + `cv-pdf-boczny.tsx` (dwie kolumny, beżowy panel); `prestizowy` = `cv-document-prestizowy.tsx` + `cv-pdf-prestizowy.tsx` (jedna kolumna, okrągłe zdjęcie, akcent #12716A, kafelki umiejętności). Nowy szablon = wpis w `CV_TEMPLATES`, gałąź w obu rendererach, wpis w `PDF_TEMPLATE_STYLES` i w mapie stylów `cv-document.tsx` (oba są `Record<TemplateId,...>`).
-- **Weryfikacja wizualna PDF** → `npx tsx scripts/verify-boczny.ts` (renderuje prawdziwy PDF do PNG w `scripts/_podglad/`, poza repo)
+- **Szablony (wygląd)** → `cv-templates.ts` + `cv-document.tsx` (HTML) + `cv-pdf.tsx` (PDF) — TRZYMAJ SPÓJNE. Układy własne (osobne komponenty, ta sama struktura danych): `boczny` = `cv-document-boczny.tsx` + `cv-pdf-boczny.tsx` (dwie kolumny, beżowy panel); `prestizowy` = `cv-document-prestizowy.tsx` + `cv-pdf-prestizowy.tsx` (jedna kolumna, okrągłe zdjęcie, akcent #12716A, kafelki umiejętności); `grafitowy` = `cv-document-grafitowy.tsx` + `cv-pdf-grafitowy.tsx` (dwie kolumny, ciemny panel #18181B, zdjęcie 208×250 pt oparte o krawędzie panelu); `pastelowy` = `cv-document-pastelowy.tsx` + `cv-pdf-pastelowy.tsx` (dwie kolumny, ciepła kość słoniowa #F9F6F0, lekka typografia, zdjęcie 190×240 pt). Nowy szablon = wpis w `CV_TEMPLATES`, gałąź w obu rendererach, wpis w `PDF_TEMPLATE_STYLES` i w mapie stylów `cv-document.tsx` (oba są `Record<TemplateId,...>`).
+- **Weryfikacja wizualna PDF** → `npx tsx scripts/verify-szablon.ts <id>` (renderuje prawdziwy PDF do PNG w `scripts/_podglad/`, poza repo; sprawdza też kolejność tekstu dla ATS, brak rozstrzelonych liter i wariant ubogi — bez zdjęcia/projektów/języków). `verify-boczny.ts` = starszy, jednoszablonowy wariant.
 - **Wybór modelu AI** → env `CV_MODEL_*` (bez ruszania kodu)
 
 ## Konwencje i pułapki
 
 - **Cudzysłowy PL:** w stringach JS w `"..."` NIE może być prostego `"` w środku —
   użyj „ " (U+201E/U+201D). Złamało build w `scoring.ts`. W backtickach `` ` `` proste `"` OK.
+- **Arkusz podglądu rozciąga dokument przez flex, nie przez `min-h-full`:** korzeń każdego szablonu ma `grow`, a rodzic (`cv-preview.tsx`, `template-thumb.tsx`) jest kolumną flex z minimum jednej kartki. `min-h-full` liczy się względem rodzica o wysokości `auto`, czyli wychodzi 0 — przy krótkim CV kolorowy panel urywał się w połowie kartki i zostawał biały pas.
+- **`letterSpacing` w react-pdf wstawia REALNE odstępy** — powyżej ~10% rozmiaru fontu ekstrakcja czyta „D O Ś W I A D…”, a systemy rekrutacyjne rozpoznają sekcje po nazwach nagłówków. Limit: **max 8% fontu** (przy 10 pt granica leży między 1,0 a 1,2). Pilnuje tego `scripts/verify-szablon.ts`.
 - **Build po usunięciu trasy:** wyczyść `.next` (stary type-validator odwołuje się do usuniętej trasy).
 - **React StrictMode w dev dubluje** wywołanie AI (2× koszt) — w produkcji nie; `tailor-flow` ma na to zabezpieczenie (`produkcjaRef`).
 - **Mobile:** modale flex-col ze sticky stopką / poziomym scrollem; unikać poziomego overflow (min-w-0 w gridzie).

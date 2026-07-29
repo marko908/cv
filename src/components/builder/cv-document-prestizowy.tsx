@@ -63,7 +63,7 @@ export function CvPrestizowy({ cv }: { cv: TailoredCv }) {
 
   return (
     <div
-      className="relative flex min-h-full flex-col bg-white text-[12.5px] leading-relaxed"
+      className="relative flex min-h-full grow flex-col bg-white text-[12.5px] leading-relaxed"
       style={{
         fontFamily: "var(--font-cv), Lato, system-ui, sans-serif",
         color: PRESTIZ.tekst,

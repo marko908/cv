@@ -82,7 +82,7 @@ const s = StyleSheet.create({
     fontSize: 9.5,
     fontWeight: "bold",
     textTransform: "uppercase",
-    letterSpacing: 1.6,
+    letterSpacing: 0.7,
     color: K.akcent,
   },
   podkreslenie: {

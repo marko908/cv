@@ -15,6 +15,8 @@ import type { TemplateId } from "@/lib/store";
 import { opisLinku } from "@/lib/utils";
 import { CvPdfBoczny } from "./cv-pdf-boczny";
 import { CvPdfPrestizowy } from "./cv-pdf-prestizowy";
+import { CvPdfGrafitowy } from "./cv-pdf-grafitowy";
+import { CvPdfPastelowy } from "./cv-pdf-pastelowy";
 
 // Font z pełną obsługą polskich znaków (wbudowane Helvetica ich nie ma).
 Font.register({
@@ -38,6 +40,12 @@ type PdfTemplateStyle = {
   nameLetterSpacing?: number;
   nameTransform?: "uppercase";
   sectionMarginTop: number;
+  /**
+   * MAKSYMALNIE 8% rozmiaru fontu. `letterSpacing` w react-pdf wstawia do pliku
+   * REALNE odstępy — powyżej ~10% ekstrakcja tekstu czyta „D O Ś W I A D…",
+   * a systemy rekrutacyjne rozpoznają sekcje CV po nazwach nagłówków.
+   * Zmierzone: przy foncie 10 pt granica leży między 1,0 a 1,2.
+   */
   headingLetterSpacing: number;
   headingPaddingBottom: number;
   headingMarginBottom: number;
@@ -49,46 +57,59 @@ const PDF_TEMPLATE_STYLES: Record<TemplateId, PdfTemplateStyle> = {
   nowoczesny: {
     accent: "#0057D9", pagePaddingVertical: 40, pagePaddingHorizontal: 44,
     fontSize: 10, lineHeight: 1.4, nameFontSize: 22, sectionMarginTop: 14,
-    headingLetterSpacing: 1, headingPaddingBottom: 3, headingMarginBottom: 6,
+    headingLetterSpacing: 0.7, headingPaddingBottom: 3, headingMarginBottom: 6,
     itemMarginBottom: 8, rodoMarginTop: 16,
   },
   klasyczny: {
     accent: "#111827", pagePaddingVertical: 40, pagePaddingHorizontal: 44,
     fontSize: 10, lineHeight: 1.4, nameFontSize: 22, sectionMarginTop: 14,
-    headingLetterSpacing: 1, headingPaddingBottom: 3, headingMarginBottom: 6,
+    headingLetterSpacing: 0.7, headingPaddingBottom: 3, headingMarginBottom: 6,
     itemMarginBottom: 8, rodoMarginTop: 16,
   },
   minimalny: {
     accent: "#374151", pagePaddingVertical: 54, pagePaddingHorizontal: 52,
     fontSize: 10, lineHeight: 1.45, nameFontSize: 24, sectionMarginTop: 19,
-    headingLetterSpacing: 1.4, headingPaddingBottom: 4, headingMarginBottom: 8,
+    headingLetterSpacing: 0.7, headingPaddingBottom: 4, headingMarginBottom: 8,
     itemMarginBottom: 10, rodoMarginTop: 20,
   },
   elegancki: {
     accent: "#1E3A5F", pagePaddingVertical: 48, pagePaddingHorizontal: 52,
     fontSize: 10, lineHeight: 1.4, nameFontSize: 24, nameLetterSpacing: 1.7,
-    nameTransform: "uppercase", sectionMarginTop: 17, headingLetterSpacing: 1.3,
+    nameTransform: "uppercase", sectionMarginTop: 17, headingLetterSpacing: 0.7,
     headingPaddingBottom: 4, headingMarginBottom: 7, itemMarginBottom: 10,
     rodoMarginTop: 18,
   },
-  // Układy „boczny" i „prestizowy" renderują osobne komponenty — te wpisy
-  // istnieją tylko po to, by mapa pokrywała cały typ TemplateId.
+  // Układy własne („boczny", „prestizowy", „grafitowy", „pastelowy") renderują
+  // osobne komponenty — te wpisy istnieją tylko po to, by mapa pokrywała cały
+  // typ TemplateId.
+  pastelowy: {
+    accent: "#1C1917", pagePaddingVertical: 32, pagePaddingHorizontal: 30,
+    fontSize: 9.5, lineHeight: 1.45, nameFontSize: 27, sectionMarginTop: 16,
+    headingLetterSpacing: 0.7, headingPaddingBottom: 4, headingMarginBottom: 9,
+    itemMarginBottom: 11, rodoMarginTop: 24,
+  },
+  grafitowy: {
+    accent: "#18181B", pagePaddingVertical: 34, pagePaddingHorizontal: 30,
+    fontSize: 9.5, lineHeight: 1.45, nameFontSize: 25, sectionMarginTop: 16,
+    headingLetterSpacing: 0.7, headingPaddingBottom: 3, headingMarginBottom: 8,
+    itemMarginBottom: 11, rodoMarginTop: 20,
+  },
   prestizowy: {
     accent: "#12716A", pagePaddingVertical: 34, pagePaddingHorizontal: 40,
     fontSize: 9.5, lineHeight: 1.45, nameFontSize: 23, sectionMarginTop: 14,
-    headingLetterSpacing: 1.6, headingPaddingBottom: 3, headingMarginBottom: 7,
+    headingLetterSpacing: 0.7, headingPaddingBottom: 3, headingMarginBottom: 7,
     itemMarginBottom: 9, rodoMarginTop: 12,
   },
   boczny: {
     accent: "#1F2937", pagePaddingVertical: 30, pagePaddingHorizontal: 26,
     fontSize: 9.5, lineHeight: 1.45, nameFontSize: 22, sectionMarginTop: 12,
-    headingLetterSpacing: 1.8, headingPaddingBottom: 3, headingMarginBottom: 9,
+    headingLetterSpacing: 0.7, headingPaddingBottom: 3, headingMarginBottom: 9,
     itemMarginBottom: 10, rodoMarginTop: 16,
   },
   kompaktowy: {
     accent: "#0057D9", pagePaddingVertical: 32, pagePaddingHorizontal: 34,
     fontSize: 9, lineHeight: 1.25, nameFontSize: 20, sectionMarginTop: 9,
-    headingLetterSpacing: 0.9, headingPaddingBottom: 2, headingMarginBottom: 4,
+    headingLetterSpacing: 0.6, headingPaddingBottom: 2, headingMarginBottom: 4,
     itemMarginBottom: 5, rodoMarginTop: 10,
   },
 };
@@ -168,6 +189,8 @@ export function CvPdf({
   // Układ dwukolumnowy ma własny dokument — inny szkielet, te same dane.
   if (template === "boczny") return <CvPdfBoczny cv={cv} />;
   if (template === "prestizowy") return <CvPdfPrestizowy cv={cv} />;
+  if (template === "grafitowy") return <CvPdfGrafitowy cv={cv} />;
+  if (template === "pastelowy") return <CvPdfPastelowy cv={cv} />;
 
   const s = makeStyles(PDF_TEMPLATE_STYLES[template]);
 

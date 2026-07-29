@@ -3,6 +3,8 @@ import type { TemplateId } from "@/lib/store";
 import { cn, opisLinku } from "@/lib/utils";
 import { CvBoczny } from "./cv-document-boczny";
 import { CvPrestizowy } from "./cv-document-prestizowy";
+import { CvGrafitowy } from "./cv-document-grafitowy";
+import { CvPastelowy } from "./cv-document-pastelowy";
 
 /**
  * Czysty render dokumentu CV (bez store'a i bez ramki arkusza).
@@ -30,6 +32,8 @@ export function CvDocument({
   // Układ dwukolumnowy ma własny render — inny szkielet, te same dane.
   if (template === "boczny") return <CvBoczny cv={cv} />;
   if (template === "prestizowy") return <CvPrestizowy cv={cv} />;
+  if (template === "grafitowy") return <CvGrafitowy cv={cv} />;
+  if (template === "pastelowy") return <CvPastelowy cv={cv} />;
 
   const styles = {
     nowoczesny: {
@@ -72,6 +76,22 @@ export function CvDocument({
       heading: "pb-1 tracking-widest",
       sectionGap: "gap-3.5",
     },
+    pastelowy: {
+      page: "gap-5 px-12 py-10 text-[13px] leading-relaxed",
+      name: "text-3xl tracking-tight text-[#1C1917]",
+      accent: "text-[#1C1917]",
+      rule: "border-neutral-200",
+      heading: "pb-1 tracking-widest",
+      sectionGap: "gap-3.5",
+    },
+    grafitowy: {
+      page: "gap-5 px-12 py-10 text-[13px] leading-relaxed",
+      name: "text-3xl tracking-tight text-[#18181B]",
+      accent: "text-[#18181B]",
+      rule: "border-neutral-300",
+      heading: "pb-1 tracking-widest",
+      sectionGap: "gap-3.5",
+    },
     boczny: {
       page: "gap-5 px-12 py-10 text-[13px] leading-relaxed",
       name: "text-3xl tracking-tight text-[#1f2937]",
@@ -100,7 +120,7 @@ export function CvDocument({
 
   return (
     <div
-      className={cn("flex flex-col bg-white text-[#1f2937]", styles.page)}
+      className={cn("flex grow flex-col bg-white text-[#1f2937]", styles.page)}
       style={{ fontFamily: "var(--font-cv), 'Lato', system-ui, sans-serif" }}
     >
       {/* Nagłówek */}
