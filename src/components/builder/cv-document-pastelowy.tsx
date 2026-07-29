@@ -276,25 +276,23 @@ export function CvPastelowy({ cv }: { cv: TailoredCv }) {
             </section>
           )}
 
+          {/* Zwarty, zawijający się akapit zamiast wiersza na umiejętność —
+              przy szerokim stacku pionowa lista zajmowała połowę panelu. */}
           {techniczne.length > 0 && (
             <section>
               <Naglowek maly>Umiejętności</Naglowek>
-              <ul className="flex flex-col gap-1 text-[10.5px]">
-                {techniczne.map((s, i) => (
-                  <Punkt key={i}>{s}</Punkt>
-                ))}
-              </ul>
+              <p className="text-[10.5px] leading-relaxed">
+                {techniczne.join(" · ")}
+              </p>
             </section>
           )}
 
           {miekkie.length > 0 && (
             <section>
               <Naglowek maly>Narzędzia i cechy</Naglowek>
-              <ul className="flex flex-col gap-1 text-[10.5px]">
-                {miekkie.map((s, i) => (
-                  <Punkt key={i}>{s}</Punkt>
-                ))}
-              </ul>
+              <p className="text-[10.5px] leading-relaxed">
+                {miekkie.join(" · ")}
+              </p>
             </section>
           )}
 

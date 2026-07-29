@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import type { TailoredCv } from "@/lib/cv-schema";
 import type { TemplateId } from "@/lib/store";
 import { CvDocument } from "@/components/builder/cv-document";
+import { PaginatedCvSheet } from "@/components/paginated-cv-sheet";
 import { STOCK_PHOTO, templateUsesPhoto } from "@/lib/cv-templates";
 import { cn } from "@/lib/utils";
 
@@ -26,9 +27,10 @@ export const A4_RATIO = SHEET_HEIGHT / SHEET_WIDTH;
  * i ucinało jedną trzecią CV.
  *
  * Tryb domyślny przycina zawartość do proporcji jednej strony. Tryb `full`
- * pokazuje CAŁY dokument — rośnie na tyle stron, ile trzeba, i rysuje linie
- * podziału stron. Bez tego dłuższe CV wyglądało na ucięte w porównaniu
- * „przed / po", mimo że eksport PDF paginuje je poprawnie.
+ * deleguje do `PaginatedCvSheet` — CAŁY dokument jako osobne strony A4, każda
+ * we własnym prostokącie. Bez tego dłuższe CV w porównaniu „przed/po" kończyło
+ * się w połowie ostatniej strony i zostawiało niczym nieopisany biały obszar
+ * na dole, wyglądający jak ucięty fragment.
  */
 export function TemplateThumb({
   template,
@@ -46,7 +48,7 @@ export function TemplateThumb({
    * i wypełnia go (zalecane — nie da się wtedy uciąć CV w szerokości).
    */
   width?: number;
-  /** Pokaż cały dokument (wiele stron) zamiast przyciętej miniatury. */
+  /** Pokaż cały dokument jako osobne strony A4 zamiast przyciętej miniatury. */
   full?: boolean;
   /**
    * Miniatura w galerii szablonów: gdy układ ma miejsce na zdjęcie, a
@@ -88,37 +90,28 @@ export function TemplateThumb({
   }, [mierzone]);
 
   const szerokosc = mierzone ? zmierzonaSzer : width;
-
-  const contentRef = useRef<HTMLDivElement>(null);
-  const [contentHeight, setContentHeight] = useState(SHEET_HEIGHT);
-
-  // W trybie pełnym mierzymy realną wysokość dokumentu, żeby kontener urósł
-  // dokładnie tyle, ile trzeba (ResizeObserver — treść zmienia się na żywo).
-  useEffect(() => {
-    if (!full) return;
-    const el = contentRef.current;
-    if (!el) return;
-    const update = () => setContentHeight(el.scrollHeight || SHEET_HEIGHT);
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [full, cv, template]);
-
   // Zabezpieczenie: dopóki kontener nie ma szerokości (pierwszy render przed
   // pomiarem), nie renderujemy nic zamiast wstawiać NaN/0 do stylu.
   const poprawnaSzerokosc =
     szerokosc !== undefined && Number.isFinite(szerokosc) && szerokosc > 0;
-  const scale = poprawnaSzerokosc ? szerokosc / SHEET_WIDTH : 0;
 
-  // Ile stron A4 zajmie dokument (min. 1) — do rysowania linii podziału.
-  const strony = full ? Math.max(1, Math.ceil(contentHeight / SHEET_HEIGHT)) : 1;
-  // Dopełniamy do pełnych stron, żeby ostatnia kartka nie była obcięta w połowie.
-  const wysokoscArkuszy = full ? strony * SHEET_HEIGHT : SHEET_HEIGHT;
+  if (full) {
+    return (
+      <div ref={wrapRef} className={cn(mierzone && "w-full", className)}>
+        {poprawnaSzerokosc && (
+          <PaginatedCvSheet
+            cv={cvDoPodgladu}
+            template={template}
+            width={szerokosc!}
+          />
+        )}
+      </div>
+    );
+  }
+
+  const scale = poprawnaSzerokosc ? szerokosc! / SHEET_WIDTH : 0;
   const wysokosc = poprawnaSzerokosc
-    ? Math.round(
-        full ? wysokoscArkuszy * scale : szerokosc! * (crop ?? A4_RATIO)
-      )
+    ? Math.round(szerokosc! * (crop ?? A4_RATIO))
     : 0;
 
   return (
@@ -130,7 +123,6 @@ export function TemplateThumb({
           style={{ width: szerokosc, height: wysokosc }}
         >
           <div
-            ref={contentRef}
             style={{
               width: SHEET_WIDTH,
               // Kolumna flex + minimum jednej kartki: dokument (z `grow`)
@@ -145,16 +137,6 @@ export function TemplateThumb({
           >
             <CvDocument cv={cvDoPodgladu} template={template} />
           </div>
-
-          {/* Linie podziału stron — użytkownik widzi, gdzie kończy się kartka. */}
-          {full &&
-            Array.from({ length: strony - 1 }, (_, i) => (
-              <div
-                key={i}
-                className="absolute left-0 right-0 border-t border-dashed border-black/25"
-                style={{ top: Math.round((i + 1) * SHEET_HEIGHT * scale) }}
-              />
-            ))}
         </div>
       )}
     </div>

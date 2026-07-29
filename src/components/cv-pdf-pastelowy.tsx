@@ -153,6 +153,12 @@ const s = StyleSheet.create({
   trescPunktu: { flex: 1 },
 });
 
+// Nagłówek dostaje `minPresenceAhead`, żeby react-pdf nie zostawił go samego
+// na dole strony — jeśli po nim nie zmieści się kawałek treści, cały nagłówek
+// razem z nią przechodzi na kolejną stronę. https://react-pdf.org/advanced#orphan-&-widow-protection
+const MIN_PRESENCE_GLOWNY = 50; // nagłówek + rola + ok. 1 punkt
+const MIN_PRESENCE_KROTKI = 25; // nagłówek + 1-2 linijki tekstu/listy
+
 function Punkty({
   punkty,
   maly = false,
@@ -182,7 +188,9 @@ function SekcjaPanelu({
 }) {
   return (
     <View style={s.sekcjaPanelu}>
-      <Text style={s.naglowekPanelu}>{tytul}</Text>
+      <Text style={s.naglowekPanelu} minPresenceAhead={MIN_PRESENCE_KROTKI}>
+        {tytul}
+      </Text>
       {children}
     </View>
   );
@@ -209,14 +217,18 @@ export function CvPdfPastelowy({ cv }: { cv: TailoredCv }) {
 
           {cv.professional_summary ? (
             <View style={s.sekcja}>
-              <Text style={s.naglowekGlowny}>O mnie</Text>
+              <Text style={s.naglowekGlowny} minPresenceAhead={MIN_PRESENCE_KROTKI}>
+                O mnie
+              </Text>
               <Text style={s.podsumowanie}>{cv.professional_summary}</Text>
             </View>
           ) : null}
 
           {cv.experience.length > 0 ? (
             <View style={s.sekcja}>
-              <Text style={s.naglowekGlowny}>Doświadczenie</Text>
+              <Text style={s.naglowekGlowny} minPresenceAhead={MIN_PRESENCE_GLOWNY}>
+                Doświadczenie
+              </Text>
               {cv.experience.map((exp, i) => (
                 <View key={i} style={s.pozycja} wrap={false}>
                   <View style={s.wiersz}>
@@ -238,7 +250,9 @@ export function CvPdfPastelowy({ cv }: { cv: TailoredCv }) {
 
           {cv.projects.length > 0 ? (
             <View style={s.sekcja}>
-              <Text style={s.naglowekGlowny}>Projekty</Text>
+              <Text style={s.naglowekGlowny} minPresenceAhead={MIN_PRESENCE_GLOWNY}>
+                Projekty
+              </Text>
               {cv.projects.map((proj, i) => (
                 <View key={i} style={s.pozycja} wrap={false}>
                   <View style={s.wiersz}>
@@ -262,7 +276,9 @@ export function CvPdfPastelowy({ cv }: { cv: TailoredCv }) {
 
           {cv.education.length > 0 ? (
             <View style={s.sekcja}>
-              <Text style={s.naglowekGlowny}>Edukacja</Text>
+              <Text style={s.naglowekGlowny} minPresenceAhead={MIN_PRESENCE_GLOWNY}>
+                Edukacja
+              </Text>
               {cv.education.map((edu, i) => (
                 <View key={i} style={s.pozycja} wrap={false}>
                   <View style={s.wiersz}>
@@ -312,15 +328,21 @@ export function CvPdfPastelowy({ cv }: { cv: TailoredCv }) {
               </SekcjaPanelu>
             ) : null}
 
+            {/* Zwarty, zawijający się akapit zamiast wiersza na umiejętność —
+                spójne z podglądem HTML (cv-document-pastelowy.tsx). */}
             {techniczne.length > 0 ? (
               <SekcjaPanelu tytul="Umiejętności">
-                <Punkty punkty={techniczne} maly />
+                <Text style={s.pozycjaPanelu}>
+                  {techniczne.join(" · ")}
+                </Text>
               </SekcjaPanelu>
             ) : null}
 
             {miekkie.length > 0 ? (
               <SekcjaPanelu tytul="Narzędzia i cechy">
-                <Punkty punkty={miekkie} maly />
+                <Text style={s.pozycjaPanelu}>
+                  {miekkie.join(" · ")}
+                </Text>
               </SekcjaPanelu>
             ) : null}
 

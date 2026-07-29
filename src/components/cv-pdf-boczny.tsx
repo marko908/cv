@@ -79,6 +79,17 @@ const s = StyleSheet.create({
     marginBottom: 6,
   },
   pozycjaPanelu: { fontSize: 8.5, marginBottom: 3 },
+  // Osobny styl dla linku: @react-pdf/renderer nadaje elementom <Link> domyślnie
+  // `color: "blue"` (jak przeglądarkowy `<a>` bez CSS), a `pozycjaPanelu` nie
+  // ustawia koloru, więc link wychodził niebieski mimo czarnego podglądu HTML
+  // (tam Tailwind resetuje `<a>` do koloru rodzica). Jawny `color` nadpisuje
+  // domyślny niebieski i dopasowuje link do reszty tekstu w panelu.
+  linkPanelu: {
+    fontSize: 8.5,
+    marginBottom: 3,
+    color: K.tekst,
+    textDecoration: "underline",
+  },
   naglowekGlownyBox: {
     flexDirection: "row",
     alignItems: "center",
@@ -124,6 +135,15 @@ const s = StyleSheet.create({
   rodo: { marginTop: 16, fontSize: 7, fontStyle: "italic", color: "#9CA3AF" },
 });
 
+// Ile pt musi się jeszcze zmieścić PO nagłówku, żeby react-pdf w ogóle go
+// wyrenderował — inaczej nagłówek zostaje sam na dole strony, a treść sekcji
+// (np. pierwsza pozycja doświadczenia) ląduje na kolejnej stronie, wizualnie
+// urywając sekcję w połowie. To NIE jest wymuszenie podziału — jeśli więcej
+// się nie zmieści, react-pdf sam przenosi nagłówek RAZEM z dalszą treścią na
+// nową stronę. Patrz `minPresenceAhead`: https://react-pdf.org/advanced#orphan-&-widow-protection
+const MIN_PRESENCE_GLOWNY = 55; // nagłówek + rola/firma + ok. 1 punkt
+const MIN_PRESENCE_PANELU = 25; // nagłówek + 1-2 linijki listy w panelu
+
 function SekcjaPanelu({
   tytul,
   children,
@@ -133,7 +153,9 @@ function SekcjaPanelu({
 }) {
   return (
     <View style={s.sekcjaPanelu}>
-      <Text style={s.naglowekPanelu}>{tytul}</Text>
+      <Text style={s.naglowekPanelu} minPresenceAhead={MIN_PRESENCE_PANELU}>
+        {tytul}
+      </Text>
       {children}
     </View>
   );
@@ -141,7 +163,7 @@ function SekcjaPanelu({
 
 function NaglowekGlowny({ tytul }: { tytul: string }) {
   return (
-    <View style={s.naglowekGlownyBox}>
+    <View style={s.naglowekGlownyBox} minPresenceAhead={MIN_PRESENCE_GLOWNY}>
       <View style={s.kreska} />
       <Text style={s.naglowekGlowny}>{tytul}</Text>
       <View style={s.kreska} />
@@ -262,7 +284,7 @@ export function CvPdfBoczny({ cv }: { cv: TailoredCv }) {
               ) : null}
               {link ? (
                 link.href ? (
-                  <Link src={link.href} style={s.pozycjaPanelu}>
+                  <Link src={link.href} style={s.linkPanelu}>
                     {link.etykieta}
                   </Link>
                 ) : (
@@ -272,23 +294,21 @@ export function CvPdfBoczny({ cv }: { cv: TailoredCv }) {
             </SekcjaPanelu>
           ) : null}
 
+          {/* Zwarty, zawijający się akapit zamiast wiersza na umiejętność —
+              spójne z podglądem HTML (cv-document-boczny.tsx). */}
           {cv.skills.technical.filter(Boolean).length > 0 ? (
             <SekcjaPanelu tytul="Umiejętności">
-              {cv.skills.technical.filter(Boolean).map((x, i) => (
-                <Text key={i} style={s.pozycjaPanelu}>
-                  • {x}
-                </Text>
-              ))}
+              <Text style={s.pozycjaPanelu}>
+                {cv.skills.technical.filter(Boolean).join(" · ")}
+              </Text>
             </SekcjaPanelu>
           ) : null}
 
           {cv.skills.soft_and_tools.filter(Boolean).length > 0 ? (
             <SekcjaPanelu tytul="Mocne strony">
-              {cv.skills.soft_and_tools.filter(Boolean).map((x, i) => (
-                <Text key={i} style={s.pozycjaPanelu}>
-                  • {x}
-                </Text>
-              ))}
+              <Text style={s.pozycjaPanelu}>
+                {cv.skills.soft_and_tools.filter(Boolean).join(" · ")}
+              </Text>
             </SekcjaPanelu>
           ) : null}
 

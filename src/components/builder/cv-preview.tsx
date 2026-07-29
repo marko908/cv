@@ -1,65 +1,45 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { FileText } from "lucide-react";
 import { useCvStore } from "@/lib/store";
-import { CvDocument } from "./cv-document";
+import { PaginatedCvSheet } from "@/components/paginated-cv-sheet";
 
-const SHEET_WIDTH = 794; // szerokość A4 przy 96 dpi
-const SHEET_HEIGHT = 1123; // wysokość A4 przy 96 dpi
+const SHEET_WIDTH = 794; // szerokość A4 przy 96 dpi — patrz paginated-cv-sheet.tsx
 
 /**
- * Podgląd CV na żywo — arkusz A4 „unoszący się" nad tłem, dane ze store'a.
+ * Podgląd CV na żywo — arkusz(e) A4 „unoszące się" nad tłem, dane ze store'a.
  *
- * KLUCZOWE: dokument renderujemy ZAWSZE w sztywnej szerokości A4 (794 px)
- * i dopiero całość SKALUJEMY do dostępnego miejsca. Wcześniej CvDocument
- * dostawał szerokość kontenera, więc na telefonie tekst przelewał się inaczej
- * niż w pliku PDF — podgląd pokazywał układ, którego użytkownik nigdy nie
- * dostanie. Teraz proporcje i łamanie wierszy są identyczne jak w eksporcie,
- * niezależnie od urządzenia; zmienia się wyłącznie skala.
+ * Renderowanie deleguje do `PaginatedCvSheet`: każda strona to osobny,
+ * ograniczony prostokąt (jak w przeglądarkowym podglądzie PDF), więc od razu
+ * widać, ile stron zajmie eksport i gdzie kończy się dokument — bez ryzyka, że
+ * puste miejsce na końcu ostatniej strony wygląda jak coś ucięte.
  *
- * Skali nie podbijamy powyżej 1:1 — na szerokim ekranie kartka ma naturalny
- * rozmiar A4 zamiast być rozdmuchiwana.
+ * Szerokość mierzymy z kontenera i ograniczamy do 794px (nie podbijamy powyżej
+ * naturalnego rozmiaru A4) — na telefonie kartka się zmniejsza, na szerokim
+ * ekranie ma naturalny rozmiar strony.
  */
 export function CvPreview() {
   const cv = useCvStore((s) => s.cv);
   const template = useCvStore((s) => s.template);
 
   const wrapRef = useRef<HTMLDivElement>(null);
-  const docRef = useRef<HTMLDivElement>(null);
-  const [dostepnaSzer, setDostepnaSzer] = useState(0);
-  const [wysokoscTresci, setWysokoscTresci] = useState(SHEET_HEIGHT);
-
-  const isEmpty =
-    !cv.personal_info.full_name &&
-    !cv.professional_summary &&
-    cv.experience.length === 0;
+  const [szerokosc, setSzerokosc] = useState(0);
 
   useLayoutEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
-    const update = () => setDostepnaSzer(el.clientWidth);
+    const update = () => setSzerokosc(Math.min(SHEET_WIDTH, el.clientWidth));
     update();
     const ro = new ResizeObserver(update);
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
 
-  // Realna wysokość dokumentu — arkusz rośnie o tyle stron, ile trzeba.
-  useEffect(() => {
-    if (isEmpty) return;
-    const el = docRef.current;
-    if (!el) return;
-    const update = () => setWysokoscTresci(el.scrollHeight || SHEET_HEIGHT);
-    update();
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [isEmpty, cv, template]);
-
-  const scale = dostepnaSzer > 0 ? Math.min(1, dostepnaSzer / SHEET_WIDTH) : 0;
-  const strony = Math.max(1, Math.ceil(wysokoscTresci / SHEET_HEIGHT));
-  const wysokoscArkuszy = strony * SHEET_HEIGHT;
+  const isEmpty =
+    !cv.personal_info.full_name &&
+    !cv.professional_summary &&
+    cv.experience.length === 0;
 
   return (
     <div ref={wrapRef} className="mx-auto w-full max-w-[794px]">
@@ -77,38 +57,13 @@ export function CvPreview() {
           </p>
         </div>
       ) : (
-        scale > 0 && (
-          <div
-            className="relative overflow-hidden rounded-lg bg-white shadow-dialog"
-            style={{
-              width: Math.round(SHEET_WIDTH * scale),
-              height: Math.round(wysokoscArkuszy * scale),
-              marginInline: "auto",
-            }}
-          >
-            <div
-              ref={docRef}
-              className="flex flex-col"
-              style={{
-                width: SHEET_WIDTH,
-                minHeight: SHEET_HEIGHT,
-                transform: `scale(${scale})`,
-                transformOrigin: "top left",
-              }}
-            >
-              <CvDocument cv={cv} template={template} />
-            </div>
-
-            {/* Linie podziału stron — widać, gdzie kończy się kartka A4. */}
-            {Array.from({ length: strony - 1 }, (_, i) => (
-              <div
-                key={i}
-                aria-hidden
-                className="pointer-events-none absolute left-0 right-0 border-t border-dashed border-black/25"
-                style={{ top: Math.round((i + 1) * SHEET_HEIGHT * scale) }}
-              />
-            ))}
-          </div>
+        szerokosc > 0 && (
+          <PaginatedCvSheet
+            cv={cv}
+            template={template}
+            width={szerokosc}
+            className="mx-auto"
+          />
         )
       )}
     </div>

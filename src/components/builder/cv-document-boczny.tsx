@@ -102,25 +102,24 @@ export function CvBoczny({ cv }: { cv: TailoredCv }) {
           </section>
         )}
 
+        {/* Zwarty, zawijający się akapit zamiast listy jeden-wiersz-na-umiejętność
+            — przy szerokim stacku (20+ technologii) pionowa lista zajmowała
+            połowę panelu i wyglądała jak nieskończone wyliczanie. */}
         {cv.skills.technical.filter(Boolean).length > 0 && (
           <section>
             <NaglowekPanelu>Umiejętności</NaglowekPanelu>
-            <ul className="flex list-disc flex-col gap-1 pl-4 text-[11.5px]">
-              {cv.skills.technical.filter(Boolean).map((s, i) => (
-                <li key={i}>{s}</li>
-              ))}
-            </ul>
+            <p className="text-[11.5px] leading-relaxed">
+              {cv.skills.technical.filter(Boolean).join(" · ")}
+            </p>
           </section>
         )}
 
         {cv.skills.soft_and_tools.filter(Boolean).length > 0 && (
           <section>
             <NaglowekPanelu>Mocne strony</NaglowekPanelu>
-            <ul className="flex list-disc flex-col gap-1 pl-4 text-[11.5px]">
-              {cv.skills.soft_and_tools.filter(Boolean).map((s, i) => (
-                <li key={i}>{s}</li>
-              ))}
-            </ul>
+            <p className="text-[11.5px] leading-relaxed">
+              {cv.skills.soft_and_tools.filter(Boolean).join(" · ")}
+            </p>
           </section>
         )}
 

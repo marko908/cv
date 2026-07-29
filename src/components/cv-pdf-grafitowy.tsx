@@ -140,6 +140,12 @@ const s = StyleSheet.create({
   },
 });
 
+// Nagłówek dostaje `minPresenceAhead`, żeby react-pdf nie zostawił go samego
+// na dole strony — jeśli po nim nie zmieści się kawałek treści, cały nagłówek
+// razem z nią przechodzi na kolejną stronę. https://react-pdf.org/advanced#orphan-&-widow-protection
+const MIN_PRESENCE_GLOWNY = 55; // nagłówek + rola/firma + ok. 1 punkt
+const MIN_PRESENCE_PANELU = 25; // nagłówek + 1-2 linijki listy w panelu
+
 function SekcjaPanelu({
   tytul,
   children,
@@ -149,7 +155,9 @@ function SekcjaPanelu({
 }) {
   return (
     <View style={s.sekcjaPanelu}>
-      <Text style={s.naglowekPanelu}>{tytul}</Text>
+      <Text style={s.naglowekPanelu} minPresenceAhead={MIN_PRESENCE_PANELU}>
+        {tytul}
+      </Text>
       {children}
     </View>
   );
@@ -192,7 +200,12 @@ export function CvPdfGrafitowy({ cv }: { cv: TailoredCv }) {
 
           {cv.experience.length > 0 ? (
             <View style={s.sekcja}>
-              <Text style={s.naglowekGlowny}>Doświadczenie</Text>
+              <Text
+                style={s.naglowekGlowny}
+                minPresenceAhead={MIN_PRESENCE_GLOWNY}
+              >
+                Doświadczenie
+              </Text>
               {cv.experience.map((exp, i) => (
                 <View key={i} style={s.pozycja} wrap={false}>
                   <View style={s.wiersz}>
@@ -214,7 +227,12 @@ export function CvPdfGrafitowy({ cv }: { cv: TailoredCv }) {
 
           {cv.projects.length > 0 ? (
             <View style={s.sekcja}>
-              <Text style={s.naglowekGlowny}>Projekty</Text>
+              <Text
+                style={s.naglowekGlowny}
+                minPresenceAhead={MIN_PRESENCE_GLOWNY}
+              >
+                Projekty
+              </Text>
               {cv.projects.map((proj, i) => (
                 <View key={i} style={s.pozycja} wrap={false}>
                   <View style={s.wiersz}>
@@ -238,7 +256,12 @@ export function CvPdfGrafitowy({ cv }: { cv: TailoredCv }) {
 
           {cv.education.length > 0 ? (
             <View style={s.sekcja}>
-              <Text style={s.naglowekGlowny}>Edukacja</Text>
+              <Text
+                style={s.naglowekGlowny}
+                minPresenceAhead={MIN_PRESENCE_GLOWNY}
+              >
+                Edukacja
+              </Text>
               {cv.education.map((edu, i) => (
                 <View key={i} style={s.pozycja} wrap={false}>
                   <View style={s.wiersz}>
@@ -286,23 +309,21 @@ export function CvPdfGrafitowy({ cv }: { cv: TailoredCv }) {
             </SekcjaPanelu>
           ) : null}
 
+          {/* Zwarty, zawijający się akapit — spójne z podglądem HTML
+              (cv-document-grafitowy.tsx). */}
           {cv.skills.technical.filter(Boolean).length > 0 ? (
             <SekcjaPanelu tytul="Technologie">
-              {cv.skills.technical.filter(Boolean).map((x, i) => (
-                <Text key={i} style={s.pozycjaPanelu}>
-                  {x}
-                </Text>
-              ))}
+              <Text style={s.pozycjaPanelu}>
+                {cv.skills.technical.filter(Boolean).join(" · ")}
+              </Text>
             </SekcjaPanelu>
           ) : null}
 
           {cv.skills.soft_and_tools.filter(Boolean).length > 0 ? (
             <SekcjaPanelu tytul="Umiejętności">
-              {cv.skills.soft_and_tools.filter(Boolean).map((x, i) => (
-                <Text key={i} style={s.pozycjaPanelu}>
-                  {x}
-                </Text>
-              ))}
+              <Text style={s.pozycjaPanelu}>
+                {cv.skills.soft_and_tools.filter(Boolean).join(" · ")}
+              </Text>
             </SekcjaPanelu>
           ) : null}
 

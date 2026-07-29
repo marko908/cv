@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useCvStore, sectionHasData, type SectionId } from "@/lib/store";
 import { SECTION_META, SECTION_ORDER } from "@/lib/sections";
+import { templateUsesPhoto } from "@/lib/cv-templates";
 import type { TailoredCv } from "@/lib/cv-schema";
 import { PersonalInfoDialog, SECTION_DIALOGS } from "./section-dialogs";
 import { AddSectionDialog } from "./add-section-dialog";
@@ -99,6 +100,7 @@ const SectionRow = forwardRef<HTMLButtonElement, RowProps>(function SectionRow(
 
 export function SectionList() {
   const cv = useCvStore((s) => s.cv);
+  const template = useCvStore((s) => s.template);
   const enabledSections = useCvStore((s) => s.enabledSections);
   const removeSection = useCvStore((s) => s.removeSection);
   const loadCv = useCvStore((s) => s.loadCv);
@@ -106,6 +108,15 @@ export function SectionList() {
   const personalFilled =
     cv.personal_info.full_name.trim().length > 0 &&
     cv.personal_info.email.trim().length > 0;
+  // Zdjęcie jest opcjonalne, ale gdy szablon ma na nie miejsce, dajemy o tym
+  // znać zamiast po cichu pokazywać "Uzupełnione" — inaczej użytkownik nie wie,
+  // że w ogóle może je dodać.
+  const brakZdjecia = templateUsesPhoto(template) && !cv.personal_info.photo;
+  const personalStatus = !personalFilled
+    ? "Wymaga uzupełnienia"
+    : brakZdjecia
+      ? "Dodaj zdjęcie profilowe"
+      : "Uzupełnione";
 
   const ordered = SECTION_ORDER.filter((id) => enabledSections.includes(id));
 
@@ -122,7 +133,7 @@ export function SectionList() {
           <SectionRow
             icon={UserRound}
             label="Dane osobowe"
-            status={personalFilled ? "Uzupełnione" : "Wymaga uzupełnienia"}
+            status={personalStatus}
             filled={personalFilled}
             locked
           />

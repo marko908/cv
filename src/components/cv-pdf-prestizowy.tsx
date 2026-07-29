@@ -132,9 +132,15 @@ const s = StyleSheet.create({
   rodo: { marginTop: 12, fontSize: 7, fontStyle: "italic", color: "#9CA3AF" },
 });
 
+// Nagłówek + treść to sąsiadujące dzieci tej samej sekcji — bez tej podpowiedzi
+// nagłówek mógł zostać sam na dole strony, a pierwsza pozycja (np. projekt)
+// startowała dopiero na kolejnej. react-pdf przenosi WTEDY nagłówek razem
+// z dalszą treścią, zamiast go osierocać. https://react-pdf.org/advanced#orphan-&-widow-protection
+const MIN_PRESENCE = 50; // nagłówek + rola + ok. 1 punkt
+
 function Naglowek({ tytul }: { tytul: string }) {
   return (
-    <View>
+    <View minPresenceAhead={MIN_PRESENCE}>
       <Text style={s.naglowek}>{tytul}</Text>
       <View style={s.podkreslenie} />
     </View>

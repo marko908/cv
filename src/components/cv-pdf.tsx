@@ -53,6 +53,21 @@ type PdfTemplateStyle = {
   rodoMarginTop: number;
 };
 
+/**
+ * Ile pt musi się jeszcze zmieścić PO nagłówku sekcji, żeby react-pdf go
+ * w ogóle wyrenderował — bez tego nagłówek zostawał sam na dole strony, a
+ * pierwsza pozycja (np. projekt) startowała dopiero na kolejnej, wizualnie
+ * urywając sekcję w połowie (realny bug zgłoszony przez użytkownika: „Projekty”
+ * osierocone na dole strony 1). Gdy nie starczy miejsca, react-pdf przenosi
+ * cały nagłówek RAZEM z dalszą treścią na nową stronę — to nie wymusza
+ * podziału, tylko chroni przed sierotą. Wartość liczona z rozmiaru fontu
+ * szablonu: nagłówek + linia stanowiska/firmy + jeden punkt.
+ * https://react-pdf.org/advanced#orphan-&-widow-protection
+ */
+function minPresenceHeading(config: PdfTemplateStyle): number {
+  return Math.round(config.fontSize * config.lineHeight * 3 + config.itemMarginBottom);
+}
+
 const PDF_TEMPLATE_STYLES: Record<TemplateId, PdfTemplateStyle> = {
   nowoczesny: {
     accent: "#0057D9", pagePaddingVertical: 40, pagePaddingHorizontal: 44,
@@ -192,7 +207,9 @@ export function CvPdf({
   if (template === "grafitowy") return <CvPdfGrafitowy cv={cv} />;
   if (template === "pastelowy") return <CvPdfPastelowy cv={cv} />;
 
-  const s = makeStyles(PDF_TEMPLATE_STYLES[template]);
+  const config = PDF_TEMPLATE_STYLES[template];
+  const s = makeStyles(config);
+  const minPresence = minPresenceHeading(config);
 
   // Link musi zostac klikalny takze w PDF — inaczej rekruter widzi sam napis.
   const link = opisLinku(cv.personal_info.linkedin_or_github);
@@ -240,7 +257,9 @@ export function CvPdf({
         {/* Podsumowanie */}
         {cv.professional_summary ? (
           <View style={s.section}>
-            <Text style={s.heading}>Podsumowanie zawodowe</Text>
+            <Text style={s.heading} minPresenceAhead={minPresence}>
+              Podsumowanie zawodowe
+            </Text>
             <Text>{cv.professional_summary}</Text>
           </View>
         ) : null}
@@ -248,9 +267,11 @@ export function CvPdf({
         {/* Doświadczenie */}
         {cv.experience.length > 0 ? (
           <View style={s.section}>
-            <Text style={s.heading}>Doświadczenie zawodowe</Text>
+            <Text style={s.heading} minPresenceAhead={minPresence}>
+              Doświadczenie zawodowe
+            </Text>
             {cv.experience.map((exp, i) => (
-              <View key={i} style={s.itemBlock}>
+              <View key={i} style={s.itemBlock} wrap={false}>
                 <View style={s.rowBetween}>
                   <Text style={s.itemTitle}>
                     {exp.role || "Stanowisko"}
@@ -284,9 +305,11 @@ export function CvPdf({
         {/* Projekty */}
         {cv.projects.length > 0 ? (
           <View style={s.section}>
-            <Text style={s.heading}>Projekty</Text>
+            <Text style={s.heading} minPresenceAhead={minPresence}>
+              Projekty
+            </Text>
             {cv.projects.map((proj, i) => (
-              <View key={i} style={s.itemBlock}>
+              <View key={i} style={s.itemBlock} wrap={false}>
                 <View style={s.rowBetween}>
                   <Text style={s.itemTitle}>
                     {proj.name || "Projekt"}
@@ -322,7 +345,9 @@ export function CvPdf({
         {/* Umiejętności */}
         {techLine || softLine ? (
           <View style={s.section}>
-            <Text style={s.heading}>Umiejętności</Text>
+            <Text style={s.heading} minPresenceAhead={minPresence}>
+              Umiejętności
+            </Text>
             {techLine ? (
               <Text style={s.para}>
                 <Text style={{ fontWeight: "bold" }}>Techniczne: </Text>
@@ -343,9 +368,15 @@ export function CvPdf({
         {/* Edukacja */}
         {cv.education.length > 0 ? (
           <View style={s.section}>
-            <Text style={s.heading}>Edukacja</Text>
+            <Text style={s.heading} minPresenceAhead={minPresence}>
+              Edukacja
+            </Text>
             {cv.education.map((edu, i) => (
-              <View key={i} style={[s.rowBetween, { marginBottom: 4 }]}>
+              <View
+                key={i}
+                style={[s.rowBetween, { marginBottom: 4 }]}
+                wrap={false}
+              >
                 <Text style={{ flex: 1, paddingRight: 10 }}>
                   <Text style={{ fontWeight: "bold", color: "#111827" }}>
                     {edu.institution || "Uczelnia"}
@@ -373,7 +404,9 @@ export function CvPdf({
         {/* Języki */}
         {cv.languages.filter(Boolean).length > 0 ? (
           <View style={s.section}>
-            <Text style={s.heading}>Języki obce</Text>
+            <Text style={s.heading} minPresenceAhead={minPresence}>
+              Języki obce
+            </Text>
             <Text>{cv.languages.filter(Boolean).join(", ")}</Text>
           </View>
         ) : null}

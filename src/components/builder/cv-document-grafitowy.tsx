@@ -275,31 +275,29 @@ export function CvGrafitowy({ cv }: { cv: TailoredCv }) {
             </section>
           )}
 
+          {/* Zwarty, zawijający się akapit zamiast wiersza na umiejętność —
+              przy szerokim stacku pionowa lista zajmowała połowę panelu. */}
           {cv.skills.technical.filter(Boolean).length > 0 && (
             <section>
               <NaglowekPanelu>Technologie</NaglowekPanelu>
-              <ul
-                className="flex flex-col gap-1.5 text-[11px]"
+              <p
+                className="text-[11px] leading-relaxed"
                 style={{ color: GRAFITOWY.panelTekst }}
               >
-                {cv.skills.technical.filter(Boolean).map((s, i) => (
-                  <li key={i}>{s}</li>
-                ))}
-              </ul>
+                {cv.skills.technical.filter(Boolean).join(" · ")}
+              </p>
             </section>
           )}
 
           {cv.skills.soft_and_tools.filter(Boolean).length > 0 && (
             <section>
               <NaglowekPanelu>Umiejętności</NaglowekPanelu>
-              <ul
-                className="flex flex-col gap-1.5 text-[11px]"
+              <p
+                className="text-[11px] leading-relaxed"
                 style={{ color: GRAFITOWY.panelTekst }}
               >
-                {cv.skills.soft_and_tools.filter(Boolean).map((s, i) => (
-                  <li key={i}>{s}</li>
-                ))}
-              </ul>
+                {cv.skills.soft_and_tools.filter(Boolean).join(" · ")}
+              </p>
             </section>
           )}
 
