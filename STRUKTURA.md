@@ -1,4 +1,4 @@
-# STRUKTURA — CV Copilot PL (mapa projektu dla AI)
+# STRUKTURA — Aplikando (mapa projektu dla AI)
 
 > **Ten plik jest auto-wczytywany co sesję (przez `@import` w CLAUDE.md).** Ma dać
 > pełny kontekst BEZ przeszukiwania repo. **Aktualizuj go w tym samym commicie, w
@@ -8,8 +8,15 @@
 ## Czym jest aplikacja
 
 MVP SaaS: dopasowuje/poprawia CV pod konkretną ofertę pracy, rynek PL (RODO, ton
-stonowany bez amerykańskiego hype'u, B2B/UoP, ATS). Folder repo: `cv-copilot/`
-(repo git tu, nie w `Projekt CV/` — screenshoty/PDF-y/pakiety wiedzy są poza repo).
+stonowany bez amerykańskiego hype'u, B2B/UoP, ATS). Marka/nazwa użytkownika:
+**Aplikando** (zmieniona z „CV Copilot PL" 2026-07-30) — logo `public/aplikando-icon.png`
+(przezroczyste tło, ikona „A" z gradientem niebiesko-zielonym + papierowy samolot,
+wycięta z pełnego lockupu klienta techniką alpha-key „255 minus min(R,G,B)", żeby
+biały bakground znikł bez halo na krawędziach) + favicon `src/app/favicon.ico`
+(wygenerowany z tej samej ikony, multi-size 16–256px). Folder repo pozostaje
+`cv-copilot/` (techniczna nazwa repo/paczki npm — NIE zmieniana, to nie jest to
+samo co widoczna marka) — repo git tu, nie w `Projekt CV/` (screenshoty/PDF-y/
+pakiety wiedzy są poza repo).
 
 **ZASADA NACZELNA (nienaruszalna): AI NIE tworzy treści CV.** AI wybiera,
 porządkuje i przeformułowuje fakty, które podał użytkownik. Żadnych zmyślonych
@@ -181,6 +188,7 @@ API: `runtime nodejs`, `maxDuration 60`.
 - **Kafelek „Dodaj nowe" ZAWSZE pierwszy** w siatkach CV (`/app/kreator`, `SelectCvDialog`) — na telefonie lista jest jednokolumnowa, więc kafelek na końcu oznaczał długi scroll.
 - **Pary pól w formularzach dostają `grid-cols-1 sm:grid-cols-2`** — na telefonie e-mail/telefon idą jedno pod drugim, pełną szerokością. `Input` ma `h-10 md:h-8` (cel dotykowy) i `text-base` na mobile (mniejszy font wymusza w iOS Safari auto-zoom przy fokusie).
 - **Galeria szablonów poniżej 640 px to SIATKA, nie karuzela** (`useWaskiEkran` w `template-gallery.tsx`) — poziome przewijanie zagnieżdżone w pionowo przewijanym modalu jest na dotyku nieobsługiwalne.
+- **Logo/nazwa marki** żyje w trzech miejscach osobno (nie jednym współdzielonym komponencie): `site-header.tsx` (landing), `app-shell.tsx` (pasek mobilny), `app-sidebar.tsx` (sidebar desktop, chowa tekst gdy `collapsed`) — każde renderuje `<Image src="/aplikando-icon.png">` + tekst „Aplikando" osobno, żeby tekst dało się chować/skalować niezależnie per kontekst. Zmiana nazwy/logo = zmiana we WSZYSTKICH trzech + `layout.tsx`/`edytor/page.tsx` (`<title>`) + `page.tsx` (hero/stopka landingu). Ikona wycięta z pełnego lockupu przez alpha-key (`255 - min(R,G,B)` na białym tle) — działa dobrze dla nasyconych kolorów, zostawia miękką krawędź bez twardego halo.
 - **Commity:** po polsku, kończyć `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`. Repo: github.com/marko908/cv (branch `main`, Vercel auto-deploy z main; live: cv-eight-black-32.vercel.app).
 
 ## Komendy

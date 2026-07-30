@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -52,16 +53,20 @@ export function SidebarContent({
       >
         <Link
           href="/"
-          className="flex items-center gap-2.5"
-          title="CV Copilot PL"
+          className="flex items-center gap-2"
+          title="Aplikando"
           onClick={onNavigate}
         >
-          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary">
-            <FileText className="size-4 text-primary-foreground" />
-          </span>
+          <Image
+            src="/aplikando-icon.png"
+            alt=""
+            width={28}
+            height={23}
+            className="h-7 w-auto shrink-0"
+          />
           {!collapsed && (
             <span className="text-sm font-bold tracking-tight">
-              CV Copilot PL
+              Aplikando
             </span>
           )}
         </Link>

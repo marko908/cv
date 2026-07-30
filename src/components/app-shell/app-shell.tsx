@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FileText, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { SidebarContent } from "./app-sidebar";
 import { CvLibrarySync } from "@/components/cv-library-sync";
 import { cn } from "@/lib/utils";
@@ -82,12 +83,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           >
             <Menu className="size-5" />
           </button>
-          <Link href="/" className="flex items-center gap-2">
-            <span className="flex size-6 items-center justify-center rounded-full bg-primary">
-              <FileText className="size-3.5 text-primary-foreground" />
-            </span>
+          <Link href="/" className="flex items-center gap-1.5">
+            <Image
+              src="/aplikando-icon.png"
+              alt=""
+              width={24}
+              height={20}
+              className="h-6 w-auto"
+            />
             <span className="text-sm font-bold tracking-tight">
-              CV Copilot PL
+              Aplikando
             </span>
           </Link>
         </header>

@@ -27,7 +27,7 @@ const lato = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "CV Copilot PL — CV dopasowane do oferty pracy",
+  title: "Aplikando — CV dopasowane do oferty pracy",
   description:
     "Dopasuj lub stwórz CV pod konkretną ofertę pracy. AI wytrenowane pod polski rynek pracy: ATS, RODO, profesjonalna polszczyzna bez amerykańskiego hype'u.",
 };

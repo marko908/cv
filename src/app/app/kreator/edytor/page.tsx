@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Builder } from "@/components/builder/builder";
 
 export const metadata: Metadata = {
-  title: "Edytor CV — CV Copilot PL",
+  title: "Edytor CV — Aplikando",
 };
 
 export default async function KreatorEdytorPage({

@@ -55,7 +55,7 @@ export default function Home() {
             do oferty <span className="text-primary">w 60 sekund</span>
           </h1>
           <p className="mt-6 max-w-2xl text-pretty text-lg text-muted-foreground">
-            Wklej opis stanowiska lub link do ogłoszenia, a CV Copilot zoptymalizuje Twoje CV pod ofertę
+            Wklej opis stanowiska lub link do ogłoszenia, a Aplikando zoptymalizuje Twoje CV pod ofertę
             i oczekiwania rekrutera - po polsku, z zachowaniem formatowania
             i z klauzulą RODO.
           </p>
@@ -144,7 +144,7 @@ export default function Home() {
 
       <footer className="py-8">
         <p className="text-center text-xs text-muted-foreground">
-          CV Copilot PL — MVP. Twoje dane nie opuszczają przeglądarki, dopóki
+          Aplikando — MVP. Twoje dane nie opuszczają przeglądarki, dopóki
           nie użyjesz funkcji AI.
         </p>
       </footer>
