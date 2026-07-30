@@ -134,17 +134,17 @@ wynik pokrycia, werdykt) · `slownik.ts` (wiedza branżowa, synonimy, rdzenie PL
 `utils.ts` (`cn`, `pluralize`) · `mock-review.ts`.
 
 **`src/components/`**: `app-shell/` (sidebar+topbar mobilny drawer) · `builder/`
-(edytor: `builder.tsx`, `section-list.tsx` [na górze działający import CV: `CvImportButton variant="row" mode="replace"`; status sekcji „Dane osobowe" pokazuje „Dodaj zdjęcie profilowe" (nieblokujące, `filled` zostaje `true`) gdy szablon ma miejsce na zdjęcie a użytkownik go nie dodał], `section-dialogs.tsx`, `field-inputs.tsx`,
+(edytor: `builder.tsx`, `section-list.tsx` [na górze działający import CV: `CvImportButton`; status sekcji „Dane osobowe" pokazuje „Dodaj zdjęcie profilowe" (nieblokujące, `filled` zostaje `true`) gdy szablon ma miejsce na zdjęcie a użytkownik go nie dodał], `section-dialogs.tsx`, `field-inputs.tsx`,
 `readiness.tsx`, `match-results.tsx`, `tailor-flow.tsx` [modal dopasowania:
 config→running→interview→result], `paywall-dialog.tsx`, `score-breakdown.tsx`
 [„Z czego wynika wynik"], `cv-preview.tsx` [podgląd na żywo w edytorze — deleguje render do `PaginatedCvSheet`, sam tylko mierzy dostępną szerokość i pokazuje placeholder pustego CV], `cv-document.tsx` [czysty render dokumentu (bez paginacji); podgląd HTML; układy własne deleguje do `cv-document-boczny.tsx` / `-prestizowy.tsx` / `-grafitowy.tsx` / `-pastelowy.tsx`], `photo-input.tsx` + `photo-cropper.tsx` [zdjęcie: pomniejszony oryginał `photo_source` (max 640px) + gotowy kadr `photo` (360px) + `photo_crop{zoom,ox,oy}`; kadrowanie zoom/przeciąganie to panel INLINE, nie modal (zagnieżdżony Radix Dialog nie domykał animacji wyjścia). `store.addTailoring` usuwa `photo_source` z historii, żeby nie dublować obrazów w localStorage], `template-picker.tsx`) ·
 `new-cv-dialog.tsx` (modal wyboru szablonu, sticky stopka) · `cv-import-button.tsx`
-(import CV) · `cv-compare-dialog.tsx` · `cv-pdf.tsx`+`cv-pdf-boczny.tsx`+`cv-pdf-prestizowy.tsx`+`cv-pdf-grafitowy.tsx`+`cv-pdf-pastelowy.tsx`+`download-pdf-button.tsx` (eksport
+(import CV — TYLKO w edytorze, `section-list.tsx`; wypełnia bieżące CV, przy niepustym CV prosi o potwierdzenie nadpisania — usunięty z listy „Moje CV" 2026-07-30, żeby nie dublować drogi tworzenia CV) · `cv-compare-dialog.tsx` · `cv-pdf.tsx`+`cv-pdf-boczny.tsx`+`cv-pdf-prestizowy.tsx`+`cv-pdf-grafitowy.tsx`+`cv-pdf-pastelowy.tsx`+`download-pdf-button.tsx` (eksport
 PDF, font Lato z `public/fonts`; `CvPdf` deleguje układy własne do dedykowanych komponentów) · `template-gallery.tsx` (galeria: wiersz na kategorię, przewijanie w bok; używana przez `template-picker.tsx` i `new-cv-dialog.tsx`) · `paginated-cv-sheet.tsx` (`PaginatedCvSheet` — CV jako PRAWDZIWE, ODDZIELNE strony A4, każda we własnym ograniczonym prostokącie z cieniem/odstępem, jak w przeglądarkowym podglądzie PDF; technika „przesuwane okno": treść mierzona RAZ poza ekranem, każda strona to własna kopia dokumentu przesunięta `translateY(-i*SHEET_HEIGHT)` i przycięta `overflow:hidden` — używane przez `cv-preview.tsx` i `template-thumb.tsx` [`full`]) · `template-thumb.tsx` (miniatura = przeskalowany
 CvDocument; bez propa `width` MIERZY kontener i wypełnia go — nie da się wtedy uciąć CV w szerokości; `crop` = przycięcie tylko w pionie; `demo` podstawia `STOCK_PHOTO` w układach ze zdjęciem, gdy użytkownik nie wgrał własnego — TYLKO w galerii, nigdy w CV ani PDF; `full` deleguje do `PaginatedCvSheet` — używane w porównaniu) · `select-cv-dialog.tsx` · `cv-library-sync.tsx` (autosync aktywne CV→biblioteka) · `store-hydration.tsx` · `ui/` (shadcn).
 
 **Trasy** (`src/app/`): `/` landing · `/app` Start (onboarding/hub) · `/app/kreator`
-lista „Moje CV" (+ Dodaj nowe, + Wgraj CV) · `/app/kreator/edytor` edytor ·
+lista „Moje CV" (+ Dodaj nowe; import CV tylko w edytorze) · `/app/kreator/edytor` edytor ·
 `/app/dopasowania` historia · `/app/dopasowania/[id]` szczegóły (score-breakdown,
 compare, changes, findings, paywall) · `/app/ustawienia`. API: `/api/dopasuj`
 (pipeline), `/api/parsuj-cv` (import), `/api/zglos-blad` (stub, TODO Resend). Wszystkie

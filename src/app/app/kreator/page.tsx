@@ -2,10 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, Pencil } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { TemplateThumb } from "@/components/template-thumb";
 import { NewCvDialog } from "@/components/new-cv-dialog";
-import { CvImportButton } from "@/components/cv-import-button";
 import { useCvStore } from "@/lib/store";
 
 function formatDate(ts: number): string {
@@ -61,9 +59,6 @@ export default function KreatorListPage() {
             </button>
           }
         />
-
-        {/* Import zewnętrznego CV (PDF/DOCX/TXT) → parsowanie → nowe CV */}
-        <CvImportButton />
 
         {cvs.map((item) => (
           <div key={item.id} className="group flex flex-col">

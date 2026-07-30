@@ -123,7 +123,7 @@ export function SectionList() {
   return (
     <div className="flex flex-col gap-2">
       {/* Wgranie własnego CV — wyeksponowane na górze, wypełnia bieżące CV */}
-      <CvImportButton variant="row" mode="replace" />
+      <CvImportButton />
 
       <p className="eyebrow mt-3 px-1 text-muted-foreground">Sekcje CV</p>
 
