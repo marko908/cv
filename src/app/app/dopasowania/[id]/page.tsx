@@ -117,7 +117,7 @@ export default function DopasowanieDetailPage({
       {/* Rozkład wyniku — edukacja: z czego wynika liczba i co poprawiliśmy */}
       {aiMeta.scoreBreakdown && aiMeta.scoreBreakdown.length > 0 && (
         <div className="mt-6">
-          <ScoreBreakdown breakdown={aiMeta.scoreBreakdown} />
+          <ScoreBreakdown breakdown={aiMeta.scoreBreakdown} unlocked={unlocked} />
         </div>
       )}
 

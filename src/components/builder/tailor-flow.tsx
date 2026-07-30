@@ -715,29 +715,53 @@ function ResultStep({
       </div>
 
       {/* Rozkład wyniku — użytkownik od razu widzi, z czego wynika liczba */}
-      {breakdown.length > 0 && <ScoreBreakdown breakdown={breakdown} />}
-
-      {/* Wywiad — realny sposób na podniesienie wyniku bez zmyślania */}
-      {mozliwyWywiad && (
-        <button
-          type="button"
-          onClick={onWzmocnij}
-          className="flex w-full items-center justify-between gap-3 rounded-lg border border-primary/40 bg-primary/5 p-4 text-left transition-colors hover:bg-primary/10"
-        >
-          <span>
-            <span className="flex items-center gap-1.5 text-sm font-bold text-primary">
-              <Target className="size-4" />
-              Możesz podnieść ten wynik
-            </span>
-            <span className="mt-0.5 block text-xs text-muted-foreground">
-              Oferta wymaga {pluralize(pytania.length, "rzeczy", "rzeczy", "rzeczy")},
-              których nie ma w Twoim CV. Jeśli faktycznie je masz — potwierdź, a
-              policzymy dopasowanie od nowa. Bez zmyślania.
-            </span>
-          </span>
-          <ArrowRight className="size-4 shrink-0 text-primary" />
-        </button>
+      {breakdown.length > 0 && (
+        <ScoreBreakdown breakdown={breakdown} unlocked={unlocked} />
       )}
+
+      {/* Wywiad — realny sposób na podniesienie wyniku bez zmyślania.
+          Dostępny TYLKO po odblokowaniu: bez tego użytkownik mógłby podnieść
+          wynik i pobrać wrażenie wartości, nie płacąc za nic. Zablokowany
+          wariant zostaje widoczny (teaser, nie zniknięcie) i klika w paywall,
+          nie w wywiad — spójnie z resztą zablokowanej treści na tym ekranie. */}
+      {mozliwyWywiad &&
+        (unlocked ? (
+          <button
+            type="button"
+            onClick={onWzmocnij}
+            className="flex w-full items-center justify-between gap-3 rounded-lg border border-primary/40 bg-primary/5 p-4 text-left transition-colors hover:bg-primary/10"
+          >
+            <span>
+              <span className="flex items-center gap-1.5 text-sm font-bold text-primary">
+                <Target className="size-4" />
+                Możesz podnieść ten wynik
+              </span>
+              <span className="mt-0.5 block text-xs text-muted-foreground">
+                Oferta wymaga {pluralize(pytania.length, "rzeczy", "rzeczy", "rzeczy")},
+                których nie ma w Twoim CV. Jeśli faktycznie je masz — potwierdź, a
+                policzymy dopasowanie od nowa. Bez zmyślania.
+              </span>
+            </span>
+            <ArrowRight className="size-4 shrink-0 text-primary" />
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={onUnlock}
+            className="flex w-full items-center justify-between gap-3 rounded-lg border border-border/60 bg-secondary p-4 text-left transition-colors hover:bg-accent"
+          >
+            <span>
+              <span className="flex items-center gap-1.5 text-sm font-bold text-muted-foreground">
+                <Lock className="size-4" />
+                Możesz podnieść ten wynik
+              </span>
+              <span className="mt-0.5 block text-xs text-muted-foreground">
+                Dostępne po odblokowaniu pełnego raportu.
+              </span>
+            </span>
+            <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
+          </button>
+        ))}
 
       {/* Poprawki */}
       <div className="flex flex-col gap-2">
