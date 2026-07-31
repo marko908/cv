@@ -248,7 +248,11 @@ function StartOnboarding() {
   const activeIndex = steps.findIndex((s) => s.state === "now");
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl gap-8 px-4 py-6 sm:px-8 sm:py-10">
+    // Poniżej `lg` kolumny idą jedna pod drugą, a nie znika ta druga. Wcześniej
+    // miała `hidden … lg:flex`, więc na telefonie nie było w ogóle wejścia
+    // w „Wczytaj przykładowe CV" — czyli najszybszej drogi, żeby nowy
+    // użytkownik zobaczył produkt w działaniu.
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-6 sm:px-8 sm:py-10 lg:flex-row">
       {/* Kolumna główna */}
       <div className="min-w-0 flex-1">
         <p className="eyebrow text-muted-foreground">Dzień dobry</p>
@@ -315,7 +319,7 @@ function StartOnboarding() {
       </div>
 
       {/* Prawa kolumna */}
-      <div className="hidden w-72 shrink-0 flex-col gap-4 lg:flex">
+      <div className="flex w-full shrink-0 flex-col gap-4 lg:w-72">
         <div className="card-surface p-5">
           <p className="eyebrow flex items-center gap-1.5 text-primary">
             <Zap className="size-3.5" />

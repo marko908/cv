@@ -26,7 +26,17 @@ export function SampleCvPicker({
   const selected = sampleCvs.find((sample) => sample.id === selectedId) ?? sampleCvs[0];
 
   return (
-    <div className={compact ? "flex min-w-0 flex-1 gap-1" : "flex gap-2"}>
+    <div
+      className={
+        compact
+          ? // Na wąskim panelu (telefon) select dostaje CAŁY wiersz dla siebie.
+            // Trzy kontrolki w jednej linii ściskały go do 84 px, przez co
+            // z „Anna Kowalska — Frontend Developerka" zostawało „Kowalska ·"
+            // — fragment, z którego nie da się rozpoznać, co się wczyta.
+            "flex min-w-0 flex-1 basis-full flex-wrap gap-1.5 sm:basis-auto sm:flex-nowrap"
+          : "flex gap-2"
+      }
+    >
       <Select value={selectedId} onValueChange={setSelectedId}>
         <SelectTrigger
           size="sm"
@@ -36,11 +46,16 @@ export function SampleCvPicker({
           // (kontener rośnie do max-content i wychodzi poza panel → ucinanie).
           className={
             compact
-              ? "w-auto min-w-0 max-w-[170px] flex-1 text-xs"
+              ? "w-full min-w-0 flex-1 text-xs sm:w-auto sm:max-w-[170px]"
               : "w-auto min-w-0 max-w-72"
           }
         >
-          <SelectValue />
+          {/* Jawny `truncate`: bazowy `line-clamp-1` triggera przy
+              `whitespace-nowrap` ucina tekst BEZ wielokropka, więc nie widać,
+              że nazwa jest dłuższa. */}
+          <SelectValue>
+            <span className="block truncate">{selected.name}</span>
+          </SelectValue>
         </SelectTrigger>
         <SelectContent position="popper" align="start">
           {sampleCvs.map((sample) => (
@@ -53,7 +68,7 @@ export function SampleCvPicker({
       <Button
         size="sm"
         variant="secondary"
-        className={compact ? "shrink-0 text-xs" : "gap-1.5"}
+        className={compact ? "shrink-0 gap-1.5 text-xs" : "gap-1.5"}
         onClick={() => onSelect(selected.cv, selected)}
       >
         <FileUp className="size-3.5" />

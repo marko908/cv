@@ -1,9 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Pencil } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { TemplateThumb } from "@/components/template-thumb";
 import { NewCvDialog } from "@/components/new-cv-dialog";
+import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { useCvStore } from "@/lib/store";
 
 function formatDate(ts: number): string {
@@ -87,15 +88,12 @@ export default function KreatorListPage() {
                   Zmiana: {formatDate(item.updatedAt)}
                 </p>
               </div>
-              {/* Na dotyku nie ma hovera — kosz musi być widoczny od razu. */}
-              <button
-                type="button"
-                onClick={() => deleteCv(item.id)}
-                aria-label="Usuń CV"
-                className="shrink-0 rounded-md p-1 text-muted-foreground transition-opacity hover:text-destructive sm:opacity-0 sm:group-hover:opacity-100"
-              >
-                <Trash2 className="size-4" />
-              </button>
+              {/* Na dotyku nie ma hovera — kosz musi być widoczny od razu,
+                  a kasowanie CV wymaga potwierdzenia (drugie kliknięcie). */}
+              <ConfirmDeleteButton
+                onDelete={() => deleteCv(item.id)}
+                label={`Usuń CV ${item.name}`}
+              />
             </div>
           </div>
         ))}

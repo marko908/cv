@@ -35,7 +35,7 @@ function NaglowekPanelu({ children }: { children: React.ReactNode }) {
 /** Nagłówek sekcji w kolumnie głównej — wyśrodkowany, z cienkimi liniami. */
 function NaglowekGlowny({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mb-3 flex items-center gap-3">
+    <div data-blok="naglowek" className="mb-3 flex items-center gap-3">
       <span className="h-px flex-1" style={{ background: BOCZNY.linia }} />
       <h2
         className="text-[13px] font-bold uppercase tracking-[0.2em]"
@@ -76,7 +76,7 @@ export function CvBoczny({ cv }: { cv: TailoredCv }) {
         )}
 
         {(p.email || p.phone || p.location || link) && (
-          <section>
+          <section data-blok="tresc">
             <NaglowekPanelu>Kontakt</NaglowekPanelu>
             <ul className="flex flex-col gap-1.5 text-[11.5px]">
               {p.email && <li className="break-words">{p.email}</li>}
@@ -106,7 +106,7 @@ export function CvBoczny({ cv }: { cv: TailoredCv }) {
             — przy szerokim stacku (20+ technologii) pionowa lista zajmowała
             połowę panelu i wyglądała jak nieskończone wyliczanie. */}
         {cv.skills.technical.filter(Boolean).length > 0 && (
-          <section>
+          <section data-blok="tresc">
             <NaglowekPanelu>Umiejętności</NaglowekPanelu>
             <p className="text-[11.5px] leading-relaxed">
               {cv.skills.technical.filter(Boolean).join(" · ")}
@@ -115,7 +115,7 @@ export function CvBoczny({ cv }: { cv: TailoredCv }) {
         )}
 
         {cv.skills.soft_and_tools.filter(Boolean).length > 0 && (
-          <section>
+          <section data-blok="tresc">
             <NaglowekPanelu>Mocne strony</NaglowekPanelu>
             <p className="text-[11.5px] leading-relaxed">
               {cv.skills.soft_and_tools.filter(Boolean).join(" · ")}
@@ -124,7 +124,7 @@ export function CvBoczny({ cv }: { cv: TailoredCv }) {
         )}
 
         {cv.languages.filter(Boolean).length > 0 && (
-          <section>
+          <section data-blok="tresc">
             <NaglowekPanelu>Języki obce</NaglowekPanelu>
             <ul className="flex flex-col gap-1 text-[11.5px]">
               {cv.languages.filter(Boolean).map((j, i) => (
@@ -160,12 +160,7 @@ export function CvBoczny({ cv }: { cv: TailoredCv }) {
             <NaglowekGlowny>Doświadczenie</NaglowekGlowny>
             <div className="flex flex-col gap-4">
               {cv.experience.map((exp, i) => (
-                <div key={i} className="relative pr-4">
-                  {/* Kropka na osi czasu przy prawej krawędzi */}
-                  <span
-                    className="absolute right-0 top-1.5 size-1.5 rounded-full"
-                    style={{ background: BOCZNY.linia }}
-                  />
+                <div key={i} data-blok="pozycja" className="pr-4">
                   <div className="flex items-baseline justify-between gap-3">
                     <p
                       className="text-[13.5px] font-bold uppercase tracking-wide"
@@ -202,10 +197,14 @@ export function CvBoczny({ cv }: { cv: TailoredCv }) {
             <NaglowekGlowny>Projekty</NaglowekGlowny>
             <div className="flex flex-col gap-3">
               {cv.projects.map((proj, i) => (
-                <div key={i}>
+                <div key={i} data-blok="pozycja">
                   <div className="flex items-baseline justify-between gap-3">
+                    {/* Wersaliki jak w eksporcie — `cv-pdf-boczny.tsx` używa tu
+                        stylu `rola` z `textTransform: "uppercase"`. Bez tego
+                        podgląd pokazywał „Lead-gen: scraper", a plik
+                        „LEAD-GEN: SCRAPER". */}
                     <p
-                      className="text-[13px] font-bold"
+                      className="text-[13px] font-bold uppercase tracking-wide"
                       style={{ color: BOCZNY.wyrozn }}
                     >
                       {proj.name || "Projekt"}
@@ -239,10 +238,10 @@ export function CvBoczny({ cv }: { cv: TailoredCv }) {
             <NaglowekGlowny>Edukacja</NaglowekGlowny>
             <div className="flex flex-col gap-2.5">
               {cv.education.map((edu, i) => (
-                <div key={i}>
+                <div key={i} data-blok="pozycja">
                   <div className="flex items-baseline justify-between gap-3">
                     <p
-                      className="text-[12.5px] font-bold"
+                      className="text-[12.5px] font-bold uppercase tracking-wide"
                       style={{ color: BOCZNY.wyrozn }}
                     >
                       {edu.institution || "Uczelnia"}
@@ -262,8 +261,9 @@ export function CvBoczny({ cv }: { cv: TailoredCv }) {
           </section>
         )}
 
+        {/* Bez `mt-auto` — w PDF klauzula stoi tuż pod treścią, patrz cv-document.tsx. */}
         {cv.rodo_clause && (
-          <footer className="mt-auto pt-2 text-[9px] italic text-neutral-400">
+          <footer data-blok="pozycja" className="pt-2 text-[9px] italic text-neutral-400">
             {cv.rodo_clause}
           </footer>
         )}

@@ -53,18 +53,27 @@ function SectionShell({
   return (
     <Dialog>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
+      {/* Przewija się TYLKO środek — nagłówek, krzyżyk i „Gotowe" zostają na
+          swoich miejscach. Wcześniej `overflow-y-auto` siedziało na całym
+          `DialogContent`, więc przy sekcji „Doświadczenie" z pięcioma pozycjami
+          zawartość miała 3635 px przy 698 px okna: żeby zamknąć modal na
+          telefonie, trzeba było przewinąć pięć ekranów w dół po przycisk
+          „Gotowe" (krzyżyk, ustawiony `absolute` względem przewijanego
+          kontenera, odjeżdżał w górę razem z treścią). */}
       <DialogContent
-        className={`max-h-[86dvh] overflow-y-auto shadow-dialog ${
+        className={`flex max-h-[86dvh] flex-col gap-0 overflow-hidden shadow-dialog ${
           wide ? "sm:max-w-2xl" : "sm:max-w-xl"
         }`}
       >
-        <DialogHeader>
+        <DialogHeader className="shrink-0 pr-10 pb-4">
           <p className="eyebrow text-primary">{meta.label}</p>
           <DialogTitle className="sr-only">{meta.label}</DialogTitle>
           <DialogDescription>{meta.description}</DialogDescription>
         </DialogHeader>
-        {children}
-        <DialogFooter>
+        <div className="-mx-4 min-h-0 flex-1 overflow-y-auto px-4 py-1">
+          {children}
+        </div>
+        <DialogFooter className="mt-4 shrink-0">
           <DialogClose asChild>
             <Button className="font-bold">Gotowe</Button>
           </DialogClose>

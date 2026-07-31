@@ -57,6 +57,11 @@ export function CvImportButton({ className }: { className?: string }) {
       }
 
       loadCv(data.cv);
+      // Od razu przepisz CV do biblioteki, zamiast czekać na debounce przy
+      // następnej edycji. Inaczej na liście „Moje CV" wisi stara nazwa —
+      // realnie zdarzyło się CV Marka podpisane „Anna Kowalska — Frontend
+      // Developerka" (import nadpisał dane, etykieta została z przykładu).
+      useCvStore.getState().syncActiveCv();
       setStan("idle");
     } catch {
       setBlad("Coś poszło nie tak przy wysyłaniu pliku. Spróbuj ponownie.");

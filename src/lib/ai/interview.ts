@@ -31,6 +31,16 @@ export type PytanieWywiadu = {
   pytanie: string;
   /** Podpowiedź, co wpisać (tylko dla „doswiadczenie"). */
   hint: string;
+  /**
+   * Dosłowny fragment ogłoszenia, z którego wzięło się to pytanie.
+   *
+   * Samo wymaganie bywa zwięzłe do granicy („Docker", „code review") i wyrwane
+   * z kontekstu brzmi jak zagadka — nie widać, czy oferta chce doświadczenia
+   * produkcyjnego, czy tylko styczności. Cytat z ogłoszenia pokazujemy pod
+   * pytaniem, żeby użytkownik odpowiadał na to, co pracodawca faktycznie
+   * napisał. Puste, gdy cytat nic nie dodaje ponad treść wymagania.
+   */
+  kontekst?: string;
   /** Słowa kluczowe z oferty, które to pytanie pokrywa. */
   slowa: string[];
   /** Priorytet wymagania — pytamy najpierw o wymagane. */
@@ -71,7 +81,7 @@ export function zbudujPytania(luki: DopasowanieWymagania[]): PytanieWywiadu[] {
         (l.wymaganie.rodzaj === "twarda" || l.wymaganie.rodzaj === "miekka")
     )
     .map((l) => {
-      const t = l.wymaganie.tekst.trim();
+      const t = cytat(l.wymaganie.tekst);
       const twarda = l.wymaganie.rodzaj === "twarda";
       const slowa =
         l.wymaganie.slowa_kluczowe.filter(Boolean).length > 0
@@ -87,10 +97,29 @@ export function zbudujPytania(luki: DopasowanieWymagania[]): PytanieWywiadu[] {
         hint: twarda
           ? "Jeśli tak, opisz krótko — gdzie i jak długo (np. w projekcie X). Jeśli nie, pomiń."
           : "",
+        kontekst: kontekstOferty(l.wymaganie.cytat, l.wymaganie.tekst),
         slowa,
         wazne: l.wymaganie.priorytet === "wymagane",
       };
     });
+}
+
+/**
+ * Cytat z ogłoszenia do pokazania pod pytaniem — albo nic.
+ *
+ * Pomijamy go, gdy nie wnosi kontekstu: jest pusty, jest praktycznie tym samym
+ * co treść wymagania (parafraza znak w znak) albo jest od niej krótszy. Lepiej
+ * nie pokazać nic niż powtórzyć to samo zdanie dwa razy pod rząd.
+ */
+function kontekstOferty(surowy: string, wymaganie: string): string | undefined {
+  const c = (surowy ?? "").trim().replace(/\s+/g, " ");
+  if (!c) return undefined;
+  const zwykly = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "");
+  const cz = zwykly(c);
+  const wz = zwykly(wymaganie);
+  if (!cz || cz === wz) return undefined;
+  if (cz.length <= wz.length && wz.includes(cz)) return undefined;
+  return cytat(c);
 }
 
 /** Czy wśród luk jest o co pytać. */
@@ -98,10 +127,31 @@ export function czyWartoWywiad(luki: DopasowanieWymagania[]): boolean {
   return zbudujPytania(luki).length > 0;
 }
 
-/** Krótki podgląd punktu (do treści pytania). */
-function skrot(tekst: string, max = 60): string {
-  const t = tekst.trim();
-  return t.length <= max ? t : t.slice(0, max).trim() + "…";
+/**
+ * Cytat punktu w treści pytania.
+ *
+ * Cytujemy CAŁY punkt, a nie jego początek. Wcześniejsze ucinanie po 60 znakach
+ * gubiło kontekst dokładnie tam, gdzie jest on potrzebny: „Czy możesz dodać
+ * konkretną liczbę do: «Odpowiadam za komunikację PR marki oraz współprace
+ * z influ…»" — użytkownik nie wie, o którym fragmencie mowa i do czego miałby tę
+ * liczbę dopisać. Punkty CV mieszczą się zwykle w 100–150 znakach, więc pełny
+ * cytat jest krótki, a pytanie w interfejsie i tak zawija się do kilku wierszy
+ * (nie ma tam `truncate`).
+ *
+ * Limit istnieje wyłącznie jako bezpiecznik dla patologicznie długiego wpisu
+ * (wklejony akapit) i tnie NA GRANICY SŁOWA — nigdy w połowie wyrazu.
+ */
+const MAX_CYTATU = 220;
+
+function cytat(tekst: string, max = MAX_CYTATU): string {
+  const t = tekst.trim().replace(/\s+/g, " ");
+  if (t.length <= max) return t;
+  const przyciety = t.slice(0, max);
+  const ostatniaSpacja = przyciety.lastIndexOf(" ");
+  // Gdy w limicie nie ma ani jednej spacji (jeden gigantyczny „wyraz"),
+  // zostaje twarde cięcie — inaczej cytat byłby pusty.
+  const baza = ostatniaSpacja > max * 0.6 ? przyciety.slice(0, ostatniaSpacja) : przyciety;
+  return baza.trim() + "…";
 }
 
 /**
@@ -130,7 +180,7 @@ export function zbudujPytaniaOMetryki(cv: TailoredCv): PytanieWywiadu[] {
       pytania.push({
         id: `metryka-${e}-${j}`,
         typ: "doswiadczenie",
-        pytanie: `Czy możesz dodać konkretną liczbę do: „${skrot(tekst)}”?`,
+        pytanie: `Czy możesz dodać konkretną liczbę do punktu: „${cytat(tekst)}”?`,
         hint: 'Podaj cały punkt z liczbą — np. „Skróciłem czas obsługi o 30%” albo „Obsługiwałem 500 zgłoszeń miesięcznie”. Jeśli nie masz liczby, pomiń.',
         slowa: [],
         wazne: false,

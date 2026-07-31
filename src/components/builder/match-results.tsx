@@ -1,9 +1,17 @@
 "use client";
 
-import { ClipboardList } from "lucide-react";
+import { ClipboardList, Lock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useCvStore } from "@/lib/store";
+
+/**
+ * Ile wpisów dziennika zmian widać bez opłaty — tyle samo, co w szczegółach
+ * dopasowania (`/app/dopasowania/[id]`). Panel edytora pokazywał wcześniej
+ * WSZYSTKIE wpisy bez blokady, więc pełne „co zmieniliśmy i dlaczego" — czyli
+ * to, za co ma się płacić — dawało się przeczytać za darmo tuż po analizie.
+ */
+const DARMOWE_ZMIANY = 1;
 
 /**
  * Wyniki analizy AI: Match Score przed/po, dodane słowa kluczowe,
@@ -13,6 +21,8 @@ export function MatchResults() {
   const aiMeta = useCvStore((s) => s.aiMeta);
 
   if (aiMeta.matchScoreAfter === undefined) return null;
+
+  const unlocked = aiMeta.unlocked ?? false;
 
   return (
     <div className="flex flex-col gap-4 rounded-lg bg-secondary p-4">
@@ -58,17 +68,29 @@ export function MatchResults() {
             Dziennik zmian
           </p>
           <ol className="mt-2 flex flex-col gap-2">
-            {aiMeta.changesLog.map((entry, i) => (
-              <li key={i} className="rounded-md bg-accent p-3 text-sm">
-                <span className="font-medium text-primary">
-                  {entry.section}:
-                </span>{" "}
-                {entry.change}
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {entry.reason}
-                </p>
-              </li>
-            ))}
+            {aiMeta.changesLog.map((entry, i) => {
+              const widoczne = unlocked || i < DARMOWE_ZMIANY;
+              return (
+                <li key={i} className="rounded-md bg-accent p-3 text-sm">
+                  <span className="font-medium text-primary">
+                    {entry.section}:
+                  </span>{" "}
+                  {widoczne ? (
+                    <>
+                      {entry.change}
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {entry.reason}
+                      </p>
+                    </>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Lock className="size-3" />
+                      Szczegóły w pełnym raporcie
+                    </span>
+                  )}
+                </li>
+              );
+            })}
           </ol>
         </div>
       )}

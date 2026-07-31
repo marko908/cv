@@ -5,15 +5,10 @@ import {
   ChevronRight,
   Lock,
   Plus,
-  Trash2,
   UserRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { useCvStore, sectionHasData, type SectionId } from "@/lib/store";
 import { SECTION_META, SECTION_ORDER } from "@/lib/sections";
 import { templateUsesPhoto } from "@/lib/cv-templates";
@@ -157,21 +152,10 @@ export function SectionList() {
                 />
               }
             />
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-sm"
-                  className="opacity-0 transition-opacity group-hover:opacity-100"
-                  onClick={() => removeSection(id)}
-                  aria-label={`Usuń sekcję ${meta.label}`}
-                >
-                  <Trash2 className="size-4 text-destructive" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Usuń sekcję</TooltipContent>
-            </Tooltip>
+            <ConfirmDeleteButton
+              onDelete={() => removeSection(id)}
+              label={`Usuń sekcję ${meta.label}`}
+            />
           </div>
         );
       })}

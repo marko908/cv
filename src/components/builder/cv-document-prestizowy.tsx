@@ -23,7 +23,7 @@ export const PRESTIZ = {
 
 function Naglowek({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mb-2.5">
+    <div data-blok="naglowek" className="mb-2.5">
       <h2
         className="text-[11.5px] font-bold uppercase tracking-[0.18em]"
         style={{ color: PRESTIZ.akcent }}
@@ -146,7 +146,7 @@ export function CvPrestizowy({ cv }: { cv: TailoredCv }) {
             <Naglowek>Doświadczenie</Naglowek>
             <div className="flex flex-col gap-3.5">
               {cv.experience.map((exp, i) => (
-                <div key={i}>
+                <div key={i} data-blok="pozycja">
                   <div className="flex items-baseline justify-between gap-4">
                     <p className="text-[13px] font-bold">
                       {exp.role || "Stanowisko"}
@@ -181,7 +181,7 @@ export function CvPrestizowy({ cv }: { cv: TailoredCv }) {
             <Naglowek>Projekty</Naglowek>
             <div className="flex flex-col gap-3">
               {cv.projects.map((proj, i) => (
-                <div key={i}>
+                <div key={i} data-blok="pozycja">
                   <div className="flex items-baseline justify-between gap-4">
                     <p className="text-[13px] font-bold">
                       {proj.name || "Projekt"}
@@ -247,7 +247,7 @@ export function CvPrestizowy({ cv }: { cv: TailoredCv }) {
                 <Naglowek>Edukacja</Naglowek>
                 <div className="flex flex-col gap-2">
                   {cv.education.map((edu, i) => (
-                    <div key={i}>
+                    <div key={i} data-blok="pozycja">
                       <p className="text-[12.5px] font-bold">
                         {edu.institution || "Uczelnia"}
                       </p>
@@ -284,7 +284,8 @@ export function CvPrestizowy({ cv }: { cv: TailoredCv }) {
 
         {cv.rodo_clause && (
           <footer
-            className="mt-auto pt-2 text-[9px] italic"
+            data-blok="pozycja"
+            className="pt-2 text-[9px] italic"
             style={{ color: "#9CA3AF" }}
           >
             {cv.rodo_clause}

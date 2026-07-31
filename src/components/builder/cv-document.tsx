@@ -166,6 +166,7 @@ export function CvDocument({
       {cv.professional_summary && (
         <section>
           <h2
+            data-blok="naglowek"
             className={cn(
               "mb-1.5 border-b pb-1 text-xs font-bold uppercase tracking-widest",
               styles.accent,
@@ -175,7 +176,7 @@ export function CvDocument({
           >
             Podsumowanie zawodowe
           </h2>
-          <p>{cv.professional_summary}</p>
+          <p data-blok="tresc">{cv.professional_summary}</p>
         </section>
       )}
 
@@ -183,6 +184,7 @@ export function CvDocument({
       {cv.experience.length > 0 && (
         <section>
           <h2
+            data-blok="naglowek"
             className={cn(
               "mb-2 border-b pb-1 text-xs font-bold uppercase tracking-widest",
               styles.accent,
@@ -194,7 +196,7 @@ export function CvDocument({
           </h2>
           <div className={cn("flex flex-col", styles.sectionGap)}>
             {cv.experience.map((exp, i) => (
-              <div key={i}>
+              <div key={i} data-blok="pozycja">
                 <div className="flex items-baseline justify-between gap-4">
                   <p className="font-bold text-neutral-900">
                     {exp.role || "Stanowisko"}
@@ -227,6 +229,7 @@ export function CvDocument({
       {cv.projects.length > 0 && (
         <section>
           <h2
+            data-blok="naglowek"
             className={cn(
               "mb-2 border-b pb-1 text-xs font-bold uppercase tracking-widest",
               styles.accent,
@@ -238,7 +241,7 @@ export function CvDocument({
           </h2>
           <div className="flex flex-col gap-3">
             {cv.projects.map((proj, i) => (
-              <div key={i}>
+              <div key={i} data-blok="pozycja">
                 <div className="flex items-baseline justify-between gap-4">
                   <p className="font-bold text-neutral-900">
                     {proj.name || "Projekt"}
@@ -276,6 +279,7 @@ export function CvDocument({
         cv.skills.soft_and_tools.length > 0) && (
         <section>
           <h2
+            data-blok="naglowek"
             className={cn(
               "mb-1.5 border-b pb-1 text-xs font-bold uppercase tracking-widest",
               styles.accent,
@@ -286,13 +290,13 @@ export function CvDocument({
             Umiejętności
           </h2>
           {cv.skills.technical.length > 0 && (
-            <p>
+            <p data-blok="tresc">
               <span className="font-bold">Techniczne: </span>
               {cv.skills.technical.filter(Boolean).join(", ")}
             </p>
           )}
           {cv.skills.soft_and_tools.length > 0 && (
-            <p className="mt-1">
+            <p data-blok="tresc" className="mt-1">
               <span className="font-bold">Miękkie i narzędzia: </span>
               {cv.skills.soft_and_tools.filter(Boolean).join(", ")}
             </p>
@@ -304,6 +308,7 @@ export function CvDocument({
       {cv.education.length > 0 && (
         <section>
           <h2
+            data-blok="naglowek"
             className={cn(
               "mb-2 border-b pb-1 text-xs font-bold uppercase tracking-widest",
               styles.accent,
@@ -317,6 +322,7 @@ export function CvDocument({
             {cv.education.map((edu, i) => (
               <div
                 key={i}
+                data-blok="pozycja"
                 className="flex items-baseline justify-between gap-4"
               >
                 <p>
@@ -341,6 +347,7 @@ export function CvDocument({
       {cv.languages.filter(Boolean).length > 0 && (
         <section>
           <h2
+            data-blok="naglowek"
             className={cn(
               "mb-1.5 border-b pb-1 text-xs font-bold uppercase tracking-widest",
               styles.accent,
@@ -350,13 +357,16 @@ export function CvDocument({
           >
             Języki obce
           </h2>
-          <p>{cv.languages.filter(Boolean).join(", ")}</p>
+          <p data-blok="tresc">{cv.languages.filter(Boolean).join(", ")}</p>
         </section>
       )}
 
-      {/* RODO */}
+      {/* RODO — bez `mt-auto`: w eksporcie PDF klauzula stoi TUŻ POD treścią
+          (`rodo: { marginTop }` w cv-pdf*.tsx), a `mt-auto` spychało ją w
+          podglądzie na sam dół arkusza. Podgląd ma pokazywać plik, nie własną
+          interpretację. */}
       {cv.rodo_clause && (
-        <footer className="mt-auto pt-4">
+        <footer data-blok="pozycja" className="pt-4">
           <p className="text-[10px] italic leading-snug text-neutral-400">
             {cv.rodo_clause}
           </p>

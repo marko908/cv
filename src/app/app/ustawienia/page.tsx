@@ -34,7 +34,22 @@ function SettingsCard({
 export default function UstawieniaPage() {
   const { cv, template, jobPosting, aiMeta, loadCv, setJobPosting, setAiMeta } =
     useCvStore();
+  const tailorings = useCvStore((s) => s.tailorings);
   const [confirmClear, setConfirmClear] = useState(false);
+
+  // Licznik liczony z historii dopasowań — każda analiza zapisuje rekord.
+  // Wcześniej stała tu myślnik i przypis „dostępne w kroku 2", choć silnik AI
+  // działa już od dawna.
+  const analizyWTymMiesiacu = (() => {
+    const teraz = new Date();
+    return tailorings.filter((t) => {
+      const d = new Date(t.createdAt);
+      return (
+        d.getMonth() === teraz.getMonth() &&
+        d.getFullYear() === teraz.getFullYear()
+      );
+    }).length;
+  })();
 
   const exportJson = () => {
     const data = { cv, template, jobPosting, aiMeta };
@@ -92,9 +107,11 @@ export default function UstawieniaPage() {
         </div>
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           <div className="rounded-lg bg-secondary p-4">
-            <p className="font-mono text-2xl font-bold">—</p>
+            <p className="font-mono text-2xl font-bold">{analizyWTymMiesiacu}</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Generacje AI w tym miesiącu (dostępne w kroku 2)
+              {analizyWTymMiesiacu === 1
+                ? "dopasowanie CV do oferty w tym miesiącu"
+                : "dopasowań CV do ofert w tym miesiącu"}
             </p>
           </div>
           <div className="rounded-lg bg-secondary p-4">

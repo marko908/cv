@@ -1,15 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import {
-  ArrowRight,
-  Lock,
-  LockOpen,
-  Target,
-  Trash2,
-} from "lucide-react";
+import { ArrowRight, Lock, LockOpen, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { EmptyState } from "@/components/empty-state";
 import { SelectCvDialog } from "@/components/select-cv-dialog";
 import { useCvStore } from "@/lib/store";
@@ -87,8 +82,14 @@ export default function DopasowaniaPage() {
                   href={`/app/dopasowania/${t.id}`}
                   className="min-w-0 flex-1"
                 >
-                  <div className="flex items-center gap-2">
-                    <p className="truncate text-sm font-bold">{t.jobTitle}</p>
+                  {/* Na telefonie badge NIE stoi obok tytułu: jest `shrink-0`,
+                      więc zabierał wiersz i tytuł ucinał się po ~10 znakach
+                      („Frontend D…") — nie dało się rozpoznać oferty. Poniżej
+                      `sm` badge schodzi pod tytuł, a tytuł dostaje dwie linijki. */}
+                  <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-2">
+                    <p className="line-clamp-2 text-sm font-bold sm:truncate sm:line-clamp-none">
+                      {t.jobTitle}
+                    </p>
                     <Badge
                       variant="outline"
                       className={cn(
@@ -115,15 +116,10 @@ export default function DopasowaniaPage() {
                   </p>
                 </Link>
 
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className="opacity-0 transition-opacity group-hover:opacity-100"
-                  onClick={() => removeTailoring(t.id)}
-                  aria-label="Usuń dopasowanie"
-                >
-                  <Trash2 className="size-4 text-destructive" />
-                </Button>
+                <ConfirmDeleteButton
+                  onDelete={() => removeTailoring(t.id)}
+                  label={`Usuń dopasowanie ${t.jobTitle}`}
+                />
                 <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
               </div>
             );

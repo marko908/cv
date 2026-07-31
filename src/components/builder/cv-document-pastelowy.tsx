@@ -33,6 +33,7 @@ function Naglowek({
 }) {
   return (
     <h2
+      data-blok="naglowek"
       className={`mb-3 border-b pb-1 font-bold uppercase tracking-[0.08em] ${
         maly ? "text-[10px]" : "text-[11px]"
       }`}
@@ -102,7 +103,7 @@ export function CvPastelowy({ cv }: { cv: TailoredCv }) {
             <Naglowek>Doświadczenie</Naglowek>
             <div className="flex flex-col gap-4">
               {cv.experience.map((exp, i) => (
-                <div key={i}>
+                <div key={i} data-blok="pozycja">
                   <div className="flex items-baseline justify-between gap-4">
                     <p
                       className="min-w-0 text-[12px] font-bold uppercase"
@@ -142,7 +143,7 @@ export function CvPastelowy({ cv }: { cv: TailoredCv }) {
             <Naglowek>Projekty</Naglowek>
             <div className="flex flex-col gap-4">
               {cv.projects.map((proj, i) => (
-                <div key={i}>
+                <div key={i} data-blok="pozycja">
                   <div className="flex items-baseline justify-between gap-4">
                     <p
                       className="min-w-0 text-[12px] font-bold uppercase"
@@ -188,7 +189,7 @@ export function CvPastelowy({ cv }: { cv: TailoredCv }) {
             <Naglowek>Edukacja</Naglowek>
             <div className="flex flex-col gap-3">
               {cv.education.map((edu, i) => (
-                <div key={i}>
+                <div key={i} data-blok="pozycja">
                   <div className="flex items-baseline justify-between gap-4">
                     <p
                       className="min-w-0 text-[11.5px] font-bold uppercase"
@@ -220,7 +221,8 @@ export function CvPastelowy({ cv }: { cv: TailoredCv }) {
 
         {cv.rodo_clause && (
           <footer
-            className="mt-auto pt-8 text-justify text-[8.5px] leading-tight"
+            data-blok="pozycja"
+            className="pt-8 text-justify text-[8.5px] leading-tight"
             style={{ color: PASTELOWY.data }}
           >
             {cv.rodo_clause}
@@ -249,7 +251,7 @@ export function CvPastelowy({ cv }: { cv: TailoredCv }) {
           style={{ paddingTop: p.photo ? 26 : 36, paddingBottom: 32 }}
         >
           {(p.email || p.phone || p.location || link) && (
-            <section>
+            <section data-blok="tresc">
               <Naglowek maly>Kontakt</Naglowek>
               <ul className="flex flex-col gap-1 text-[10.5px]">
                 {p.phone && <li>{p.phone}</li>}
@@ -279,7 +281,7 @@ export function CvPastelowy({ cv }: { cv: TailoredCv }) {
           {/* Zwarty, zawijający się akapit zamiast wiersza na umiejętność —
               przy szerokim stacku pionowa lista zajmowała połowę panelu. */}
           {techniczne.length > 0 && (
-            <section>
+            <section data-blok="tresc">
               <Naglowek maly>Umiejętności</Naglowek>
               <p className="text-[10.5px] leading-relaxed">
                 {techniczne.join(" · ")}
@@ -288,7 +290,7 @@ export function CvPastelowy({ cv }: { cv: TailoredCv }) {
           )}
 
           {miekkie.length > 0 && (
-            <section>
+            <section data-blok="tresc">
               <Naglowek maly>Narzędzia i cechy</Naglowek>
               <p className="text-[10.5px] leading-relaxed">
                 {miekkie.join(" · ")}
@@ -297,7 +299,7 @@ export function CvPastelowy({ cv }: { cv: TailoredCv }) {
           )}
 
           {jezyki.length > 0 && (
-            <section>
+            <section data-blok="tresc">
               <Naglowek maly>Języki obce</Naglowek>
               <ul className="flex flex-col gap-1 text-[10.5px]">
                 {jezyki.map((j, i) => (

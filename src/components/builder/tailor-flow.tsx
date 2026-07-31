@@ -551,6 +551,13 @@ function InterviewStep({
     return (
       <div key={p.id} className="card-surface p-4">
         <p className="text-sm font-medium">{p.pytanie}</p>
+        {/* Dosłowny fragment ogłoszenia — bez niego zwięzłe wymaganie („Docker")
+            nie mówi, o jaki zakres pyta pracodawca. Cały cytat, nie urwany. */}
+        {p.kontekst && (
+          <p className="mt-1.5 border-l-2 border-border pl-2.5 text-xs italic text-muted-foreground">
+            W ogłoszeniu: „{p.kontekst}”
+          </p>
+        )}
         <div className="mt-2 flex gap-1.5">
           <button
             type="button"
