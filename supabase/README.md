@@ -80,6 +80,45 @@ Tego nie da się zrobić migracją SQL:
    ruchu. Domenę trzeba zweryfikować w Resend (SPF/DKIM), inaczej kody
    aktywacyjne będą lądować w spamie.
 
+## Środowiska (od 2026-08-02)
+
+| | Gałąź | Baza | Stripe |
+| --- | --- | --- | --- |
+| **Produkcja** | `main` | projekt `Aplikando` (zdalny) | live |
+| **Dev / testy** | `dev` | **Supabase lokalnie** (Docker) | sandbox |
+
+Drugiego zdalnego projektu nie zakładamy: darmowy plan Supabase daje 2 projekty
+na osobę i limit jest wyczerpany. Lokalny stack jest za darmo, ma ten sam schemat
+(te same migracje z tego katalogu) i własną skrzynkę na maile, więc testy kont
+i płatności nie dotykają produkcji ani limitu Resend.
+
+### Uruchomienie lokalnej bazy
+
+Wymaga **Docker Desktop** (jednorazowa instalacja, na Windows z WSL2).
+
+```bash
+npm run db:start
+```
+
+Komenda wypisze adresy i klucze. Do `.env.local` na czas pracy na `dev` wchodzą
+te lokalne, nie produkcyjne:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<anon key z db:start>
+SUPABASE_SERVICE_ROLE_KEY=<service_role key z db:start>
+```
+
+Przydatne adresy lokalne: **Studio** `http://localhost:54323` (podgląd danych),
+**skrzynka pocztowa** `http://localhost:54324` (tu lądują kody aktywacyjne).
+
+`npm run db:reset` odtwarza bazę od zera ze wszystkich migracji — najszybszy
+sposób, żeby sprawdzić, czy migracje układają się w spójny schemat.
+
+**Migracje pisze się raz i stosuje w obu miejscach:** lokalnie przez
+`db:reset`, na produkcji przez `apply_migration`. Nigdy nie edytujemy migracji,
+która już poszła na produkcję — dopisujemy nową.
+
 ## Migracje
 
 Pliki w `supabase/migrations/` odpowiadają 1:1 stanowi bazy (stan na 2026-08-02):
