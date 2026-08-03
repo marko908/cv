@@ -3,6 +3,7 @@ import { Figtree, Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import { StoreHydration } from "@/components/store-hydration";
+import { Analytics } from "@vercel/analytics/next";
 
 // Figtree — najbliższy dostępny odpowiednik kroju Circular/SpotifyMix.
 const figtree = Figtree({
@@ -45,6 +46,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <StoreHydration />
         {children}
+        <Analytics />
       </body>
     </html>
   );
