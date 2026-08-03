@@ -47,3 +47,6 @@ scripts/_podglad/
 # Robocze artefakty testow QA (PDF-y, JSON-y, zrzuty) - nie trafiaja do repo
 scripts/_qa/
 scripts/probne-*
+
+# worker pdf.js — kopiowany z node_modules w predev/prebuild (zgodność wersji)
+/public/pdfjs/

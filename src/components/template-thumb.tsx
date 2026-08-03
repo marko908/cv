@@ -1,10 +1,9 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { TailoredCv } from "@/lib/cv-schema";
 import type { TemplateId } from "@/lib/store";
-import { CvDocument } from "@/components/builder/cv-document";
-import { PaginatedCvSheet } from "@/components/paginated-cv-sheet";
+import { PdfPreview, PdfThumb } from "@/components/pdf-preview";
 import { STOCK_PHOTO, templateUsesPhoto } from "@/lib/cv-templates";
 import { cn } from "@/lib/utils";
 
@@ -14,23 +13,19 @@ const SHEET_HEIGHT = 1123; // wysokość A4 przy 96 dpi
 export const A4_RATIO = SHEET_HEIGHT / SHEET_WIDTH;
 
 /**
- * Prawdziwa miniatura CV (wzorzec z ResuMax) — przeskalowany CvDocument.
+ * Prawdziwa miniatura CV — pierwsza strona wygenerowanego pliku PDF.
+ *
+ * Miniatura pokazuje TEN SAM plik, który użytkownik pobierze; nie ma tu
+ * osobnego rysowania szablonu w HTML (powód: `pdf-preview.tsx`). Dzięki temu
+ * wybór szablonu w galerii jest wyborem tego, co faktycznie wyjdzie w pliku.
  *
  * ZASADA: miniatura NIGDY nie ucina dokumentu w szerokości. Zawsze widać pełną
  * szerokość szablonu — zmienia się tylko skala. Ucinać wolno wyłącznie w pionie
  * (`crop`), bo czytelność CV bierze się z szerokości: obcięty bok wygląda jak
  * zepsuty layout, obcięty dół czyta się naturalnie jak „dalszy ciąg strony".
  *
- * Szerokość: gdy `width` nie zostanie podane, komponent MIERZY swój kontener
- * i wypełnia go w całości. Dzięki temu wywołujący nie musi znać pikseli —
- * wcześniej sztywne `width={220}` wjeżdżało w kolumnę o szerokości 140 px
- * i ucinało jedną trzecią CV.
- *
  * Tryb domyślny przycina zawartość do proporcji jednej strony. Tryb `full`
- * deleguje do `PaginatedCvSheet` — CAŁY dokument jako osobne strony A4, każda
- * we własnym prostokącie. Bez tego dłuższe CV w porównaniu „przed/po" kończyło
- * się w połowie ostatniej strony i zostawiało niczym nieopisany biały obszar
- * na dole, wyglądający jak ucięty fragment.
+ * pokazuje CAŁY dokument jako osobne strony A4, każdą we własnym prostokącie.
  */
 export function TemplateThumb({
   template,
@@ -65,13 +60,16 @@ export function TemplateThumb({
   crop?: number;
   className?: string;
 }) {
-  const cvDoPodgladu: TailoredCv =
-    demo && templateUsesPhoto(template) && !cv.personal_info.photo
-      ? {
-          ...cv,
-          personal_info: { ...cv.personal_info, photo: STOCK_PHOTO },
-        }
-      : cv;
+  // `useMemo`, a nie zwykłe wyrażenie w ciele funkcji: podstawienie zdjęcia
+  // poglądowego tworzy NOWY obiekt CV, a nowy obiekt przy każdym renderze
+  // kazałby generować plik PDF od początku.
+  const cvDoPodgladu: TailoredCv = useMemo(
+    () =>
+      demo && templateUsesPhoto(template) && !cv.personal_info.photo
+        ? { ...cv, personal_info: { ...cv.personal_info, photo: STOCK_PHOTO } }
+        : cv,
+    [cv, template, demo]
+  );
 
   const mierzone = width === undefined;
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -95,50 +93,19 @@ export function TemplateThumb({
   const poprawnaSzerokosc =
     szerokosc !== undefined && Number.isFinite(szerokosc) && szerokosc > 0;
 
-  if (full) {
-    return (
-      <div ref={wrapRef} className={cn(mierzone && "w-full", className)}>
-        {poprawnaSzerokosc && (
-          <PaginatedCvSheet
+  return (
+    <div ref={wrapRef} className={cn(mierzone && "w-full", className)}>
+      {poprawnaSzerokosc &&
+        (full ? (
+          <PdfPreview cv={cvDoPodgladu} template={template} width={szerokosc!} />
+        ) : (
+          <PdfThumb
             cv={cvDoPodgladu}
             template={template}
             width={szerokosc!}
+            crop={crop ?? A4_RATIO}
           />
-        )}
-      </div>
-    );
-  }
-
-  const scale = poprawnaSzerokosc ? szerokosc! / SHEET_WIDTH : 0;
-  const wysokosc = poprawnaSzerokosc
-    ? Math.round(szerokosc! * (crop ?? A4_RATIO))
-    : 0;
-
-  return (
-    <div ref={wrapRef} className={cn(mierzone && "w-full", className)}>
-      {poprawnaSzerokosc && (
-        <div
-          aria-hidden
-          className="pointer-events-none relative select-none overflow-hidden rounded-md bg-white"
-          style={{ width: szerokosc, height: wysokosc }}
-        >
-          <div
-            style={{
-              width: SHEET_WIDTH,
-              // Kolumna flex + minimum jednej kartki: dokument (z `grow`)
-              // rozciąga się na całą stronę, więc kolorowy panel szablonu nie
-              // urywa się w połowie, zostawiając biały pas na dole miniatury.
-              display: "flex",
-              flexDirection: "column",
-              minHeight: SHEET_HEIGHT,
-              transform: `scale(${scale})`,
-              transformOrigin: "top left",
-            }}
-          >
-            <CvDocument cv={cvDoPodgladu} template={template} />
-          </div>
-        </div>
-      )}
+        ))}
     </div>
   );
 }

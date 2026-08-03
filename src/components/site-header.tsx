@@ -1,5 +1,6 @@
 ﻿import Image from "next/image";
 import Link from "next/link";
+import { PrzyciskiKontaNaglowek } from "@/components/auth/menu-konta";
 
 export function SiteHeader() {
   return (
@@ -17,11 +18,8 @@ export function SiteHeader() {
             Aplikando
           </span>
         </Link>
-        <nav className="flex items-center gap-2">
-          <Link
-            href="/app"
-            className="rounded-full bg-secondary px-4 py-2 text-sm font-bold text-foreground transition-colors hover:bg-accent"
-          >Otwórz aplikację</Link>
+        <nav className="flex items-center gap-1 sm:gap-2">
+          <PrzyciskiKontaNaglowek />
         </nav>
       </div>
     </header>

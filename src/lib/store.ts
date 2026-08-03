@@ -12,6 +12,19 @@ import type {
   TailoredCv,
 } from "./cv-schema";
 import { emptyCv } from "./cv-schema";
+import {
+  BRAK_SUBSKRYPCJI,
+  PLANY,
+  PUSTE_UZYCIE,
+  czyAktywna,
+  kluczMiesiaca,
+  limitPlanu,
+  pozostaloDopasowan,
+  type OkresRozliczeniowy,
+  type PlanId,
+  type Subscription,
+  type UzycieMiesieczne,
+} from "./subscription";
 
 /**
  * Kopia CV bez pomniejszonego oryginału zdjęcia. Oryginał jest potrzebny tylko
@@ -156,6 +169,25 @@ export function defaultCvName(cv: TailoredCv): string {
   return "CV bez nazwy";
 }
 
+/**
+ * Nazwa pozycji biblioteki po zapisaniu nowej treści CV.
+ *
+ * Autosave NIE MOŻE nadpisywać nazwy nadanej świadomie. Wcześniej `syncActiveCv`
+ * ustawiał `name: defaultCvName(cv)` bezwarunkowo, więc CV utworzone jako
+ * „Senior Frontend Developer — Nordvia — dopasowane" wracało do imienia
+ * kandydata w pół sekundy po otwarciu — i biblioteka pokazywała dwa nierozróżnialne
+ * wpisy. `renameCv` był z tego samego powodu bezużyteczny.
+ *
+ * Reguła: nazwę odświeżamy tylko wtedy, gdy była automatyczna (zgodna z tym, co
+ * wyliczylibyśmy z POPRZEDNIEJ treści). Dzięki temu puste CV dostaje imię, gdy
+ * użytkownik je wpisze, a nazwa własna zostaje nietknięta.
+ */
+function nazwaPoZapisie(zapisane: SavedCv, noweCv: TailoredCv): string {
+  return zapisane.name === defaultCvName(zapisane.cv)
+    ? defaultCvName(noweCv)
+    : zapisane.name;
+}
+
 function makeCvId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return crypto.randomUUID();
@@ -173,6 +205,12 @@ interface CvState {
   tailorings: Tailoring[];
   cvs: SavedCv[];
   activeCvId: string | null;
+  /** Uprawnienia konta. Po podpięciu Stripe'a nadpisywane statusem z webhooka. */
+  subscription: Subscription;
+  /** Licznik użycia w ramach limitu planu — po Supabase liczony po stronie serwera. */
+  usage: UzycieMiesieczne;
+  /** Id dopasowań kupionych jednorazowo (bez subskrypcji). */
+  odblokowaneDopasowania: string[];
 
   setPath: (path: CvPath) => void;
   setTemplate: (template: TemplateId) => void;
@@ -191,9 +229,21 @@ interface CvState {
   addTailoring: (t: Tailoring) => void;
   removeTailoring: (id: string) => void;
   updateTailoringCv: (id: string, cv: TailoredCv) => void;
-  unlockTailoring: (id: string) => void;
-  unlockReview: () => void;
   resetReview: () => void;
+
+  // Subskrypcja (docelowo: Stripe). `aktywujSubskrypcje` to miejsce, w które
+  // wejdzie potwierdzenie płatności — dziś włącza dostęp lokalnie.
+  aktywujSubskrypcje: (plan: PlanId, okres: OkresRozliczeniowy) => void;
+  anulujSubskrypcje: () => void;
+  zliczDopasowanie: () => void;
+  /** Jednorazowy zakup POJEDYNCZEGO dopasowania. */
+  odblokujDopasowanie: (id: string) => void;
+  /**
+   * Przenosi opłacone jednorazowo odblokowanie na rekord, który ZASTĘPUJE stary
+   * (przeliczenie po wywiadzie tworzy nowe id). Bez tego użytkownik, który
+   * kupił jedno dopasowanie, traciłby dostęp w chwili skorzystania z wywiadu.
+   */
+  przeniesOdblokowanie: (zId: string, naId: string) => void;
 
   addSection: (id: SectionId) => void;
   removeSection: (id: SectionId) => void;
@@ -269,6 +319,9 @@ export const useCvStore = create<CvState>()(
       tailorings: [],
       cvs: [],
       activeCvId: null,
+      subscription: BRAK_SUBSKRYPCJI,
+      usage: PUSTE_UZYCIE,
+      odblokowaneDopasowania: [],
 
       setPath: (path) => set({ path }),
       setTemplate: (template) => set({ template }),
@@ -298,7 +351,7 @@ export const useCvStore = create<CvState>()(
                     cv: s.cv,
                     template: s.template,
                     enabledSections: s.enabledSections,
-                    name: defaultCvName(s.cv),
+                    name: nazwaPoZapisie(c, s.cv),
                     updatedAt: Date.now(),
                   }
                 : c
@@ -317,7 +370,7 @@ export const useCvStore = create<CvState>()(
                       cv: s.cv,
                       template: s.template,
                       enabledSections: s.enabledSections,
-                      name: defaultCvName(s.cv),
+                      name: nazwaPoZapisie(c, s.cv),
                       updatedAt: Date.now(),
                     }
                   : c
@@ -355,7 +408,7 @@ export const useCvStore = create<CvState>()(
                       cv: s.cv,
                       template: s.template,
                       enabledSections: s.enabledSections,
-                      name: defaultCvName(s.cv),
+                      name: nazwaPoZapisie(c, s.cv),
                       updatedAt: Date.now(),
                     }
                   : c
@@ -394,7 +447,7 @@ export const useCvStore = create<CvState>()(
                       cv: s.cv,
                       template: s.template,
                       enabledSections: s.enabledSections,
-                      name: defaultCvName(s.cv),
+                      name: nazwaPoZapisie(c, s.cv),
                       updatedAt: Date.now(),
                     }
                   : c
@@ -453,27 +506,51 @@ export const useCvStore = create<CvState>()(
             t.id === id ? { ...t, tailoredCv } : t
           ),
         })),
-      unlockTailoring: (id) =>
-        set((s) => ({
-          tailorings: s.tailorings.map((t) =>
-            t.id === id
-              ? { ...t, aiMeta: { ...t.aiMeta, unlocked: true } }
-              : t
-          ),
-          // odblokuj też bieżący wynik, jeśli dotyczy tego samego dopasowania
-          aiMeta:
-            s.tailorings[0]?.id === id
-              ? { ...s.aiMeta, unlocked: true }
-              : s.aiMeta,
-        })),
-      unlockReview: () =>
-        set((s) => ({
-          aiMeta: { ...s.aiMeta, unlocked: true },
-          tailorings: s.tailorings.map((t, i) =>
-            i === 0 ? { ...t, aiMeta: { ...t.aiMeta, unlocked: true } } : t
-          ),
-        })),
       resetReview: () => set({ aiMeta: emptyAiMeta }),
+
+      // ---- Subskrypcja ----
+      // Dostęp jest własnością KONTA, nie pojedynczego dopasowania. Dzięki temu
+      // przeliczenie po wywiadzie (nowy rekord) nie może odebrać opłaconego
+      // dostępu — wcześniej właśnie tak się działo.
+      aktywujSubskrypcje: (plan, okres) =>
+        set(() => {
+          const koniec = new Date();
+          if (okres === "rok") koniec.setFullYear(koniec.getFullYear() + 1);
+          else koniec.setMonth(koniec.getMonth() + 1);
+          return {
+            subscription: {
+              status: "aktywna",
+              plan,
+              okres,
+              koniecOkresu: koniec.getTime(),
+            },
+          };
+        }),
+      odblokujDopasowanie: (id) =>
+        set((s) =>
+          s.odblokowaneDopasowania.includes(id)
+            ? s
+            : { odblokowaneDopasowania: [...s.odblokowaneDopasowania, id] }
+        ),
+      przeniesOdblokowanie: (zId, naId) =>
+        set((s) => {
+          if (!s.odblokowaneDopasowania.includes(zId)) return s;
+          const bez = s.odblokowaneDopasowania.filter((x) => x !== zId);
+          return {
+            odblokowaneDopasowania: bez.includes(naId) ? bez : [...bez, naId],
+          };
+        }),
+      anulujSubskrypcje: () => set({ subscription: BRAK_SUBSKRYPCJI }),
+      zliczDopasowanie: () =>
+        set((s) => {
+          const miesiac = kluczMiesiaca();
+          return {
+            usage:
+              s.usage.miesiac === miesiac
+                ? { miesiac, dopasowania: s.usage.dopasowania + 1 }
+                : { miesiac, dopasowania: 1 },
+          };
+        }),
 
       addSection: (id) =>
         set((s) =>
@@ -587,7 +664,7 @@ export const useCvStore = create<CvState>()(
     }),
     {
       name: "cv-copilot-store",
-      version: 2,
+      version: 3,
       // Rehydracja dopiero po montażu (StoreHydration) — inaczej SSR-owy HTML
       // różniłby się od stanu z localStorage i React zgłosiłby hydration error.
       skipHydration: true,
@@ -647,8 +724,64 @@ export const useCvStore = create<CvState>()(
           tailorings: Array.isArray(p.tailorings) ? p.tailorings : [],
           cvs,
           activeCvId,
+          // v3: dostęp przestał być flagą przy rekordzie. Stare `aiMeta.unlocked`
+          // przechodzi na listę jednorazowych odblokowań — dokładnie to
+          // użytkownik wtedy kupił (pojedyncze dopasowanie), więc nie nadajemy
+          // mu z tego tytułu subskrypcji, ale też nic nie odbieramy.
+          subscription: p.subscription ?? BRAK_SUBSKRYPCJI,
+          usage: p.usage ?? PUSTE_UZYCIE,
+          odblokowaneDopasowania:
+            p.odblokowaneDopasowania ??
+            (Array.isArray(p.tailorings)
+              ? p.tailorings.filter((t) => t.aiMeta?.unlocked).map((t) => t.id)
+              : []),
         } as CvState;
       },
     }
   )
 );
+
+/**
+ * Czy konto ma AKTYWNĄ SUBSKRYPCJĘ (dostęp do wszystkich dopasowań).
+ * Do bramkowania KONKRETNEGO dopasowania użyj `useMaDostepDo(id)` — ono
+ * uwzględnia też zakupy jednorazowe.
+ */
+export function useMaSubskrypcje(): boolean {
+  const subscription = useCvStore((s) => s.subscription);
+  return czyAktywna(subscription);
+}
+
+/**
+ * Czy użytkownik ma dostęp do TEGO dopasowania: przez subskrypcję albo przez
+ * jednorazowy zakup tego konkretnego rekordu.
+ *
+ * TO JEST JEDYNY sposób sprawdzania uprawnień w UI. Nie czytaj
+ * `aiMeta.unlocked` — pole zostało tylko dla starych zapisów i nic nie znaczy.
+ * Po podpięciu Supabase/Stripe podmieniamy WYŁĄCZNIE wnętrze tych hooków.
+ */
+export function useMaDostepDo(tailoringId: string | null | undefined): boolean {
+  const subscription = useCvStore((s) => s.subscription);
+  const odblokowane = useCvStore((s) => s.odblokowaneDopasowania);
+  if (czyAktywna(subscription)) return true;
+  return !!tailoringId && odblokowane.includes(tailoringId);
+}
+
+/** Ile dopasowań zostało w tym miesiącu w ramach limitu planu. */
+export function usePozostaloDopasowan(): number {
+  const subscription = useCvStore((s) => s.subscription);
+  const usage = useCvStore((s) => s.usage);
+  return pozostaloDopasowan(subscription, usage);
+}
+
+/** Limit planu (0 = brak subskrypcji). */
+export function useLimitPlanu(): number {
+  const subscription = useCvStore((s) => s.subscription);
+  return limitPlanu(subscription);
+}
+
+/** Nazwa aktywnego planu do wyświetlenia, np. „Pro". */
+export function useNazwaPlanu(): string | null {
+  const subscription = useCvStore((s) => s.subscription);
+  if (!czyAktywna(subscription) || !subscription.plan) return null;
+  return PLANY[subscription.plan].nazwa;
+}

@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { EmptyState } from "@/components/empty-state";
 import { SelectCvDialog } from "@/components/select-cv-dialog";
-import { useCvStore } from "@/lib/store";
+import { useCvStore, useMaSubskrypcje } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 function formatDate(ts: number): string {
@@ -22,6 +22,8 @@ function formatDate(ts: number): string {
 
 export default function DopasowaniaPage() {
   const tailorings = useCvStore((s) => s.tailorings);
+  const maSubskrypcje = useMaSubskrypcje();
+  const odblokowane = useCvStore((s) => s.odblokowaneDopasowania);
   const removeTailoring = useCvStore((s) => s.removeTailoring);
 
   return (
@@ -67,7 +69,7 @@ export default function DopasowaniaPage() {
       ) : (
         <div className="flex flex-col gap-3">
           {tailorings.map((t) => {
-            const unlocked = t.aiMeta.unlocked ?? false;
+            const unlocked = maSubskrypcje || odblokowane.includes(t.id);
             const score = t.aiMeta.matchScoreAfter ?? 0;
             return (
               <div

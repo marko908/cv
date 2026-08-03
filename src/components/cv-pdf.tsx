@@ -10,6 +10,7 @@ import {
   Link,
   pdf,
 } from "@react-pdf/renderer";
+import { SekcjaZNaglowkiem } from "./cv-pdf-sekcja";
 import type { TailoredCv } from "@/lib/cv-schema";
 import type { TemplateId } from "@/lib/store";
 import { opisLinku } from "@/lib/utils";
@@ -194,6 +195,8 @@ function makeStyles(config: PdfTemplateStyle) {
   });
 }
 
+
+
 export function CvPdf({
   cv,
   template,
@@ -257,20 +260,19 @@ export function CvPdf({
         {/* Podsumowanie */}
         {cv.professional_summary ? (
           <View style={s.section}>
-            <Text style={s.heading} minPresenceAhead={minPresence}>
-              Podsumowanie zawodowe
-            </Text>
+            <View minPresenceAhead={minPresence}>
+              <Text style={s.heading}>Podsumowanie zawodowe</Text>
+            </View>
             <Text>{cv.professional_summary}</Text>
           </View>
         ) : null}
 
         {/* Doświadczenie */}
         {cv.experience.length > 0 ? (
-          <View style={s.section}>
-            <Text style={s.heading} minPresenceAhead={minPresence}>
-              Doświadczenie zawodowe
-            </Text>
-            {cv.experience.map((exp, i) => (
+          <SekcjaZNaglowkiem
+            styl={s.section}
+            naglowek={<Text style={s.heading}>Doświadczenie zawodowe</Text>}
+            wpisy={cv.experience.map((exp, i) => (
               <View key={i} style={s.itemBlock} wrap={false}>
                 <View style={s.rowBetween}>
                   <Text style={s.itemTitle}>
@@ -299,16 +301,15 @@ export function CvPdf({
                 ))}
               </View>
             ))}
-          </View>
+          />
         ) : null}
 
         {/* Projekty */}
         {cv.projects.length > 0 ? (
-          <View style={s.section}>
-            <Text style={s.heading} minPresenceAhead={minPresence}>
-              Projekty
-            </Text>
-            {cv.projects.map((proj, i) => (
+          <SekcjaZNaglowkiem
+            styl={s.section}
+            naglowek={<Text style={s.heading}>Projekty</Text>}
+            wpisy={cv.projects.map((proj, i) => (
               <View key={i} style={s.itemBlock} wrap={false}>
                 <View style={s.rowBetween}>
                   <Text style={s.itemTitle}>
@@ -339,15 +340,15 @@ export function CvPdf({
                 ))}
               </View>
             ))}
-          </View>
+          />
         ) : null}
 
         {/* Umiejętności */}
         {techLine || softLine ? (
           <View style={s.section}>
-            <Text style={s.heading} minPresenceAhead={minPresence}>
-              Umiejętności
-            </Text>
+            <View minPresenceAhead={minPresence}>
+              <Text style={s.heading}>Umiejętności</Text>
+            </View>
             {techLine ? (
               <Text style={s.para}>
                 <Text style={{ fontWeight: "bold" }}>Techniczne: </Text>
@@ -367,11 +368,10 @@ export function CvPdf({
 
         {/* Edukacja */}
         {cv.education.length > 0 ? (
-          <View style={s.section}>
-            <Text style={s.heading} minPresenceAhead={minPresence}>
-              Edukacja
-            </Text>
-            {cv.education.map((edu, i) => (
+          <SekcjaZNaglowkiem
+            styl={s.section}
+            naglowek={<Text style={s.heading}>Edukacja</Text>}
+            wpisy={cv.education.map((edu, i) => (
               <View
                 key={i}
                 style={[s.rowBetween, { marginBottom: 4 }]}
@@ -398,15 +398,15 @@ export function CvPdf({
                 </View>
               </View>
             ))}
-          </View>
+          />
         ) : null}
 
         {/* Języki */}
         {cv.languages.filter(Boolean).length > 0 ? (
           <View style={s.section}>
-            <Text style={s.heading} minPresenceAhead={minPresence}>
-              Języki obce
-            </Text>
+            <View minPresenceAhead={minPresence}>
+              <Text style={s.heading}>Języki obce</Text>
+            </View>
             <Text>{cv.languages.filter(Boolean).join(", ")}</Text>
           </View>
         ) : null}
@@ -420,13 +420,27 @@ export function CvPdf({
   );
 }
 
+/**
+ * JEDYNE miejsce, w którym powstaje plik PDF z CV.
+ *
+ * Korzystają z niego zarówno „Pobierz PDF", jak i podgląd na ekranie
+ * (`pdf-preview.tsx`). To nie jest kosmetyka: podgląd jest wiarygodny tylko
+ * dlatego, że pokazuje BAJT W BAJT ten sam dokument, który pobiera użytkownik.
+ * Dwa osobne wywołania `pdf(<CvPdf …/>)` dałyby się z czasem rozjechać
+ * (inne właściwości, inny szablon, inna wersja komponentu) i cicho przywróciły
+ * problem, dla którego podgląd HTML został usunięty.
+ */
+export function renderujCvPdf(cv: TailoredCv, template: TemplateId) {
+  return pdf(<CvPdf cv={cv} template={template} />).toBlob();
+}
+
 /** Generuje PDF i od razu pobiera plik na komputer. */
 export async function downloadCvPdf(
   cv: TailoredCv,
   template: TemplateId,
   filename = "CV.pdf"
 ) {
-  const blob = await pdf(<CvPdf cv={cv} template={template} />).toBlob();
+  const blob = await renderujCvPdf(cv, template);
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;

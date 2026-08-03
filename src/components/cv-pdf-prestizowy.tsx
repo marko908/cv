@@ -9,6 +9,7 @@ import {
   Link,
   StyleSheet,
 } from "@react-pdf/renderer";
+import { SekcjaZNaglowkiem } from "./cv-pdf-sekcja";
 import type { TailoredCv } from "@/lib/cv-schema";
 import { opisLinku } from "@/lib/utils";
 
@@ -207,9 +208,10 @@ export function CvPdfPrestizowy({ cv }: { cv: TailoredCv }) {
 
         {/* ---------- Doświadczenie ---------- */}
         {cv.experience.length > 0 ? (
-          <View style={s.sekcja}>
-            <Naglowek tytul="Doświadczenie" />
-            {cv.experience.map((exp, i) => (
+          <SekcjaZNaglowkiem
+            styl={s.sekcja}
+            naglowek={<Naglowek tytul="Doświadczenie" />}
+            wpisy={cv.experience.map((exp, i) => (
               <View key={i} style={s.pozycja} wrap={false}>
                 <View style={s.wiersz}>
                   <Text style={s.rola}>{exp.role || "Stanowisko"}</Text>
@@ -225,14 +227,15 @@ export function CvPdfPrestizowy({ cv }: { cv: TailoredCv }) {
                 <Punkty punkty={exp.bullets} />
               </View>
             ))}
-          </View>
+          />
         ) : null}
 
         {/* ---------- Projekty ---------- */}
         {cv.projects.length > 0 ? (
-          <View style={s.sekcja}>
-            <Naglowek tytul="Projekty" />
-            {cv.projects.map((proj, i) => (
+          <SekcjaZNaglowkiem
+            styl={s.sekcja}
+            naglowek={<Naglowek tytul="Projekty" />}
+            wpisy={cv.projects.map((proj, i) => (
               <View key={i} style={s.pozycja} wrap={false}>
                 <View style={s.wiersz}>
                   <Text style={s.rola}>{proj.name || "Projekt"}</Text>
@@ -248,7 +251,7 @@ export function CvPdfPrestizowy({ cv }: { cv: TailoredCv }) {
                 <Punkty punkty={proj.bullets} />
               </View>
             ))}
-          </View>
+          />
         ) : null}
 
         {/* ---------- Umiejętności ---------- */}

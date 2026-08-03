@@ -9,7 +9,9 @@ import {
   Link,
   StyleSheet,
 } from "@react-pdf/renderer";
+import { SekcjaZNaglowkiem } from "./cv-pdf-sekcja";
 import type { TailoredCv } from "@/lib/cv-schema";
+import { MARGINES_STRONY_PT } from "@/lib/cv-templates";
 import { opisLinku } from "@/lib/utils";
 
 /**
@@ -59,8 +61,16 @@ const s = StyleSheet.create({
   glowna: {
     flex: 1,
     paddingHorizontal: 26,
-    paddingVertical: 30,
+    paddingBottom: MARGINES_STRONY_PT.boczny,
   },
+  /**
+   * Górny margines KAŻDEJ strony. `fixed` powtarza element na wszystkich
+   * kartkach; padding zwykłego <View> react-pdf nakłada RAZ na cały blok, więc
+   * strony pośrednie zostawały bez marginesu (zmierzone: ~8 pt od krawędzi).
+   * Paddingu na <Page> użyć NIE MOŻNA — rozbija paginację układu dwukolumnowego
+   * (kolumna główna przeskakuje o stronę, zostawiając pół kartki pustki).
+   */
+  odstepGory: { height: MARGINES_STRONY_PT.boczny },
   foto: {
     width: 120,
     height: 120,
@@ -163,10 +173,15 @@ function SekcjaPanelu({
 
 function NaglowekGlowny({ tytul }: { tytul: string }) {
   return (
-    <View style={s.naglowekGlownyBox} minPresenceAhead={MIN_PRESENCE_GLOWNY}>
-      <View style={s.kreska} />
-      <Text style={s.naglowekGlowny}>{tytul}</Text>
-      <View style={s.kreska} />
+    // `minPresenceAhead` na SAMYM pudełku z kreskami react-pdf ignoruje
+    // (sprawdzone dla 55/80/140 pt). Działa dopiero na osobnym, pustym
+    // wrapperze — tak samo jak w grafitowym/pastelowym.
+    <View minPresenceAhead={MIN_PRESENCE_GLOWNY}>
+      <View style={s.naglowekGlownyBox}>
+        <View style={s.kreska} />
+        <Text style={s.naglowekGlowny}>{tytul}</Text>
+        <View style={s.kreska} />
+      </View>
     </View>
   );
 }
@@ -195,6 +210,7 @@ export function CvPdfBoczny({ cv }: { cv: TailoredCv }) {
 
         {/* ---------- Prawa kolumna ---------- */}
         <View style={s.glowna}>
+          <View style={s.odstepGory} fixed />
           <View>
             <Text style={s.imie}>{p.full_name || "Imię i nazwisko"}</Text>
             {p.title ? <Text style={s.tytul}>{p.title}</Text> : null}
@@ -205,9 +221,9 @@ export function CvPdfBoczny({ cv }: { cv: TailoredCv }) {
           ) : null}
 
           {cv.experience.length > 0 ? (
-            <View>
-              <NaglowekGlowny tytul="Doświadczenie" />
-              {cv.experience.map((exp, i) => (
+            <SekcjaZNaglowkiem
+              naglowek={<NaglowekGlowny tytul="Doświadczenie" />}
+              wpisy={cv.experience.map((exp, i) => (
                 <View key={i} style={s.pozycja} wrap={false}>
                   <View style={s.wierszPozycji}>
                     <Text style={s.rola}>{exp.role || "Stanowisko"}</Text>
@@ -223,13 +239,13 @@ export function CvPdfBoczny({ cv }: { cv: TailoredCv }) {
                   <Punkty punkty={exp.bullets} />
                 </View>
               ))}
-            </View>
+            />
           ) : null}
 
           {cv.projects.length > 0 ? (
-            <View>
-              <NaglowekGlowny tytul="Projekty" />
-              {cv.projects.map((proj, i) => (
+            <SekcjaZNaglowkiem
+              naglowek={<NaglowekGlowny tytul="Projekty" />}
+              wpisy={cv.projects.map((proj, i) => (
                 <View key={i} style={s.pozycja} wrap={false}>
                   <View style={s.wierszPozycji}>
                     <Text style={s.rola}>{proj.name || "Projekt"}</Text>
@@ -245,13 +261,13 @@ export function CvPdfBoczny({ cv }: { cv: TailoredCv }) {
                   <Punkty punkty={proj.bullets} />
                 </View>
               ))}
-            </View>
+            />
           ) : null}
 
           {cv.education.length > 0 ? (
-            <View>
-              <NaglowekGlowny tytul="Edukacja" />
-              {cv.education.map((edu, i) => (
+            <SekcjaZNaglowkiem
+              naglowek={<NaglowekGlowny tytul="Edukacja" />}
+              wpisy={cv.education.map((edu, i) => (
                 <View key={i} style={s.pozycja} wrap={false}>
                   <View style={s.wierszPozycji}>
                     <Text style={s.rola}>{edu.institution || "Uczelnia"}</Text>
@@ -264,7 +280,7 @@ export function CvPdfBoczny({ cv }: { cv: TailoredCv }) {
                   ) : null}
                 </View>
               ))}
-            </View>
+            />
           ) : null}
 
           {cv.rodo_clause ? (

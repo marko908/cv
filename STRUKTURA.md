@@ -54,8 +54,12 @@ i stopek stron.
 Next.js 16 (App Router, Turbopack) · React 19 · Tailwind v4 · shadcn/ui (radix) ·
 Zustand 5 (persist w localStorage) · Zod 4 · AI SDK `ai` **v7** (`generateObject`,
 `system`→**`instructions`**) · `@ai-sdk/google` · `@react-pdf/renderer` (eksport
-PDF) · `unpdf`+`mammoth` (import PDF/DOCX). **AGENTS.md: to nie jest znany Next —
-czytaj `node_modules/next/dist/docs/` przed pisaniem kodu Next.**
+PDF **oraz podgląd** — jeden renderer, patrz „Konwencje i pułapki") ·
+`pdfjs-dist` (rysowanie stron PDF na kanwie podglądu; worker kopiowany
+z `node_modules` do `public/pdfjs/` przez `scripts/kopiuj-worker-pdfjs.mjs`
+w `predev`/`prebuild` — pdf.js wymaga ZGODNOŚCI wersji API i workera, więc plik
+nie leży w repo) · `unpdf`+`mammoth` (import PDF/DOCX). **AGENTS.md: to nie jest
+znany Next — czytaj `node_modules/next/dist/docs/` przed pisaniem kodu Next.**
 
 ## Silnik AI — pipeline (SERCE aplikacji)
 
@@ -87,6 +91,19 @@ jego utrata obniża pokrycie/ATS; `zlozCv(oryginal, przepisanie, slowaKluczowe)`
 cofa taki punkt do oryginału), `zlozCv` skleja punkty po `punkt_zrodlowy` (indeks
 źródłowy, nie po kolejności).
 
+**STRAŻ POKRYCIA (krok 6a⁻ w `pipeline.ts`, 2026-07-31): przepisanie NIE MOŻE
+odebrać CV pokrycia wymagania, które oryginał już miał.** Porównuje ranga po randze
+(`RANGA_POKRYCIA`) `przed.dopasowania` z `po.dopasowania`; przy spadku cofa
+PODSUMOWANIE do oryginału i sprawdza, czy to odzyskało pokrycie (zero wywołań
+modelu). Cofa tylko wtedy, gdy realnie pomaga — inaczej zostawia lepiej napisaną
+wersję. Powód: `zgubionoSlowoKluczowe` chroni wyłącznie frazy, które matcher
+wcześniej TRAFIŁ, więc przy luce w `slownik.ts` nie chroniło nic. Realny błąd:
+podsumowanie „Specjalizuję się w wydajności i dostępności interfejsów" znikało
+przy przepisaniu, a raport wypisywał potem OBA te wymagania jako brakujące
+(„nie podałeś tego o sobie" o czymś, co użytkownik podał, a my usunęliśmy).
+Podsumowanie jest jedynym polem przepisywanym w całości — punkty są chronione
+pojedynczo w `zlozCv` — dlatego cofamy właśnie je. Test: `npm run test:straz`.
+
 **PODŁOGA WYNIKU (krok 6a w `pipeline.ts`): dopasowanie NIGDY nie obniża oceny.**
 Jeśli mimo straży `ocenCv(tailoredCv) < ocenCv(baseCv)`, wracamy w całości do CV
 wejściowego — użytkownik w najgorszym razie dostaje +0, nigdy wynik niższy niż
@@ -110,24 +127,251 @@ pielęgniarka + krótka oferta spadała 82→66, teraz 82→82).
   `isCvComplete`, `DEFAULT_RODO_CLAUSE`, `emptyCv`.
 - **Store** (`store.ts`, Zustand persist `cv-copilot-store`): `cv`, `template`,
   `enabledSections`, `jobPosting`, `aiMeta`, `tailorings[]`, `cvs[]` (biblioteka CV),
-  `activeCvId`. Typy: `AiMeta{matchScoreBefore/After, addedKeywords, changesLog,
-  findings?, scoreBreakdown?, categories?, unlocked?}`, `ReviewFinding`, `Tailoring`
-  (rekord historii: baseCv+tailoredCv+aiMeta+jobText), `SavedCv`. Akcje: `newCv`,
-  `newCvFrom` (auto-włącza sekcje z danymi), `openCv`, `loadCv`, `syncActiveCv`,
-  `renameCv`, `deleteCv`, `setAiMeta`, `addTailoring`/`removeTailoring`,
-  `unlockReview`/`unlockTailoring`, `resetReview`.
+  `activeCvId`, **`subscription`**, **`usage`**. Typy: `AiMeta{matchScoreBefore/After,
+  addedKeywords, changesLog, findings?, scoreBreakdown?, categories?, unlocked?
+  — POLE MARTWE, zostawione tylko dla starych zapisów}`, `ReviewFinding`,
+  `Tailoring` (rekord historii: baseCv+tailoredCv+aiMeta+jobText), `SavedCv`.
+  Akcje: `newCv`, `newCvFrom` (auto-włącza sekcje z danymi), `openCv`, `loadCv`,
+  `syncActiveCv`, `renameCv`, `deleteCv`, `setAiMeta`, `addTailoring`/`removeTailoring`,
+  `resetReview`, **`aktywujSubskrypcje`/`anulujSubskrypcje`/`zliczDopasowanie`**.
+  Persist `version: 3` — migracja v2→v3 przenosi dostęp z rekordów na konto.
+  **Autosave NIE nadpisuje nazwy CV** (`nazwaPoZapisie`, 2026-07-31): `syncActiveCv`
+  /`openCv`/`newCv`/`newCvFrom` ustawiały `name: defaultCvName(cv)` bezwarunkowo,
+  więc CV utworzone jako „<oferta> — dopasowane" wracało do imienia kandydata pół
+  sekundy po otwarciu, a biblioteka pokazywała dwa nierozróżnialne wpisy (`renameCv`
+  był z tego samego powodu bezużyteczny). Reguła: nazwę odświeżamy tylko wtedy, gdy
+  była automatyczna (`zapisane.name === defaultCvName(zapisane.cv)`) — puste CV
+  dostaje imię, gdy użytkownik je wpisze, a nazwa własna zostaje nietknięta.
 - **Mock** (`mock-review.ts`): fallback bez klucza (`buildTailoring`, `runMockReview`)
   — deterministyczny, celowo krytyczny (≥3 poprawki dla paywalla). Od 2026-07-25 też
   liczy rubrykę (`stubDopasowanie`+`ocenCv`), spójnie z produkcją.
+
+## Monetyzacja i uprawnienia — `src/lib/subscription.ts`
+
+**Darmowe: konto, kreator CV, wszystkie szablony, podgląd, pobranie własnego CV
+w PDF. Płatne: dopasowanie CV do oferty** (raport, rozbicie wyniku, dziennik
+zmian, wywiad, przerobione CV). Ceny BRUTTO — konsument ma widzieć kwotę, którą
+faktycznie zapłaci.
+
+**DWIE DROGI DO DOSTĘPU** (`PLANY`, `CENA_JEDNORAZOWA`):
+1. **Subskrypcja**, dwa progi różniące się LIMITEM dopasowań: `start` 29 zł/mies.
+   (290 zł/rok) = 30 dopasowań, `pro` 49 zł/mies. (490 zł/rok) = 100 dopasowań.
+   Droższy MUSI mieć lepszy stosunek ceny do limitu (0,97 zł vs 0,49 zł za
+   dopasowanie) — inaczej nikt go nie wybierze.
+2. **Jednorazowe odblokowanie POJEDYNCZEGO dopasowania za 12 zł.** Pokazywane
+   jako down-sell przy próbie wyjścia z cennika (`widok: "jednorazowo"`).
+   Użytkownik może kupić dowolnie wiele takich odblokowań — każde dotyczy
+   konkretnego rekordu (`odblokowaneDopasowania: string[]`).
+
+**ZASADA: uprawnienia sprawdza się WYŁĄCZNIE przez `useMaDostepDo(tailoringId)`**
+(store.ts) — nigdy przez `aiMeta.unlocked` (pole martwe, zostało dla starych
+zapisów). Hook zwraca `true`, gdy jest aktywna subskrypcja ALBO rekord został
+kupiony jednorazowo. `useMaSubskrypcje()` tylko tam, gdzie chodzi o samo konto
+(lista dopasowań liczy uprawnienie per wiersz).
+
+**Przeliczenie po wywiadzie TWORZY NOWY REKORD i kasuje stary**, więc
+`tailor-flow.zapiszWynik` woła `przeniesOdblokowanie(stareId, noweId)` PRZED
+`removeTailoring` — bez tego ktoś, kto zapłacił 12 zł za to jedno dopasowanie,
+traciłby je przez sam fakt skorzystania z wywiadu (dokładnie ten błąd istniał
+wcześniej dla flagi `unlocked`). `removeTailoring` czyści też wpis z listy
+zakupów. `tailor-flow` odtwarza `tailoringId` z `tailorings[0]` przy otwarciu
+modalu — inaczej po powrocie do edytora kupione dopasowanie wyglądałoby na
+zablokowane.
+
+**Pod Stripe/Supabase:** `Subscription{status,plan,okres,koniecOkresu,
+stripeCustomerId?,stripeSubscriptionId?}` odwzorowuje model Stripe'a (`status`,
+`current_period_end`); `status` `zalega`/`anulowana` DAJE dostęp do końca
+opłaconego okresu (`czyAktywna`). Zakupy jednorazowe = Payment Intent powiązany
+z id dopasowania. Podpięcie płatności = podmiana źródła danych w hookach
+`useMaDostepDo`/`useMaSubskrypcje` + wywołanie `aktywujSubskrypcje`/
+`odblokujDopasowanie` z webhooka; reszta aplikacji bez zmian.
+
+**Limit dopasowań:** wynika z planu (`limitPlanu`), licznik `usage{miesiac,
+dopasowania}` zerowany zmianą klucza „RRRR-MM"; `zliczDopasowanie()` woła
+`tailor-flow` przy każdym zapisie wyniku (re-run po wywiadzie też — zużywa
+osobne wywołania modelu). Limit jest MIĘKKI (dziś tylko pokazywany). Powód
+istnienia: jedno dopasowanie to 2 wywołania modelu, więc koszt rośnie liniowo
+z użyciem i bez limitu pojedynczy użytkownik zjada całą marżę.
+
+**Cennik nie może obiecywać rzeczy, których nie ma w kodzie** — lista korzyści
+pochodzi z `ZAKRES_PLATNY`. Usunięte 2026-07-31: dwa poziomy Pro/Premium, eksport
+DOCX, „bez znaku wodnego", „nielimitowane dopasowania", „historia wersji CV"
+(wszystko to było darmowe albo nie istniało), symulacja rozmowy (oznaczona
+w sidebarze jako „wkrótce"), badge „najczęściej wybierany", down-sell 12 zł przy
+wyjściu oraz teksty o „darmowym planie"/„MVP 0 zł" i o „kroku 4".
+
+## Baza danych — Supabase (od 2026-08-02)
+
+Projekt **Aplikando** (`urjpluqutufsgkzysazq`, eu-central-1, Postgres 17). Migracje
+w `supabase/migrations/` odpowiadają 1:1 stanowi zdalnej bazy; opis i instrukcja
+konfiguracji panelu w `supabase/README.md`. Typy: `src/lib/supabase/typy-bazy.ts`
+(GENEROWANE — odświeżać po każdej migracji, nie edytować ręcznie).
+
+**BAZA JEST ŹRÓDŁEM PRAWDY** (decyzja Marka 2026-08-02). Zustand zostaje jako
+cache UI, ale każdy zapis idzie do Postgresa — CV mają być na każdym urządzeniu,
+a wyczyszczenie przeglądarki nie może niczego kasować. Przy pierwszym logowaniu
+migrujemy zawartość `localStorage` do bazy.
+
+Tabele: `profil` (konto, `stripe_customer_id`; tworzone triggerem z `auth.users`) ·
+`cv` (biblioteka, `tresc` = `TailoredCv` w JSONB) · `dopasowanie` (historia:
+`cv_bazowe`/`cv_dopasowane`/`ai_meta` + `korzen_id`) · `subskrypcja` · `zakup`
+(jednorazowe 12 zł) · `zuzycie_miesieczne` (licznik limitu) · `zuzycie_ai`
+(koszt modelu) · `zdarzenie_stripe` (idempotencja webhooka) · `zgloszenie_bledu`.
+
+**CV w JSONB, nie w tabelach relacyjnych** — schemat ma jedno źródło (`cv-schema.ts`,
+Zod). Znormalizowane `experience`/`education`/`skills` znaczyłyby, że każda zmiana
+`TailoredCv` to migracja bazy plus mapowanie w obie strony. Przy odczycie treść
+przepuszczamy przez Zoda, nie rzutujemy na siłę.
+
+**`korzen_id` — rozwiązanie problemu, który wcześniej łatał `przeniesOdblokowanie`.**
+Przeliczenie po wywiadzie tworzy NOWY rekord i kasuje stary, więc zakup przypięty
+do id znikał razem z rekordem (kto zapłacił 12 zł, tracił dostęp przez samo
+skorzystanie z wywiadu). W bazie zakup dotyczy KORZENIA łańcucha
+(`coalesce(korzen_id, id)`) — nie ma czego przenosić, dostęp nie może zginąć.
+
+**Uprawnienia sprawdza wyłącznie RPC `ma_dostep_do(id)`** (subskrypcja ALBO zakup
+korzenia) — dokładnie ta sama zasada co `useMaDostepDo` w `store.ts`, tylko
+egzekwowana po stronie serwera. `ma_aktywna_subskrypcje()` odwzorowuje `czyAktywna`
+(`past_due`/`canceled` dają dostęp do końca opłaconego okresu).
+
+**Limit dopasowań jest TWARDY i liczony na serwerze** (decyzja Marka 2026-08-02).
+`zuzyj_dopasowanie(limit)` inkrementuje licznik i sprawdza próg JEDNĄ instrukcją
+(dwa równoległe żądania inaczej przepchnęłyby oba ponad limit). Limit wchodzi
+PARAMETREM — progi planów zostają w `subscription.ts` i to jest ich jedyne źródło.
+Wcześniejszy licznik w `localStorage` nie chronił przed niczym: czyszczenie
+przeglądarki zerowało go do zera.
+
+**RLS: klient nie pisze po niczym, za co się płaci.** `subskrypcja`, `zakup`,
+`zuzycie_*` mają dla `authenticated` tylko SELECT; zapisuje webhook rolą
+`service_role`. `profil` ma grant KOLUMNOWY (użytkownik zmienia wyłącznie
+`zgoda_marketing`, nie `stripe_customer_id`). `zdarzenie_stripe` nie ma ani jednej
+polityki. Zweryfikowane 22 testami na dwóch kontach (izolacja danych, próby
+nadania sobie subskrypcji, limit, wygasanie okresu, kaskada RODO).
+
+**Zdjęcia: Storage, bucket prywatny `zdjecia`** (`{user_id}/{cv_id}.{ext}`, 2 MB,
+signed URL), w `tresc` tylko ścieżka. Base64 w JSONB puchło razem z historią —
+rekord dopasowania trzyma DWA komplety CV.
 
 ## Pliki wg odpowiedzialności
 
 **`src/lib/ai/`**: `pipeline.ts` (orkiestracja) · `job-offer.ts` (oferta→wymagania,
 AI) · `fact-ledger.ts` (CV→fakty, `digitsIn`/`normalize`) · `matching.ts` (dopasowanie,
-wynik pokrycia, werdykt) · `slownik.ts` (wiedza branżowa, synonimy, rdzenie PL) ·
+wynik pokrycia, werdykt) · `slownik.ts` (wiedza branżowa, synonimy, rdzenie PL; od 2026-07-31 grupy „wydajność/Core Web Vitals/Lighthouse/czas ładowania" i „dostępność/WCAG/a11y" — bez nich CV z twardym dowodem na wydajność dostawało „brak pokrycia") ·
 `rewrite.ts` (przepisanie, AI + straże) · `validator.ts` (anty-halucynacja) ·
 `scoring.ts` (rubryka 0–100) · `changes.ts` (opis zmian + findings) · `interview.ts`
 (pytania+aplikacja odpowiedzi) · `parse-cv.ts` (import: ekstrakcja tekstu + HIPERŁĄCZA z adnotacji PDF/hrefów DOCX + mapowanie AI; PDF otwierany RAZ na tekst i linki — pdf.js odłącza bufor po pierwszym `getDocumentProxy`, przez co drugie wywołanie cicho zwracało 0 linków; prompt normalizuje też WERSALIKI na naturalną pisownię) · `fetch-oferta.ts` (pobranie treści ogłoszenia z linku: JSON-LD JobPosting → HTML→tekst; `czyPoprawnyLink`, `BladPobraniaOferty`) · `models.ts` (wybór modeli+klucz).
+
+**`src/lib/supabase/`** — warstwa dostępu do bazy. `klient-przegladarka.ts`
+(`createBrowserClient`, klucz publishable — jawny, całe bezpieczeństwo stoi na
+RLS) · `klient-serwer.ts` (`klientSerwer()` + `zalogowanyUzytkownik()`; `cookies()`
+jest ASYNCHRONICZNE w tej wersji Next) · `klient-admin.ts` (`service_role`, OMIJA
+RLS — wolno TYLKO w webhooku Stripe'a; rzuca wyjątkiem, jeśli zawoła się go
+w przeglądarce) · `typy-bazy.ts` (generowany).
+
+**`src/proxy.ts`** — odświeżanie sesji przed każdym żądaniem. **Konwencja
+`middleware.ts` jest w tym Next WYCOFANA — plik nazywa się `proxy.ts`, eksportuje
+funkcję `proxy`** (`node_modules/next/dist/docs/.../file-conventions/proxy.md`).
+Server Components nie mogą zapisywać ciasteczek, więc bez tego pliku token
+wygasa i użytkownik wylatuje z konta w losowym momencie. Ciasteczka zapisujemy
+w DWA miejsca (żądanie + odpowiedź) — pominięcie jednego daje losowe wylogowania.
+Wszędzie `getUser()`, NIGDY `getSession()`: `getSession()` ufa ciasteczku,
+`getUser()` weryfikuje token u Supabase.
+
+**BRAMKA KONTA (decyzja Marka 2026-08-02): kreator działa BEZ konta.** Konto jest
+wymagane dopiero przy ZAPISIE CV, pobraniu PDF i dopasowaniu do oferty. Powód:
+użytkownik ma zobaczyć produkt, zanim odda maila. Konsekwencja dla kodu: stan
+anonimowy zostaje w `localStorage` (jak dziś), a przy pierwszym logowaniu
+jednorazowo migruje do bazy.
+
+**`src/components/auth/`** — konto. `formularz-auth.tsx` (JEDEN komponent na
+wszystkie ekrany: `rejestracja` / `logowanie` / `kod-rejestracji` /
+`reset-prosba` / `reset-kod` / `reset-haslo`; `TEKSTY_AUTH` = tytuły per ekran,
+`poPolsku()` = tłumaczenie komunikatów Supabase) · `auth-dialog.tsx`
+(`AuthDialog` + hook `useBramaKonta`) · `strona-auth.tsx` (oprawa pełnych tras).
+Hook sesji: `src/lib/supabase/uzytkownik.ts` (`useUzytkownik`).
+
+**Aktywacja idzie KODEM, nie linkiem** — szablon „Confirm sign up" w Supabase
+używa `{{ .Token }}`, a kod weryfikuje `verifyOtp({ type: "signup" })`. Reset
+hasła tak samo (`type: "recovery"`), dzięki czemu nie potrzebujemy trasy
+wymieniającej kod z linku na sesję. Ponowna wysyłka ma odliczanie 60 s —
+tyle wynosi „Minimum interval per user" w SMTP, więc bez licznika użytkownik
+dostawałby suchy błąd o limicie.
+
+**Formularz istnieje w dwóch oprawach, ale w JEDNEJ implementacji:** okienko
+(`AuthDialog`, otwierane akcją) i trasy `/rejestracja`, `/logowanie`,
+`/reset-hasla`. Trasy muszą zostać — potrzebuje ich link z maila, powrót
+z logowania Google i menedżery haseł (w modalach działają gorzej). `?wroc=`
+przyjmuje TYLKO adresy wewnętrzne (`/`, nie `//`) — inaczej byłby to otwarty
+redirect na podrobioną stronę logowania.
+
+**SYNCHRONIZACJA STORE ↔ BAZA (2026-08-02):** `src/lib/supabase/repo.ts`
+(mapowanie `SavedCv`/`Tailoring` ↔ wiersze `cv`/`dopasowanie`; daty ms↔timestamptz,
+nazwy EN↔PL — jedno miejsce konwersji) + `src/components/auth/synchronizacja-konta.tsx`
+(montowana w `AppShell`). **Komponenty się NIE ZMIENIŁY** — dalej czytają store,
+tylko jego zawartość pochodzi z Postgresa. Trzy zadania: wciągnięcie danych po
+zalogowaniu, jednorazowa migracja tego, co powstało BEZ konta, i zapis kolejnych
+zmian (debounce 900 ms, diff po id → upsert + delete). Konflikty: wygrywa
+ostatni zapis, per rekord.
+
+**Pułapka, która kosztowałaby użytkownika całą pracę:** rozróżniamy „sesji jeszcze
+nie znamy" (`undefined`) od „na pewno wylogowany" (`null`). Bez tego pierwszy
+render kogoś, kto NIGDY się nie logował, wyglądałby jak wylogowanie i czyściłby
+CV zbudowane anonimowo. Czyścimy WYŁĄCZNIE przy realnym przejściu
+zalogowany→wylogowany (i wtedy do zera — na wspólnym komputerze nikt nie może
+zobaczyć cudzych CV). Puste CV nie trafiają do bazy (`maTresc`), bo edytor tworzy
+je automatycznie i zaśmiecałyby bibliotekę.
+
+**Uprawnienia czytamy z bazy, nigdy nie wypychamy** (`pobierzUprawnienia`):
+`subskrypcja`, opłacone `zakup` i `zuzycie_miesieczne` lądują w store, więc
+`useMaDostepDo`/`useMaSubskrypcje` działają bez zmian. Zapisuje je wyłącznie
+webhook rolą `service_role`.
+
+**TWARDY LIMIT W `/api/dopasuj`:** trasa sprawdza sesję (401 `brak-konta`), czyta
+plan i woła RPC `zuzyj_dopasowanie(limitKonta(subskrypcja))` **przed** modelem
+(429 `limit`).
+
+**PAYWALL STOI PRZY RAPORCIE, NIE PRZED ANALIZĄ** — dopasowanie można uruchomić
+w każdej chwili (wymagane jest tylko konto), a płaci się za pełny wynik. Dlatego
+konto BEZ subskrypcji przechodzi przez trasę bez przeszkód i NIE podbija licznika:
+pula 30/100 dotyczy wyłącznie aktywnych subskrybentów. Gdyby liczyć wszystkim,
+ktoś kupujący plan w połowie miesiąca zastałby pulę nadgryzioną przez okres sprzed
+zakupu. Dla subskrybenta limit zużywamy PRZED wywołaniem modelu — przy odwrotnej
+kolejności padnięcie zapisu po opłaconej przez nas analizie oddawałoby ją za darmo.
+**`tailor-flow` MUSI obsłużyć te kody jawnie** — każdy inny status niż 422
+schodził tam na mock, więc wyczerpany limit dawałby udawany wynik wyglądający
+jak prawdziwa analiza. Mock jest demem przy braku klucza, nie obejściem limitu.
+Zużycie tokenów loguje `zuzycie_ai` (rolą `service_role`, zapis nie może
+wywrócić odpowiedzi); `koszt_usd` zostaje 0 do czasu dodania cennika per model.
+
+**Stan konta w UI:** `menu-konta.tsx` (`MenuKonta` na dole sidebara — e-mail
+`truncate` + wylogowanie, dla niezalogowanego „Zaloguj się"; `PrzyciskiKontaNaglowek`
+na landingu — „Zaloguj się" obok CTA) · `karta-konta.tsx` (sekcja „Konto"
+w `/app/ustawienia`: e-mail, wylogowanie, usunięcie konta przez RPC
+`usun_moje_konto` z potwierdzeniem drugim kliknięciem). Po wylogowaniu UI
+przełącza się BEZ przeładowania — `useUzytkownik` słucha `onAuthStateChange`.
+
+**Bramki konta (stan na 2026-08-02):** „Pobierz PDF" (`download-pdf-button.tsx`)
+i „Dopasuj do oferty" (`builder.tsx`). Obie przez `useBramaKonta` — po założeniu
+konta akcja wykonuje się SAMA. W `builder.tsx` w trakcie sprawdzania sesji
+(`ladowanie`) przepuszczamy do TailorFlow: okno to ułamek sekundy, a odwrotne
+założenie pokazywałoby ZALOGOWANEMU formularz rejestracji przy szybkim kliknięciu.
+Twardą bramką dla dopasowania i tak będzie serwer (limit + płatność), nie UI.
+
+**Oprawa musi iść za formularzem.** Formularz przełącza ekrany wewnętrznie, więc
+`onEkran` zgłasza aktualny stan rodzicowi. Bez tego strona krzyczała „Załóż
+konto" nad formularzem logowania (realny błąd, złapany dopiero na żywo —
+typy tego nie widzą). W okienku kontekstowy tytuł („…żeby pobrać CV") zostaje
+tylko na ekranie wyjściowym.
+
+**`src/lib/mail.ts`** — jedyne miejsce, przez które aplikacja wysyła pocztę
+(Resend API): `wyslijMail` (NIGDY nie rzuca — zwraca `WynikWysylki`, bo awaria
+dostawcy poczty nie ma prawa wywrócić żądania użytkownika), `czyMailDostepny`,
+`MAIL_OD`, `MAIL_ZGLOSZENIA`, `escapeHtml`. **NIE dotyczy maili autoryzacyjnych**
+— kody aktywacyjne i resety hasła wysyła Supabase przez SMTP Resendu
+(konfiguracja w panelu, ten sam klucz `re_...` jako hasło SMTP). Env:
+`RESEND_API_KEY`, `MAIL_OD`, `MAIL_ZGLOSZENIA`. Test: `npm run test:mail`.
+Pułapka: Resend zwraca błąd W ODPOWIEDZI (`{ data, error }`), nie wyjątkiem —
+samo `await` bez sprawdzenia `error` wygląda na sukces przy odrzuconej wysyłce.
 
 **`src/lib/`**: `cv-schema.ts` · `store.ts` · `cv-templates.ts` (rejestr szablonów: `withPhoto`/`templateUsesPhoto`, `tags: TemplateTag[]` + `templatesByTag`, `TEMPLATE_CATEGORIES` = wiersze galerii, `ATS_OBIETNICA` = jedno źródło komunikatu o zgodności z ATS (używane przez `new-cv-dialog.tsx` i `template-picker.tsx`), `STOCK_PHOTO` = zdjęcie poglądowe `public/stock/kandydat.jpg`) ·
 `sample-cv.ts` (Anna Kowalska — demo) · `sections.ts` (definicje sekcji edytora) ·
@@ -135,19 +379,22 @@ wynik pokrycia, werdykt) · `slownik.ts` (wiedza branżowa, synonimy, rdzenie PL
 
 **`src/components/`**: `app-shell/` (sidebar+topbar mobilny drawer) · `builder/`
 (edytor: `builder.tsx`, `section-list.tsx` [na górze działający import CV: `CvImportButton`; status sekcji „Dane osobowe" pokazuje „Dodaj zdjęcie profilowe" (nieblokujące, `filled` zostaje `true`) gdy szablon ma miejsce na zdjęcie a użytkownik go nie dodał], `section-dialogs.tsx`, `field-inputs.tsx`,
-`readiness.tsx`, `match-results.tsx` [panel wyniku w edytorze; dziennik zmian gatowany tak samo jak w szczegółach dopasowania — `DARMOWE_ZMIANY=1`, reszta to „Szczegóły w pełnym raporcie". Bez tego pełne „co zmieniliśmy i dlaczego" dawało się przeczytać za darmo tuż po analizie, choć `/app/dopasowania/[id]` je blokuje], `tailor-flow.tsx` [modal dopasowania:
-config→running→interview→result; karta pytania pokazuje pod treścią `kontekst` = dosłowny cytat z ogłoszenia], `paywall-dialog.tsx`, `score-breakdown.tsx`
-[„Z czego wynika wynik" — wymaga propa `unlocked`: bez opłaconego dostępu widać tylko pierwsze `FREE_METRICS=2` kryteria (w kolejności z `breakdown`, więc zwykle te zależne od oferty), reszta to sam label + kłódka. Krok wywiadu „Możesz podnieść ten wynik" w `tailor-flow.tsx` (ekran `result`) jest z tego samego powodu zablokowany do czasu odblokowania — inaczej dałoby się podnieść wynik i pobrać wrażenie wartości bez płacenia; zablokowany wariant zostaje widoczny (teaser) i klika w paywall, nie w wywiad], `cv-preview.tsx` [podgląd na żywo w edytorze — deleguje render do `PaginatedCvSheet`, sam tylko mierzy dostępną szerokość i pokazuje placeholder pustego CV], `cv-document.tsx` [czysty render dokumentu (bez paginacji); podgląd HTML; układy własne deleguje do `cv-document-boczny.tsx` / `-prestizowy.tsx` / `-grafitowy.tsx` / `-pastelowy.tsx`], `photo-input.tsx` + `photo-cropper.tsx` [zdjęcie: pomniejszony oryginał `photo_source` (max 640px) + gotowy kadr `photo` (360px) + `photo_crop{zoom,ox,oy}`; kadrowanie zoom/przeciąganie to panel INLINE, nie modal (zagnieżdżony Radix Dialog nie domykał animacji wyjścia). `store.addTailoring` usuwa `photo_source` z historii, żeby nie dublować obrazów w localStorage], `template-picker.tsx`) ·
+`readiness.tsx`, `match-results.tsx` [panel wyniku w edytorze; dziennik zmian gatowany tak samo jak w szczegółach dopasowania — `DARMOWE_ZMIANY=1`, reszta to „Szczegóły w pełnym raporcie". Bez tego pełne „co zmieniliśmy i dlaczego" dawało się przeczytać za darmo tuż po analizie, choć `/app/dopasowania/[id]` je blokuje. **Panel MUSI mówić, że dotyczy OSOBNEGO dokumentu** (2026-07-31): pisał „Po optymalizacji 78%", „Dodane słowa kluczowe" i „Przeredagowaliśmy podsumowanie" w czasie przeszłym dokonanym, stojąc obok podglądu z CV BEZ tych zmian — a „Pobierz PDF" na belce daje właśnie to niezmienione CV. Użytkownik miał prawo sądzić, że pobiera wersję przerobioną. Teraz: etykiety „CV w edytorze" / „Wersja przerobiona", wynik jako `x/100` (nie `%` — to punkty rubryki, nie procent), zdanie o osobnym dokumencie i przyciski „Otwórz przerobione CV" (gdy opłacone) oraz przejście do raportu. Tytuł oferty ma `line-clamp-2`, NIE `truncate` — `truncate` ustawia `white-space: nowrap`, przez co min-content bloku równa się pełnej szerokości tytułu i rozpycha lewą kolumnę edytora poza jej 380 px (`min-w-0` na rodzicu tego NIE cofa, bo blokowe dziecko i tak zgłasza min-content nieprzerwanego tekstu)], `tailor-flow.tsx` [modal dopasowania:
+config→running→interview→result; karta pytania pokazuje pod treścią `kontekst` = dosłowny cytat z ogłoszenia], `paywall-dialog.tsx` [dwa plany z `PLANY` × dwa okresy + down-sell „to jedno dopasowanie za 12 zł" przy wyjściu (wymaga propa `tailoringId`, bez niego down-sell się nie pokazuje, bo nie ma czego odblokować); `DialogContent` = flex-col + przewijany TYLKO środek, żeby przycisk zakupu i krzyżyk nie uciekały], `score-breakdown.tsx`
+[„Z czego wynika wynik" — wymaga propa `unlocked`: bez opłaconego dostępu widać tylko pierwsze `FREE_METRICS=2` kryteria (w kolejności z `breakdown`, więc zwykle te zależne od oferty), reszta to sam label + kłódka. Krok wywiadu „Możesz podnieść ten wynik" w `tailor-flow.tsx` (ekran `result`) jest z tego samego powodu zablokowany do czasu odblokowania — inaczej dałoby się podnieść wynik i pobrać wrażenie wartości bez płacenia; zablokowany wariant zostaje widoczny (teaser) i klika w paywall, nie w wywiad], `cv-preview.tsx` [podgląd na żywo w edytorze — deleguje render do `PdfPreview`, sam tylko mierzy dostępną szerokość i pokazuje placeholder pustego CV], `photo-input.tsx` + `photo-cropper.tsx` [zdjęcie: pomniejszony oryginał `photo_source` (max 640px) + gotowy kadr `photo` (360px) + `photo_crop{zoom,ox,oy}`; kadrowanie zoom/przeciąganie to panel INLINE, nie modal (zagnieżdżony Radix Dialog nie domykał animacji wyjścia). `store.addTailoring` usuwa `photo_source` z historii, żeby nie dublować obrazów w localStorage], `template-picker.tsx`) ·
 `new-cv-dialog.tsx` (modal wyboru szablonu, sticky stopka) · `cv-import-button.tsx`
 (import CV — TYLKO w edytorze, `section-list.tsx`; wypełnia bieżące CV, przy niepustym CV prosi o potwierdzenie nadpisania — usunięty z listy „Moje CV" 2026-07-30, żeby nie dublować drogi tworzenia CV) · `cv-compare-dialog.tsx` · `cv-pdf.tsx`+`cv-pdf-boczny.tsx`+`cv-pdf-prestizowy.tsx`+`cv-pdf-grafitowy.tsx`+`cv-pdf-pastelowy.tsx`+`download-pdf-button.tsx` (eksport
-PDF, font Lato z `public/fonts`; `CvPdf` deleguje układy własne do dedykowanych komponentów) · `template-gallery.tsx` (galeria: wiersz na kategorię, przewijanie w bok; używana przez `template-picker.tsx` i `new-cv-dialog.tsx`) · `paginated-cv-sheet.tsx` (`PaginatedCvSheet` — CV jako PRAWDZIWE, ODDZIELNE strony A4, każda we własnym ograniczonym prostokącie z cieniem/odstępem, jak w przeglądarkowym podglądzie PDF; technika „przesuwane okno" ze ŚWIADOMYM łamaniem stron — patrz „Konwencje i pułapki"; używane przez `cv-preview.tsx` i `template-thumb.tsx` [`full`]) · `confirm-delete-button.tsx` (`ConfirmDeleteButton` — jedyny dozwolony kosz na listach: widoczny na dotyku, potwierdzenie drugim kliknięciem) · `template-thumb.tsx` (miniatura = przeskalowany
-CvDocument; bez propa `width` MIERZY kontener i wypełnia go — nie da się wtedy uciąć CV w szerokości; `crop` = przycięcie tylko w pionie; `demo` podstawia `STOCK_PHOTO` w układach ze zdjęciem, gdy użytkownik nie wgrał własnego — TYLKO w galerii, nigdy w CV ani PDF; `full` deleguje do `PaginatedCvSheet` — używane w porównaniu) · `select-cv-dialog.tsx` · `cv-library-sync.tsx` (autosync aktywne CV→biblioteka) · `store-hydration.tsx` · `ui/` (shadcn).
+PDF, font Lato z `public/fonts`; `CvPdf` deleguje układy własne do dedykowanych komponentów) · `template-gallery.tsx` (galeria: wiersz na kategorię, przewijanie w bok; używana przez `template-picker.tsx` i `new-cv-dialog.tsx`) · `pdf-preview.tsx` (`PdfPreview` / `PdfThumb` — podgląd = PRAWDZIWY plik PDF wygenerowany w przeglądarce i narysowany przez pdf.js na kanwie, strona po stronie; patrz „Konwencje i pułapki"; używane przez `cv-preview.tsx` i `template-thumb.tsx`) · `confirm-delete-button.tsx` (`ConfirmDeleteButton` — jedyny dozwolony kosz na listach: widoczny na dotyku, potwierdzenie drugim kliknięciem) · `template-thumb.tsx` (miniatura = przeskalowany
+CvDocument; bez propa `width` MIERZY kontener i wypełnia go — nie da się wtedy uciąć CV w szerokości; `crop` = przycięcie tylko w pionie; `demo` podstawia `STOCK_PHOTO` w układach ze zdjęciem, gdy użytkownik nie wgrał własnego — TYLKO w galerii, nigdy w CV ani PDF; `full` pokazuje wszystkie strony zamiast pierwszej — używane w porównaniu) · `select-cv-dialog.tsx` · `cv-library-sync.tsx` (autosync aktywne CV→biblioteka) · `store-hydration.tsx` · `ui/` (shadcn).
 
-**Trasy** (`src/app/`): `/` landing · `/app` Start (onboarding/hub) · `/app/kreator`
+**Trasy** (`src/app/`): `/` landing · `/rejestracja` · `/logowanie` ·
+`/reset-hasla` (wszystkie trzy = `StronaAuth`) · `/app` Start (onboarding/hub) · `/app/kreator`
 lista „Moje CV" (+ Dodaj nowe; import CV tylko w edytorze) · `/app/kreator/edytor` edytor ·
 `/app/dopasowania` historia · `/app/dopasowania/[id]` szczegóły (score-breakdown,
 compare, changes, findings, paywall) · `/app/ustawienia`. API: `/api/dopasuj`
-(pipeline), `/api/parsuj-cv` (import), `/api/zglos-blad` (stub, TODO Resend). Wszystkie
+(pipeline), `/api/parsuj-cv` (import), `/api/zglos-blad` (wysyła mail przez `lib/mail.ts`;
+bez klucza albo przy błędzie wysyłki loguje zgłoszenie i tak zwraca użytkownikowi
+sukces — docelowo zapis też do tabeli `zgloszenie_bledu`). Wszystkie
 API: `runtime nodejs`, `maxDuration 60`.
 
 ## Gdzie zmienić X
@@ -162,29 +409,35 @@ API: `runtime nodejs`, `maxDuration 60`.
 - **Opis „co zmieniliśmy/dlaczego"** → `changes.ts`
 - **Model danych CV** → `cv-schema.ts` (zmiana schematu = zmiana w store, edytorze, PDF)
 - **Stan/persist/biblioteka CV** → `store.ts`
-- **Szablony (wygląd)** → `cv-templates.ts` + `cv-document.tsx` (HTML) + `cv-pdf.tsx` (PDF) — TRZYMAJ SPÓJNE. Układy własne (osobne komponenty, ta sama struktura danych): `boczny` = `cv-document-boczny.tsx` + `cv-pdf-boczny.tsx` (dwie kolumny, beżowy panel); `prestizowy` = `cv-document-prestizowy.tsx` + `cv-pdf-prestizowy.tsx` (jedna kolumna, okrągłe zdjęcie, akcent #12716A, kafelki umiejętności); `grafitowy` = `cv-document-grafitowy.tsx` + `cv-pdf-grafitowy.tsx` (dwie kolumny, ciemny panel #18181B, zdjęcie 208×250 pt oparte o krawędzie panelu); `pastelowy` = `cv-document-pastelowy.tsx` + `cv-pdf-pastelowy.tsx` (dwie kolumny, ciepła kość słoniowa #F9F6F0, lekka typografia, zdjęcie 190×240 pt). Nowy szablon = wpis w `CV_TEMPLATES`, gałąź w obu rendererach, wpis w `PDF_TEMPLATE_STYLES` i w mapie stylów `cv-document.tsx` (oba są `Record<TemplateId,...>`).
+- **Szablony (wygląd)** → `cv-templates.ts` + `cv-pdf.tsx` — JEDEN renderer, żadnej wersji HTML do utrzymania (patrz „Podgląd CV to prawdziwy plik PDF"). Układy własne (osobne komponenty, ta sama struktura danych): `boczny` = `cv-pdf-boczny.tsx` (dwie kolumny, beżowy panel); `prestizowy` = `cv-pdf-prestizowy.tsx` (jedna kolumna, okrągłe zdjęcie, akcent #12716A, kafelki umiejętności); `grafitowy` = `cv-pdf-grafitowy.tsx` (dwie kolumny, ciemny panel #18181B, zdjęcie 208×250 pt oparte o krawędzie panelu); `pastelowy` = `cv-pdf-pastelowy.tsx` (dwie kolumny, ciepła kość słoniowa #F9F6F0, lekka typografia, zdjęcie 190×240 pt). Nowy szablon = wpis w `CV_TEMPLATES`, gałąź w `CvPdf`, wpis w `PDF_TEMPLATE_STYLES` i w `MARGINES_STRONY_PT`. Podgląd i miniatury dostaną go automatycznie — nie ma drugiego miejsca do zaktualizowania.
 - **Weryfikacja wizualna PDF** → `npx tsx scripts/verify-szablon.ts <id>` (renderuje prawdziwy PDF do PNG w `scripts/_podglad/`, poza repo; sprawdza też kolejność tekstu dla ATS, brak rozstrzelonych liter i wariant ubogi — bez zdjęcia/projektów/języków). `verify-boczny.ts` = starszy, jednoszablonowy wariant.
-- **Podgląd wielostronicowy (osobne strony A4)** → `paginated-cv-sheet.tsx` (`PaginatedCvSheet`)
-- **Ochrona przed rozcięciem sekcji/pozycji w PDF** → `minPresenceAhead` na nagłówkach + `wrap={false}` na blokach pozycji w każdym `cv-pdf*.tsx`
+- **Podgląd CV (wielostronicowy, 1:1 z plikiem)** → `pdf-preview.tsx` (`PdfPreview`, `PdfThumb`)
+- **Ochrona przed rozcięciem sekcji/pozycji w PDF** → `SekcjaZNaglowkiem` (`cv-pdf-sekcja.tsx`) + `wrap={false}` na blokach pozycji w każdym `cv-pdf*.tsx` — `minPresenceAhead` NIE działa, patrz „Konwencje i pułapki"
 - **Wybór modelu AI** → env `CV_MODEL_*` (bez ruszania kodu)
+- **Wysyłka maili aplikacji (zgłoszenia, onboarding, marketing)** → `src/lib/mail.ts`; maile autoryzacyjne to NIE tutaj, tylko panel Supabase (SMTP)
+- **Gdzie wymagamy konta** → `useBramaKonta` w miejscu akcji (dziś: `download-pdf-button.tsx`, `builder.tsx`); nigdy przez blokadę całej trasy — kreator ma zostać otwarty
+- **Testowe konto do klikania UI** → `scripts/probne-konto-testowe.ts` (poza repo, wzorzec `probne-*` w .gitignore): `node --env-file=.env.local --import tsx scripts/probne-konto-testowe.ts` i `… usun`. Tworzy konto z `email_confirm: true`, więc ŻADEN mail nie wychodzi i nie zjada limitu Resend
+- **Ceny, progi planów, limity, cena jednorazowa, darmowa pula** → `subscription.ts` (jedno źródło; UI tylko to renderuje, serwer bierze stąd limit do RPC)
+- **Zapis/odczyt danych konta** → `src/lib/supabase/repo.ts`; kiedy się dzieje → `synchronizacja-konta.tsx`
+- **Podpięcie Stripe** → `useMaDostepDo`/`useMaSubskrypcje` w `store.ts` + `aktywujSubskrypcje`/`odblokujDopasowanie`; nic więcej w UI nie dotyka uprawnień
+- **Schemat bazy / RLS / RPC** → `supabase/migrations/` (nowa migracja, nigdy edycja starej) + odświeżenie `src/lib/supabase/typy-bazy.ts`; opis i konfiguracja panelu w `supabase/README.md`
+- **Ustawienia logowania (kod na maila, Google, SMTP, redirecty)** → panel Supabase, NIE migracja — lista kroków w `supabase/README.md`
 
 ## Konwencje i pułapki
 
 - **Cudzysłowy PL:** w stringach JS w `"..."` NIE może być prostego `"` w środku —
   użyj „ " (U+201E/U+201D). Złamało build w `scoring.ts`. W backtickach `` ` `` proste `"` OK.
-- **Arkusz podglądu rozciąga dokument przez flex, nie przez `min-h-full`:** korzeń każdego szablonu ma `grow`, a rodzic (`cv-preview.tsx`, `template-thumb.tsx`) jest kolumną flex z minimum jednej kartki. `min-h-full` liczy się względem rodzica o wysokości `auto`, czyli wychodzi 0 — przy krótkim CV kolorowy panel urywał się w połowie kartki i zostawał biały pas.
+- **PODGLĄD CV TO PRAWDZIWY PLIK PDF — nie ma drugiej implementacji szablonów** (`pdf-preview.tsx`, 2026-08-01). Do tej daty podgląd był RÓWNOLEGŁYM rendererem każdego szablonu w HTML/CSS (`cv-document*.tsx`, ~1600 linii) z własnym stronicowaniem (`paginated-cv-sheet.tsx`, ~430 linii), a plik powstawał w Yodze przez `@react-pdf`. Dwa silniki układu = dwa różne algorytmy łamania wiersza, zaokrąglania metryk fontu i modelu marginesów; ta sama treść dawała inną liczbę stron i inne miejsca podziału. Kolejne poprawki (`MARGINES_DOLU`, `data-blok`, `MARGINES_STRONY_PT`, przesuwanie per kolumna) zmniejszały różnicę, ale zgodność dwóch silników trzeba by utrzymywać w nieskończoność, przy każdej zmianie każdego szablonu. **Zgodność 1:1 nie jest już celem do osiągnięcia, tylko właściwością konstrukcji:** `PdfPreview` generuje plik w przeglądarce przez `renderujCvPdf` — TĘ SAMĄ funkcję, której używa „Pobierz PDF" — i rysuje jego strony przez pdf.js na kanwie. Nie da się tego zepsuć zmianą w szablonie, bo nie ma czego rozjeżdżać. Konsekwencje, o których trzeba wiedzieć: (a) podgląd odświeża się po `OPOZNIENIE_MS = 350` ms od ostatniej zmiany, nie na każdy znak; (b) tekst na kartce NIE jest zaznaczalny (raster, nie DOM); (c) render pdf.js chodzi na `requestAnimationFrame`, więc w tle karty stoi — to normalne, ale utrudnia testy automatyczne (kartę trzeba mieć na wierzchu); (d) każda strona rysuje się najpierw na kanwie POZA EKRANEM i trafia na widoczną jednym `drawImage` — bez tego bufora pdf.js czyściłby kanwę na starcie i przy każdej zmianie CV migałaby biała plama; (e) generowanie jest SZEREGOWE (`wKolejce`) i cache'owane po treści (`PAMIEC`) — galeria pokazuje 9 miniatur naraz i bez kolejki 9 renderów Yogi blokowało wątek na sekundy.
+- **PDF: nagłówek sekcji trzyma się pierwszego wpisu przez `SekcjaZNaglowkiem`, pozycja (doświadczenie/projekt/edukacja) dostaje `wrap={false}`** — w KAŻDYM `cv-pdf*.tsx`. Bez tego react-pdf renderuje nagłówek nawet wtedy, gdy po nim nie ma miejsca na ANI JEDNĄ pozycję — wygląda to jak przypadkowe ucięcie sekcji w połowie (realny bug: „Projekty" osierocone na dole strony 1). `wrap={false}` na bloku pojedynczej pozycji chroni przed rozcięciem jej w pół zdania między stronami. Dlaczego nie `minPresenceAhead` — patrz niżej.
 - **`letterSpacing` w react-pdf wstawia REALNE odstępy** — powyżej ~10% rozmiaru fontu ekstrakcja czyta „D O Ś W I A D…”, a systemy rekrutacyjne rozpoznają sekcje po nazwach nagłówków. Limit: **max 8% fontu** (przy 10 pt granica leży między 1,0 a 1,2). Pilnuje tego `scripts/verify-szablon.ts`.
-- **Build po usunięciu trasy:** wyczyść `.next` (stary type-validator odwołuje się do usuniętej trasy).
+- **Po KAŻDEJ zmianie zestawu tras (dodanie i usunięcie) wyczyść `.next`.** Przy usunięciu stary type-validator odwołuje się do nieistniejącej trasy i wywala build. Przy DODANIU jest gorzej, bo nic nie krzyczy: nowa trasa działa w sesji, w której powstała, a po restarcie dev servera zwraca **404 mimo obecnego pliku** (zdarzyło się `/rejestracja`, 2026-08-02 — plik na dysku, `tsc` czysty, w logach `GET /rejestracja 404`). Wygląda to jak błąd w kodzie, a jest nieaktualnym manifestem tras. `Remove-Item .next -Recurse -Force` i restart.
 - **React StrictMode w dev dubluje** wywołanie AI (2× koszt) — w produkcji nie; `tailor-flow` ma na to zabezpieczenie (`produkcjaRef`).
 - **Mobile:** modale flex-col ze sticky stopką / poziomym scrollem; unikać poziomego overflow (min-w-0 w gridzie).
 - **Miniatura CV nigdy nie dostaje sztywnego `width`** — `TemplateThumb` bez tego propa MIERZY swój kontener i wypełnia go. Sztywne `width={220}` w kolumnie o szerokości 140 px ucinało jedną trzecią CV (realny bug na telefonie w „Moje CV", `SelectCvDialog` i szczegółach dopasowania). Ucinać wolno TYLKO w pionie — prop `crop` (wielokrotność szerokości, np. `0.8`); obcięty bok wygląda jak zepsuty layout, obcięty dół czyta się jak dalszy ciąg strony.
-- **Podgląd CV renderuje się ZAWSZE w 794 px (A4) i jest SKALOWANY** (`cv-preview.tsx`, `template-thumb.tsx`, `paginated-cv-sheet.tsx`). Nigdy nie dawać `CvDocument` szerokości kontenera — tekst przelewa się wtedy inaczej niż w PDF i użytkownik ogląda układ, którego nie dostanie. Skala podglądu jest ograniczona do 1 (bez rozdmuchiwania kartki).
-- **Wielostronicowy podgląd to OSOBNE prostokąty na stronę, NIE jeden ciągły arkusz zaokrąglony do pełnych stron** (`paginated-cv-sheet.tsx`, 2026-07-29). Wcześniejsza wersja renderowała jeden arkusz zaokrąglony w górę do pełnych stron z kreskowaną linią na granicy — gdy treść kończyła się w połowie ostatniej strony, zostawało to duży, niczym nieopisany biały obszar na dole, który realny użytkownik zgłosił jako „ucięty pasek" (dotyczyło zarówno `cv-preview.tsx`, jak i porównania przed/po w `cv-compare-dialog.tsx` — ten sam wzorzec, ten sam bug). Technika „przesuwane okno" (`PaginatedCvSheet`): treść mierzona RAZ poza ekranem (`position:absolute; left:-99999`), każda WIDOCZNA strona to własna kopia dokumentu przesunięta `translateY` o początek tej strony i przycięta `overflow:hidden` do dokładnie jednej kartki.
-- **Łamanie stron w podglądzie ZNA granice bloków — nie tnie co równe 1123 px** (`paginated-cv-sheet.tsx`, 2026-07-30, po testach na telefonie). Stare cięcie „co `SHEET_HEIGHT`" pokazywało rzeczy, których w wyeksportowanym PDF-ie NIE MA: wiersz „Stworzyłem pakiet narzędzi w JavaScript i Power Automate Desktop" (15 px) widoczny na 7,3 px, nagłówek „Projekty" osierocony na dole strony. Podgląd odtwarza więc obie ochrony eksportu: **`data-blok="pozycja"`** = `wrap={false}` (wpis doświadczenia/projektu/edukacji, klauzula RODO — nigdy nie rozcinany, schodzi w całości), **`data-blok="naglowek"`** = `minPresenceAhead` (nagłówek schodzi razem z sekcją, gdy po nim zostało < `MIN_PO_NAGLOWKU`; jest też w zbiorze `NIEPODZIELNE`, bo sam potrafi trafić dokładnie w granicę), **`data-blok="tresc"`** = akapity i sekcje panelu bocznego (dzielone dopiero powyżej `MAX_NIEPODZIELNEGO`). **Nowy szablon MUSI oznaczyć swoje bloki tymi atrybutami** — bez nich wraca cięcie w pół wiersza. Treść należąca do następnej strony jest ODSUWANA w dół (margines na bloku otwierającym kolejną kartkę), a nie przycinana wcześniej: dzięki temu kolorowy panel boczny sięga dołu KAŻDEJ kartki (w PDF jest `fixed`), a ten sam nagłówek nie widnieje na obu stronach naraz. Kopie wyświetlane dostają wspólne `minHeight` = liczba stron × `SHEET_HEIGHT`, ale kopia POMIAROWA nie — inaczej pomiar karmiłby sam siebie (2 strony → wysokość 2 stron → wychodzi 3.). Dokładny podział nadal może się różnić od PDF-a o pojedyncze wiersze (inny silnik składu), ale rozcięć w pół wiersza i osieroconych nagłówków już nie ma.
-- **Klauzula RODO w podglądzie NIE ma `mt-auto`** (wszystkie `cv-document*.tsx`) — w PDF stoi tuż pod treścią (`rodo: { marginTop }`), a `mt-auto` spychało ją w podglądzie na sam dół arkusza. Dodatkowo psułoby to stronicowanie: rozciągnięcie dokumentu do pełnych stron przesuwałoby klauzulę inaczej w każdej kopii, a wszystkie kopie muszą mieć IDENTYCZNY układ.
-- **PDF: nagłówek sekcji dostaje `minPresenceAhead`, pozycja (doświadczenie/projekt/edukacja) dostaje `wrap={false}`** — w KAŻDYM `cv-pdf*.tsx` (2026-07-29, realny bug zgłoszony przez użytkownika: nagłówek „Projekty" osierocony na dole strony 1, treść startowała dopiero na stronie 2). Bez `minPresenceAhead` react-pdf renderuje nagłówek, nawet jeśli po nim nie ma miejsca na ANI JEDNĄ pozycję — wygląda to jak przypadkowe ucięcie sekcji w połowie. `wrap={false}` na bloku pojedynczej pozycji chroni PRZED rozcięciem jej w połowie zdania między stronami (ten sam problem, jeden poziom niżej). Wspólny plik `cv-pdf.tsx` (5 szablonów: nowoczesny/klasyczny/minimalny/elegancki/kompaktowy) miał tę ochronę całkowicie pominiętą — dopiero teraz naprawione; układy własne (`boczny`/`prestizowy`/`grafitowy`/`pastelowy`) miały `wrap={false}` na pozycjach, ale nie miały `minPresenceAhead` na nagłówkach. https://react-pdf.org/advanced#orphan-&-widow-protection
+- **Margines pionowy strony PDF MUSI iść przez `fixed` spacer, nie przez padding** (`cv-pdf-boczny/grafitowy/pastelowy`, 2026-07-31). Padding zwykłego `<View>` react-pdf nakłada RAZ na cały przepływający blok: strona 1 dostaje górę, ostatnia dół, a **strony pośrednie NIC** — zmierzone 8,4–9,9 pt od krawędzi („projekty za blisko góry", zgłoszone przez użytkownika na realnym PDF-ie). Rozwiązanie: `<View style={s.odstepGory} fixed />` jako pierwsze dziecko kolumny głównej (`fixed` powtarza element na każdej kartce) + `paddingBottom` na kolumnie. **Paddingu na `<Page>` użyć NIE MOŻNA** — w układzie dwukolumnowym (`flexDirection: row-reverse`) rozbija paginację: dokument rósł z 2 do 3 stron, a kolumna główna przeskakiwała o stronę zostawiając ~480 pt pustki (sprawdzone: `paddingTop`, `paddingBottom` i oba naraz dają ten sam efekt). Weryfikacja: `npm run verify:marginesy` — renderuje długie CV we wszystkich 9 szablonach i wypisuje margines górny/dolny KAŻDEJ strony. Po poprawce: 38–82 pt góra, 36–107 pt dół, liczba stron bez zmian.
+- **`minPresenceAhead` jest w tej wersji react-pdf IGNOROWANY — nie polegaj na nim.** Sprawdzone na `boczny` dla 55/80/140 pt, z property na `<Text>`, na `<View>` i na osobnym wrapperze: nagłówek „Projekty" i tak zostawał sam na dole kartki. Zamiast tego **`SekcjaZNaglowkiem`** (`cv-pdf-sekcja.tsx`) trzyma nagłówek i PIERWSZY wpis w jednym bloku `wrap={false}` — twarda gwarancja zamiast podpowiedzi. Używają jej wszystkie szablony z sekcjami listowymi. Osobny moduł, bo `cv-pdf.tsx` importuje układy własne i import w drugą stronę robiłby cykl. Kontrola: `npm run verify:marginesy` oznacza takie przypadki jako `<-- OSIEROCONY NAGŁÓWEK`.
 - **`@react-pdf/renderer` nadaje `<Link>` domyślnie `color:"blue"` + podkreślenie** (jak nieostylowany `<a>` w przeglądarce) — jeśli styl przekazany do `<Link>` nie ustawia WŁASNEGO `color`, link wychodzi niebieski w PDF, nawet gdy podgląd HTML pokazuje go w kolorze tekstu (bo tam Tailwind resetuje `<a>` do `color:inherit`). Realny bug w `cv-pdf-boczny.tsx` (`pozycjaPanelu` bez `color` → niebieski link mimo czarnego podglądu). Zasada: KAŻDY `<Link style={...}>` w `cv-pdf*.tsx` musi mieć w tym stylu jawny `color`, nie polegać na dziedziczeniu.
-- **Umiejętności w panelu bocznym (boczny/grafitowy/pastelowy) to zwarty, zawijający się akapit (`.join(" · ")`), NIE lista jeden-wiersz-na-umiejętność** — przy szerszym stacku (20+ technologii, częste u automatyzatorów/fullstacków) pionowa lista zajmowała połowę panelu i wyglądała jak nieskończone wyliczanie (realny feedback użytkownika: „wygląda to obrzydliwie"). Wzorzec przejęty ze wspólnego `cv-pdf.tsx`/`cv-document.tsx`, gdzie umiejętności od zawsze są akapitem. Języki obce ZOSTAJĄ listą (zwykle 2–3 pozycje, nie ma problemu długości).
+- **Umiejętności w panelu bocznym (boczny/grafitowy/pastelowy) to zwarty, zawijający się akapit (`.join(" · ")`), NIE lista jeden-wiersz-na-umiejętność** — przy szerszym stacku (20+ technologii, częste u automatyzatorów/fullstacków) pionowa lista zajmowała połowę panelu i wyglądała jak nieskończone wyliczanie (realny feedback użytkownika: „wygląda to obrzydliwie"). Wzorzec przejęty ze wspólnego `cv-pdf.tsx`, gdzie umiejętności od zawsze są akapitem. Języki obce ZOSTAJĄ listą (zwykle 2–3 pozycje, nie ma problemu długości).
 - **Wysokości modali w `dvh`, nie `vh`** — `vh` na telefonie liczy się do ekranu BEZ paska adresu, więc `h-[94vh]` chowa dolne przyciski pod paskiem.
 - **W modalu przewija się TYLKO środek — nagłówek, krzyżyk i stopka stoją** (`section-dialogs.tsx`, 2026-07-30). `overflow-y-auto` na całym `DialogContent` znaczyło, że przy sekcji „Doświadczenie" z pięcioma pozycjami treść miała 3635 px przy 698 px okna: żeby zamknąć modal na telefonie, trzeba było przewinąć pięć ekranów po przycisk „Gotowe", a krzyżyk (`absolute` względem przewijanego kontenera) odjeżdżał w górę razem z treścią. Wzorzec: `DialogContent` = `flex flex-col overflow-hidden`, nagłówek i stopka `shrink-0`, środek `min-h-0 flex-1 overflow-y-auto`.
 - **Kasowanie idzie przez `ConfirmDeleteButton`, nigdy przez `opacity-0 group-hover:opacity-100`** (`confirm-delete-button.tsx`, 2026-07-30). Bez prefiksu `sm:` przycisk na dotyku był NIEWIDOCZNY, ale w pełni klikalny (zerowa przezroczystość nie wyłącza `pointer-events`) i wypadał przy prawej krawędzi wiersza, czyli tam, gdzie ląduje kciuk — jedno tapnięcie kasowało sekcję CV albo całe dopasowanie bez śladu. Komponent trzyma jedno zachowanie dla wszystkich list: widoczny na dotyku, chowany do hovera od `sm`, pierwszy klik uzbraja („Na pewno?"), drugi kasuje, po 4 s uzbrojenie wygasa.
@@ -200,10 +453,11 @@ API: `runtime nodejs`, `maxDuration 60`.
 Testy (tsx): `npm run test:walidator` (8) · `test:dopasowanie` (24) · `test:wywiad`
 (18) · `test:petla` (zbieżność pętli wywiadu + dedup) · `test:zmiany` (anty-fantomy
 w changes.ts) · `test:straz` (straż słów kluczowych + podłoga wyniku). Na żywo
-(wymagają klucza, `--env-file=.env.local`): `test:oferta`, `test:pipeline`,
+(wymagają klucza, `--env-file=.env.local`): `test:oferta`, `test:pipeline`, `test:mail` (wysyłka Resend),
 `test-podloga-live.ts`, `test-koszt-live.ts` (pomiar tokenów/kosztu).
 Dane testowe (20 CV + 18 ofert + pary): `scripts/dane-testowe.ts`.
 `npm run build` (pełny), `npm run dev`. Typy: `npx tsc --noEmit`.
+**`npm run verify:marginesy`** — renderuje długie CV we wszystkich 9 szablonach i wypisuje margines górny/dolny KAŻDEJ strony plus ostrzeżenie o osieroconym nagłówku. Uruchamiać po każdej zmianie w `cv-pdf*.tsx`. Od 2026-08-01 sprawdza to również podgląd — rysuje on ten sam plik, więc błąd w marginesach widać i w oknie, i w pobranym PDF-ie.
 
 ## Baza wiedzy (poza repo, w `Projekt CV/`)
 

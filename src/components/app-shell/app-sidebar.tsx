@@ -14,6 +14,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
 } from "lucide-react";
+import { MenuKonta } from "@/components/auth/menu-konta";
 import { cn } from "@/lib/utils";
 
 export const navItems = [
@@ -149,6 +150,7 @@ export function SidebarContent({
           <Settings className="size-4 shrink-0" />
           {!collapsed && "Ustawienia"}
         </Link>
+        <MenuKonta collapsed={collapsed} onNavigate={onNavigate} />
       </div>
     </div>
   );

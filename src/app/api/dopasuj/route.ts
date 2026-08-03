@@ -1,6 +1,15 @@
 import { NextResponse } from "next/server";
 import { tailoredCvSchema, type TailoredCv } from "@/lib/cv-schema";
-import { czyAiDostepne } from "@/lib/ai/models";
+import { czyAiDostepne, MODEL_MOCNY } from "@/lib/ai/models";
+import { klientSerwer } from "@/lib/supabase/klient-serwer";
+import { klientAdmin } from "@/lib/supabase/klient-admin";
+import {
+  czyAktywna,
+  limitKonta,
+  type OkresRozliczeniowy,
+  type PlanId,
+  type Subscription,
+} from "@/lib/subscription";
 import { uruchomDopasowanie } from "@/lib/ai/pipeline";
 import { ofertaSchema } from "@/lib/ai/job-offer";
 import {
@@ -24,6 +33,95 @@ function makeId(): string {
     return crypto.randomUUID();
   }
   return `t_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+/**
+ * Sesja + limit planu.
+ *
+ * MODEL (ustalony z Markiem): dopasowanie można uruchomić w każdej chwili —
+ * PAYWALL STOI PRZY PEŁNYM RAPORCIE, nie przed analizą. Dlatego konto BEZ
+ * subskrypcji przechodzi tędy bez przeszkód; płaci dopiero za wynik
+ * (subskrypcja albo jednorazowe odblokowanie tego dopasowania).
+ *
+ * Limit z planu (30/100) dotyczy więc WYŁĄCZNIE kont z aktywną subskrypcją i
+ * tylko im podbijamy licznik — inaczej ktoś, kto wykupi plan w połowie
+ * miesiąca, zastałby pulę nadgryzioną przez okres sprzed zakupu.
+ *
+ * Dla subskrybenta limit zużywamy PRZED wywołaniem modelu: przy odwrotnej
+ * kolejności padnięcie zapisu po opłaconej przez nas analizie oddawałoby ją
+ * za darmo. RPC sprawdza próg i zwiększa licznik jedną instrukcją, więc dwa
+ * równoległe żądania nie przepchną się ponad limit.
+ */
+async function sprawdzDostep(): Promise<{
+  userId: string;
+  odpowiedzBledu: null;
+} | { userId: null; odpowiedzBledu: NextResponse }> {
+  const supabase = await klientSerwer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      userId: null,
+      odpowiedzBledu: NextResponse.json(
+        {
+          ok: false,
+          kod: "brak-konta",
+          error: "Zaloguj się, żeby dopasować CV do oferty.",
+        },
+        { status: 401 }
+      ),
+    };
+  }
+
+  const { data: s } = await supabase
+    .from("subskrypcja")
+    .select("*")
+    .neq("status", "anulowana")
+    .maybeSingle();
+
+  const subskrypcja: Subscription | undefined = s
+    ? {
+        status: s.status,
+        plan: s.plan as PlanId,
+        okres: s.okres as OkresRozliczeniowy,
+        koniecOkresu: s.koniec_okresu ? Date.parse(s.koniec_okresu) : null,
+      }
+    : undefined;
+
+  // Konto bez subskrypcji: przepuszczamy. Analiza jest dostępna zawsze,
+  // płatność dotyczy PEŁNEGO RAPORTU (paywall w wyniku i w szczegółach
+  // dopasowania). Licznika też nie ruszamy — dotyczy puli z planu.
+  if (!czyAktywna(subskrypcja)) {
+    return { userId: user.id, odpowiedzBledu: null };
+  }
+
+  const limit = limitKonta(subskrypcja);
+  const { error } = await supabase.rpc("zuzyj_dopasowanie", { p_limit: limit });
+
+  if (error) {
+    const wyczerpany = error.message.includes("LIMIT_WYCZERPANY");
+    if (!wyczerpany) {
+      console.error("[dopasuj] zuzyj_dopasowanie:", error.message);
+    }
+
+    return {
+      userId: null,
+      odpowiedzBledu: NextResponse.json(
+        {
+          ok: false,
+          kod: wyczerpany ? "limit" : "blad-limitu",
+          error: wyczerpany
+            ? `Wykorzystałeś limit ${limit} dopasowań w tym miesiącu. Odnowi się pierwszego dnia kolejnego miesiąca.`
+            : "Nie udało się sprawdzić limitu. Spróbuj ponownie za chwilę.",
+        },
+        { status: wyczerpany ? 429 : 500 }
+      ),
+    };
+  }
+
+  return { userId: user.id, odpowiedzBledu: null };
 }
 
 export async function POST(request: Request) {
@@ -120,6 +218,12 @@ export async function POST(request: Request) {
   const ofertaParsed = ofertaSchema.safeParse(oferta);
   const ofertaCache = ofertaParsed.success ? ofertaParsed.data : undefined;
 
+  // Sesja i limit sprawdzane PO walidacji wejścia — źle sformułowane żądanie
+  // nie ma prawa zjeść komuś dopasowania z puli.
+  const dostep = await sprawdzDostep();
+  if (dostep.odpowiedzBledu) return dostep.odpowiedzBledu;
+  const userId = dostep.userId;
+
   try {
     const wynik = await uruchomDopasowanie(baseCv, trescOferty, {
       oryginalCv: oryginal,
@@ -140,6 +244,27 @@ export async function POST(request: Request) {
       tailoredCv: wynik.tailoredCv,
       aiMeta: wynik.aiMeta,
     };
+
+    // Dziennik zużycia AI. Rolą `service_role`, bo `zuzycie_ai` jest dla
+    // klienta tylko do odczytu (inaczej dałoby się podrobić własne koszty).
+    // Zapis nie może wywrócić odpowiedzi — użytkownik ma swój wynik niezależnie
+    // od tego, czy nasza telemetria zadziałała.
+    try {
+      await klientAdmin()
+        .from("zuzycie_ai")
+        .insert({
+          user_id: userId,
+          etap: "dopasowanie",
+          model: MODEL_MOCNY,
+          tokeny_wejscie: wynik.diagnostyka.tokenyWejscie,
+          tokeny_wyjscie: wynik.diagnostyka.tokenyWyjscie,
+          trwalo_ms: wynik.diagnostyka.czasMs,
+          // koszt_usd zostaje 0 do czasu dodania cennika per model — tokeny są
+          // faktem zmierzonym, cena byłaby zgadywaniem.
+        });
+    } catch (e) {
+      console.error("[dopasuj] nie zapisano zużycia AI:", e);
+    }
 
     // Diagnostyka trafia tylko do logów serwera — nie do klienta.
     console.log("[dopasuj]", {

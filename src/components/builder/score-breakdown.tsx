@@ -67,12 +67,6 @@ export function ScoreBreakdown({
 
       {open && (
         <div className="border-t border-border/60 p-4 pt-3">
-          <p className="mb-3 text-xs text-muted-foreground">
-            Wynik nie jest zgadywany przez AI — to suma poniższych kryteriów.
-            Każde da się policzyć i wyjaśnić, więc ocena jest za każdym razem taka
-            sama i możesz jej zaufać.
-          </p>
-
           <Grupa
             tytul="Dopasowanie do tej oferty"
             kryteria={oferta}

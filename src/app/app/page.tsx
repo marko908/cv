@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { DownloadPdfButton } from "@/components/download-pdf-button";
 import { SelectCvDialog } from "@/components/select-cv-dialog";
 import { SampleCvPicker } from "@/components/sample-cv-picker";
-import { useCvStore } from "@/lib/store";
+import { useCvStore, useMaDostepDo } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 function useProgress() {
@@ -45,7 +45,11 @@ function StepBadge({ state }: { state: StepState }) {
     done: "Gotowe",
     now: "Teraz",
     next: "Dalej",
-    soon: "Wkrótce",
+    // NIE „Wkrótce" — to słowo w sidebarze (app-sidebar.tsx) znaczy „ta funkcja
+    // jeszcze nie istnieje w produkcie". Krok 3 istnieje i działa, tylko nie
+    // jest jeszcze Twoją kolejką w tym samouczku — inne znaczenie, to samo
+    // słowo myliłoby użytkownika co do tego, czy analiza AI jest zbudowana.
+    soon: "Krok 3",
   } as const;
   return (
     <span className={cn("eyebrow rounded-full px-2.5 py-1", styles[state])}>
@@ -71,6 +75,7 @@ function StartHub() {
   const cv = useCvStore((s) => s.cv);
   const template = useCvStore((s) => s.template);
   const tailorings = useCvStore((s) => s.tailorings);
+  const maDostep = useMaDostepDo(tailorings[0]?.id);
   const last = tailorings[0];
 
   const linkActions = [
@@ -162,7 +167,7 @@ function StartHub() {
                   <ArrowRight className="size-4" />
                 </Link>
               </Button>
-              {last.aiMeta.unlocked && (
+              {maDostep && (
                 <DownloadPdfButton
                   cv={last.tailoredCv}
                   template={template}

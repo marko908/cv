@@ -1,16 +1,22 @@
 import { NextResponse } from "next/server";
+import {
+  MAIL_ZGLOSZENIA,
+  czyMailDostepny,
+  escapeHtml,
+  wyslijMail,
+} from "@/lib/mail";
+
+export const runtime = "nodejs";
+export const maxDuration = 60;
 
 /**
  * Odbiór zgłoszeń błędów dot. dopasowania/CV.
- * NA RAZIE tylko loguje zgłoszenie po stronie serwera.
  *
- * TODO (Krok 4): wysyłać e-mail do zespołu przez Resend, np.:
- *   await resend.emails.send({
- *     from: "zgloszenia@cvcopilot.pl",
- *     to: "support@cvcopilot.pl",
- *     subject: `Zgłoszenie: ${category}`,
- *     text: `${message}\n\nDopasowanie: ${tailoringId}\nStanowisko: ${jobTitle}`,
- *   });
+ * Zgłoszenie leci mailem przez Resend (`lib/mail.ts`). Gdy brakuje klucza albo
+ * wysyłka padnie, zgłoszenie i tak ZOSTAJE ZAPISANE w logu serwera i zwracamy
+ * użytkownikowi sukces — on zrobił swoje, a nasza infrastruktura to nie jego
+ * problem. Log jest dziś jedynym zapasowym kanałem; docelowo zgłoszenie idzie
+ * też do tabeli `zgloszenie_bledu` w Supabase (po wpięciu klienta bazy).
  */
 export async function POST(request: Request) {
   try {
@@ -24,14 +30,40 @@ export async function POST(request: Request) {
       );
     }
 
-    // Placeholder do czasu podłączenia Resend (Krok 4).
-    console.log("[zgłoszenie błędu]", {
-      category,
-      message,
-      tailoringId: tailoringId ?? null,
-      jobTitle: jobTitle ?? null,
+    const zgloszenie = {
+      category: String(category),
+      message: String(message).trim(),
+      tailoringId: tailoringId ? String(tailoringId) : null,
+      jobTitle: jobTitle ? String(jobTitle) : null,
       at: new Date().toISOString(),
-    });
+    };
+
+    console.log("[zgłoszenie błędu]", zgloszenie);
+
+    if (czyMailDostepny() && MAIL_ZGLOSZENIA) {
+      const wiersze = [
+        ["Kategoria", zgloszenie.category],
+        ["Dopasowanie", zgloszenie.tailoringId ?? "—"],
+        ["Stanowisko", zgloszenie.jobTitle ?? "—"],
+        ["Zgłoszono", zgloszenie.at],
+      ]
+        .map(([k, v]) => `<p><strong>${k}:</strong> ${escapeHtml(v)}</p>`)
+        .join("");
+
+      const wynik = await wyslijMail({
+        adresat: MAIL_ZGLOSZENIA,
+        temat: `Aplikando — zgłoszenie: ${zgloszenie.category}`,
+        html: `${wiersze}<hr><p>${escapeHtml(zgloszenie.message).replace(/\n/g, "<br>")}</p>`,
+        text: `Kategoria: ${zgloszenie.category}\nDopasowanie: ${zgloszenie.tailoringId ?? "—"}\nStanowisko: ${zgloszenie.jobTitle ?? "—"}\n\n${zgloszenie.message}`,
+      });
+
+      // Głośno w logach, cicho dla użytkownika — patrz komentarz nad funkcją.
+      if (!wynik.ok) console.error("[zgłoszenie błędu] WYSYŁKA NIEUDANA:", wynik.blad);
+    } else {
+      console.warn(
+        "[zgłoszenie błędu] Mail pominięty — brak RESEND_API_KEY lub MAIL_ZGLOSZENIA."
+      );
+    }
 
     return NextResponse.json({ ok: true });
   } catch {

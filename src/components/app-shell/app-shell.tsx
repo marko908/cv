@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { SidebarContent } from "./app-sidebar";
 import { CvLibrarySync } from "@/components/cv-library-sync";
+import { SynchronizacjaKonta } from "@/components/auth/synchronizacja-konta";
 import { cn } from "@/lib/utils";
 
 const COLLAPSE_KEY = "cv-copilot-sidebar-collapsed";
@@ -38,6 +39,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-dvh overflow-hidden">
       <CvLibrarySync />
+      {/* Kolejność ma znaczenie: CvLibrarySync spina edytowane CV z biblioteką
+          w store, a dopiero zmiana biblioteki jest tym, co Synchronizacja
+          wypycha do bazy. */}
+      <SynchronizacjaKonta />
       {/* Sidebar — desktop (stały, zwijany) */}
       <aside
         className={cn(

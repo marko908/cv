@@ -10,6 +10,7 @@ import {
   StyleSheet,
 } from "@react-pdf/renderer";
 import type { TailoredCv } from "@/lib/cv-schema";
+import { MARGINES_STRONY_PT } from "@/lib/cv-templates";
 import { opisLinku } from "@/lib/utils";
 
 /**
@@ -63,8 +64,16 @@ const s = StyleSheet.create({
   glowna: {
     flex: 1,
     paddingHorizontal: 30,
-    paddingVertical: 34,
+    paddingBottom: MARGINES_STRONY_PT.grafitowy,
   },
+  /**
+   * Górny margines KAŻDEJ strony. `fixed` powtarza element na wszystkich
+   * kartkach; padding zwykłego <View> react-pdf nakłada RAZ na cały blok, więc
+   * strony pośrednie zostawały bez marginesu (zmierzone: 8,4 pt od krawędzi).
+   * Paddingu na <Page> użyć nie można — rozbija paginację układu dwukolumnowego
+   * (kolumna główna przeskakuje o stronę, zostawiając pół kartki pustki).
+   */
+  odstepGory: { height: MARGINES_STRONY_PT.grafitowy },
   foto: {
     width: SZEROKOSC_PANELU,
     height: WYSOKOSC_ZDJECIA,
@@ -187,6 +196,7 @@ export function CvPdfGrafitowy({ cv }: { cv: TailoredCv }) {
 
         {/* ---------- Kolumna główna ---------- */}
         <View style={s.glowna}>
+          <View style={s.odstepGory} fixed />
           <View style={s.naglowekBox}>
             <Text style={s.imie}>{p.full_name || "Imię i nazwisko"}</Text>
             {p.title ? <Text style={s.tytul}>{p.title}</Text> : null}
@@ -200,12 +210,9 @@ export function CvPdfGrafitowy({ cv }: { cv: TailoredCv }) {
 
           {cv.experience.length > 0 ? (
             <View style={s.sekcja}>
-              <Text
-                style={s.naglowekGlowny}
-                minPresenceAhead={MIN_PRESENCE_GLOWNY}
-              >
-                Doświadczenie
-              </Text>
+              <View minPresenceAhead={MIN_PRESENCE_GLOWNY} wrap={false}>
+                <Text style={s.naglowekGlowny}>Doświadczenie</Text>
+              </View>
               {cv.experience.map((exp, i) => (
                 <View key={i} style={s.pozycja} wrap={false}>
                   <View style={s.wiersz}>
@@ -227,12 +234,9 @@ export function CvPdfGrafitowy({ cv }: { cv: TailoredCv }) {
 
           {cv.projects.length > 0 ? (
             <View style={s.sekcja}>
-              <Text
-                style={s.naglowekGlowny}
-                minPresenceAhead={MIN_PRESENCE_GLOWNY}
-              >
-                Projekty
-              </Text>
+              <View minPresenceAhead={MIN_PRESENCE_GLOWNY} wrap={false}>
+                <Text style={s.naglowekGlowny}>Projekty</Text>
+              </View>
               {cv.projects.map((proj, i) => (
                 <View key={i} style={s.pozycja} wrap={false}>
                   <View style={s.wiersz}>
@@ -256,12 +260,9 @@ export function CvPdfGrafitowy({ cv }: { cv: TailoredCv }) {
 
           {cv.education.length > 0 ? (
             <View style={s.sekcja}>
-              <Text
-                style={s.naglowekGlowny}
-                minPresenceAhead={MIN_PRESENCE_GLOWNY}
-              >
-                Edukacja
-              </Text>
+              <View minPresenceAhead={MIN_PRESENCE_GLOWNY} wrap={false}>
+                <Text style={s.naglowekGlowny}>Edukacja</Text>
+              </View>
               {cv.education.map((edu, i) => (
                 <View key={i} style={s.pozycja} wrap={false}>
                   <View style={s.wiersz}>

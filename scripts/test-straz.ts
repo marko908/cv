@@ -11,7 +11,7 @@ import {
   type Przepisanie,
 } from "../src/lib/ai/rewrite";
 import { buildLedgerFromCv } from "../src/lib/ai/fact-ledger";
-import { dopasuj } from "../src/lib/ai/matching";
+import { dopasuj, dopasujWymaganie } from "../src/lib/ai/matching";
 import { ocenCv } from "../src/lib/ai/scoring";
 import type { ParsedOferta, Wymaganie } from "../src/lib/ai/job-offer";
 
@@ -124,6 +124,68 @@ console.log("\n== Podłoga wyniku: ocena po NIGDY < ocena przed ==");
   }
   ok(ocenaPo.wynik >= ocenaPrzed.wynik, `po (${ocenaPo.wynik}) >= przed (${ocenaPrzed.wynik})`);
   ok(finalCv === baza, "przy pogorszeniu wracamy do CV wejściowego (+0, nigdy minus)");
+}
+
+
+/* ------------------------------------------------------------------ */
+/* Straż pokrycia — regresja z 2026-07-31.                             */
+/*                                                                     */
+/* Model przepisał podsumowanie tak, że zniknęło zdanie „Specjalizuję  */
+/* się w wydajności i dostępności interfejsów", przez co CV straciło   */
+/* jedyny dowód na dwa wymagania z oferty — a raport wypisywał je      */
+/* potem jako BRAKUJĄCE („nie podałeś tego o sobie"). Dwie warstwy     */
+/* obrony: słownik (matcher ma je trafiać) i straż pokrycia w pipeline */
+/* (cofa podsumowanie, gdy pokrycie realnie spadło).                   */
+/* ------------------------------------------------------------------ */
+console.log("");
+console.log("== słownik + straż pokrycia: wydajność i dostępność ==");
+{
+  const ledgerBazy = buildLedgerFromCv(sampleCv);
+  const wymPerf: Wymaganie = {
+    id: "perf",
+    tekst: "Umiejętność optymalizacji wydajności",
+    cytat: "umiejętność optymalizacji wydajności aplikacji (Core Web Vitals)",
+    rodzaj: "twarda",
+    priorytet: "wymagane",
+    slowa_kluczowe: ["optymalizacja wydajności", "Core Web Vitals"],
+  };
+  const wymA11y: Wymaganie = {
+    id: "a11y",
+    tekst: "Znajomość dostępności",
+    cytat: "dostępność (WCAG 2.1)",
+    rodzaj: "twarda",
+    priorytet: "mile_widziane",
+    slowa_kluczowe: ["WCAG"],
+  };
+  const perf = dopasujWymaganie(wymPerf, ledgerBazy);
+  const a11y = dopasujWymaganie(wymA11y, ledgerBazy);
+  ok(perf.pokrycie !== "brak", "optymalizacja wydajnosci trafia w CV (wydajnosc + Lighthouse)", "pokrycie: " + perf.pokrycie);
+  ok(a11y.pokrycie !== "brak", "WCAG trafia w CV mowiace o dostepnosci", "pokrycie: " + a11y.pokrycie);
+
+  const oferta: ParsedOferta = {
+    stanowisko: "Frontend Developer",
+    firma: "Nordvia",
+    poziom: "senior",
+    branza: "IT",
+    ton: "neutralny",
+    wymagania: [wymPerf, wymA11y],
+  };
+  const ranga = { brak: 0, czesciowe: 1, pelne: 2 } as const;
+  const przedR = dopasuj(oferta, ledgerBazy);
+  const policzStracone = (cv: typeof sampleCv) =>
+    dopasuj(oferta, buildLedgerFromCv(cv)).dopasowania.filter((d) => {
+      const byl = przedR.dopasowania.find((x) => x.wymaganie.id === d.wymaganie.id);
+      return byl ? ranga[d.pokrycie] < ranga[byl.pokrycie] : false;
+    }).length;
+
+  const zubozone = {
+    ...sampleCv,
+    professional_summary:
+      "Jestem Frontend Developerka z 5-letnim doswiadczeniem w budowie aplikacji SaaS w React i TypeScript. Rozwijam systemy B2B z wykorzystaniem Next.js, a w ostatnim projekcie skrocilam czas ladowania kluczowego widoku o 40%.",
+  };
+  ok(policzStracone(zubozone) > 0, "usuniecie zdania z podsumowania JEST wykrywane jako spadek pokrycia", "stracone: " + policzStracone(zubozone));
+  const cofniete = { ...zubozone, professional_summary: sampleCv.professional_summary };
+  ok(policzStracone(cofniete) === 0, "cofniecie podsumowania odzyskuje pelne pokrycie");
 }
 
 console.log(`\n==== WYNIK: ${bledy === 0 ? "wszystko OK ✓" : bledy + " błędów ✗"} ====`);

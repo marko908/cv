@@ -20,7 +20,7 @@ import { DownloadPdfButton } from "@/components/download-pdf-button";
 import { CvCompareDialog } from "@/components/cv-compare-dialog";
 import { ReportErrorDialog } from "@/components/report-error-dialog";
 import { ScoreBreakdown } from "@/components/builder/score-breakdown";
-import { useCvStore } from "@/lib/store";
+import { useCvStore, useMaDostepDo } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 export default function DopasowanieDetailPage({
@@ -32,7 +32,7 @@ export default function DopasowanieDetailPage({
   const router = useRouter();
   const tailoring = useCvStore((s) => s.tailorings.find((t) => t.id === id));
   const newCvFrom = useCvStore((s) => s.newCvFrom);
-  const unlockTailoring = useCvStore((s) => s.unlockTailoring);
+  const maDostep = useMaDostepDo(id);
   const [paywallOpen, setPaywallOpen] = useState(false);
 
   if (!tailoring) {
@@ -54,7 +54,7 @@ export default function DopasowanieDetailPage({
 
   const { aiMeta, baseCv, tailoredCv, template, jobTitle, jobUrl, jobText } =
     tailoring;
-  const unlocked = aiMeta.unlocked ?? false;
+  const unlocked = maDostep;
   const score = aiMeta.matchScoreAfter ?? 0;
   const before = aiMeta.matchScoreBefore;
   const findings = aiMeta.findings ?? [];
@@ -295,7 +295,7 @@ export default function DopasowanieDetailPage({
       <PaywallDialog
         open={paywallOpen}
         onOpenChange={setPaywallOpen}
-        onUnlock={() => unlockTailoring(id)}
+        tailoringId={id}
       />
     </div>
   );

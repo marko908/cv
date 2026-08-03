@@ -27,7 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import { useCvStore, type Tailoring } from "@/lib/store";
+import { useCvStore, type Tailoring, useMaDostepDo } from "@/lib/store";
 import { buildTailoring, REVIEW_SPECIALISTS } from "@/lib/mock-review";
 import type { TailoredCv } from "@/lib/cv-schema";
 import {
@@ -85,6 +85,8 @@ export function TailorFlow({
     resetReview,
     addTailoring,
     removeTailoring,
+    zliczDopasowanie,
+    przeniesOdblokowanie,
   } = useCvStore();
 
   // Rekord do zastąpienia po przeliczeniu z wywiadu (żeby nie mnożyć historii).
@@ -106,7 +108,14 @@ export function TailorFlow({
   // — bez wyboru CV. Jeśli wynik już jest, pokazujemy go.
   useEffect(() => {
     if (!open) return;
-    setStep(aiMeta.matchScoreAfter !== undefined ? "result" : "config");
+    const jestWynik = aiMeta.matchScoreAfter !== undefined;
+    setStep(jestWynik ? "result" : "config");
+    // Po ponownym otwarciu edytora `tailoringId` jest pusty, a ekran wyniku
+    // od niego zależy (uprawnienia liczymy DLA REKORDU). Bez tego dopasowanie
+    // kupione jednorazowo pokazywałoby się jako zablokowane.
+    if (jestWynik) {
+      setTailoringId((biezace) => biezace ?? useCvStore.getState().tailorings[0]?.id ?? null);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
@@ -139,6 +148,18 @@ export function TailorFlow({
       if (res.status === 422 && data?.kod === "link-nieudany") {
         return { blad: data.error as string };
       }
+      // Brak konta albo wyczerpany limit planu: POKAZUJEMY KOMUNIKAT, nie
+      // schodzimy na mock. Zejście na mock dałoby udawany wynik wyglądający jak
+      // prawdziwa analiza — użytkownik zobaczyłby „dopasowanie", za które nie
+      // zapłacił i którego model nigdy nie policzył. Mock jest awaryjnym demem
+      // przy braku klucza, nie sposobem na obejście płatności.
+      if (
+        data?.kod === "brak-konta" ||
+        data?.kod === "limit" ||
+        data?.kod === "blad-limitu"
+      ) {
+        return { blad: data.error as string };
+      }
       if (res.ok) {
         if (data?.ok && data.tailoring) {
           return {
@@ -163,8 +184,15 @@ export function TailorFlow({
     }
     const { tailoring: t, pytania: p, oferta: o } = res;
     addTailoring(t);
+    // Licznik uczciwego użycia. Przeliczenie po wywiadzie ZASTĘPUJE rekord,
+    // ale zużyło osobne wywołania modelu, więc liczy się jak nowe dopasowanie.
+    zliczDopasowanie();
     // Przeliczenie z wywiadu zastępuje poprzedni rekord, nie mnoży historii.
     if (zastapRef.current && zastapRef.current !== t.id) {
+      // NAJPIERW przenieś opłacony jednorazowo dostęp na nowe id — inaczej
+      // ktoś, kto kupił to jedno dopasowanie, straciłby je przez sam fakt
+      // skorzystania z wywiadu.
+      przeniesOdblokowanie(zastapRef.current, t.id);
       removeTailoring(zastapRef.current);
     }
     zastapRef.current = null;
@@ -249,7 +277,11 @@ export function TailorFlow({
         </DialogContent>
       </Dialog>
 
-      <PaywallDialog open={paywallOpen} onOpenChange={setPaywallOpen} />
+      <PaywallDialog
+        open={paywallOpen}
+        onOpenChange={setPaywallOpen}
+        tailoringId={tailoringId}
+      />
     </>
   );
 }
@@ -678,7 +710,7 @@ function ResultStep({
   const before = aiMeta.matchScoreBefore;
   const findings = aiMeta.findings ?? [];
   const breakdown = aiMeta.scoreBreakdown ?? [];
-  const unlocked = aiMeta.unlocked ?? false;
+  const unlocked = useMaDostepDo(tailoringId);
   const fixCount = findings.length;
   const lockedCount = Math.max(0, fixCount - FREE_FINDINGS);
   const mozliwyWywiad = pytania.length > 0;

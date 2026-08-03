@@ -37,6 +37,21 @@ const GRUPY: string[][] = [
   ["css", "scss", "sass", "tailwind", "tailwind css"],
   ["ux", "ui", "user experience", "figma"],
   ["komunikatywnosc", "komunikacja", "wspolpraca z klientem", "komunikacja z klientem"],
+  // Wydajność: oferty piszą „optymalizacja wydajności (Core Web Vitals)”, a CV
+  // opisuje to efektem („skróciłam czas ładowania o 40%”, „wynik Lighthouse”).
+  // Bez tej grupy kandydat z twardym dowodem dostawał „brak pokrycia”, a straż
+  // przepisywania pozwalała modelowi usunąć zdanie o wydajności z podsumowania.
+  [
+    "wydajnosc",
+    "optymalizacja wydajnosci",
+    "performance",
+    "core web vitals",
+    "web vitals",
+    "lighthouse",
+    "czas ladowania",
+  ],
+  // Dostępność: „WCAG”/„a11y” to ta sama kompetencja co „dostępność”.
+  ["dostepnosc", "accessibility", "wcag", "a11y"],
 ];
 
 /** Wyrazy pomocnicze — same w sobie nic nie znaczą przy dopasowaniu. */

@@ -145,3 +145,26 @@ export const TEMPLATE_CATEGORIES: {
     opis: "Sam tekst — najprostsze w odbiorze i dla ludzi, i dla automatów.",
   },
 ];
+
+/**
+ * Margines pionowy strony w PUNKTACH — JEDNO źródło dla wszystkich układów PDF.
+ *
+ * W układach dwukolumnowych (`boczny`, `grafitowy`, `pastelowy`) marginesu nie
+ * da się ustawić paddingiem na `<Page>` — przy `flexDirection: row-reverse`
+ * rozbija to stronicowanie (mierzone: 2 strony → 3 i ~480 pt pustki). Górny
+ * margines robi tam powtarzany `fixed` spacer, a dolny `paddingBottom` kolumny.
+ * To DWIE różne właściwości, które muszą mieć tę samą wartość — trzymanie ich
+ * w jednym miejscu jest jedyną ochroną przed cichym rozjechaniem się marginesu
+ * góry i dołu na tej samej kartce.
+ */
+export const MARGINES_STRONY_PT: Record<TemplateId, number> = {
+  nowoczesny: 40,
+  klasyczny: 40,
+  minimalny: 54,
+  elegancki: 48,
+  kompaktowy: 32,
+  boczny: 30,
+  prestizowy: 34,
+  grafitowy: 34,
+  pastelowy: 32,
+};

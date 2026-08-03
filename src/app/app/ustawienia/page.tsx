@@ -2,17 +2,20 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import {
-  Download,
-  ExternalLink,
-  Trash2,
-  UserRound,
-  Sparkles,
-} from "lucide-react";
+import { Download, ExternalLink, Trash2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { KartaKonta } from "@/components/auth/karta-konta";
 import { SavedIndicator } from "@/components/saved-indicator";
-import { useCvStore } from "@/lib/store";
+import {
+  useCvStore,
+  useLimitPlanu,
+  useMaSubskrypcje,
+  useNazwaPlanu,
+  usePozostaloDopasowan,
+} from "@/lib/store";
 import { emptyCv } from "@/lib/cv-schema";
+import { PaywallDialog } from "@/components/builder/paywall-dialog";
+import { CENA_JEDNORAZOWA, PLANY } from "@/lib/subscription";
 
 function SettingsCard({
   eyebrow,
@@ -35,7 +38,19 @@ export default function UstawieniaPage() {
   const { cv, template, jobPosting, aiMeta, loadCv, setJobPosting, setAiMeta } =
     useCvStore();
   const tailorings = useCvStore((s) => s.tailorings);
+  const subscription = useCvStore((s) => s.subscription);
+  const anulujSubskrypcje = useCvStore((s) => s.anulujSubskrypcje);
+  const maDostep = useMaSubskrypcje();
+  const nazwaPlanu = useNazwaPlanu();
+  const limitPlanu = useLimitPlanu();
+  const pozostalo = usePozostaloDopasowan();
+  const odblokowane = useCvStore((s) => s.odblokowaneDopasowania);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [paywallOpen, setPaywallOpen] = useState(false);
+
+  const koniecOkresu = subscription.koniecOkresu
+    ? new Date(subscription.koniecOkresu).toLocaleDateString("pl-PL")
+    : null;
 
   // Licznik liczony z historii dopasowań — każda analiza zapisuje rekord.
   // Wcześniej stała tu myślnik i przypis „dostępne w kroku 2", choć silnik AI
@@ -89,21 +104,48 @@ export default function UstawieniaPage() {
       </div>
 
       {/* Plan */}
-      <SettingsCard eyebrow="Plan i płatności">
+      <SettingsCard eyebrow="Dostęp i płatności">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="font-mono text-3xl font-bold">
-              MVP <span className="text-base text-muted-foreground">0 zł</span>
+              {maDostep ? (
+                <>
+                  {nazwaPlanu}{" "}
+                  <span className="text-base text-muted-foreground">
+                    {subscription.plan && subscription.okres
+                      ? `${PLANY[subscription.plan].ceny[subscription.okres]} zł ${
+                          subscription.okres === "rok" ? "/ rok" : "/ mies."
+                        }`
+                      : ""}
+                  </span>
+                </>
+              ) : (
+                <>
+                  Bez dostępu{" "}
+                  <span className="text-base text-muted-foreground">
+                    do dopasowań
+                  </span>
+                </>
+              )}
             </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              W fazie MVP wszystko jest darmowe. Płatności (BLIK / Przelewy24 /
-              karta) pojawią się w kroku 4.
+            <p className="mt-1 max-w-md text-sm text-muted-foreground">
+              {maDostep
+                ? koniecOkresu
+                  ? `Dostęp aktywny do ${koniecOkresu}. Tworzenie CV i pobieranie PDF pozostaje bez opłat.`
+                  : "Dostęp aktywny. Tworzenie CV i pobieranie PDF pozostaje bez opłat."
+                : `Tworzysz CV i pobierasz je w PDF bez opłat. Dopasowanie do ogłoszenia wymaga subskrypcji albo jednorazowego odblokowania za ${CENA_JEDNORAZOWA} zł.`}
             </p>
           </div>
-          <Button size="sm" variant="secondary" disabled>
-            <Sparkles className="size-4" />
-            Plany — wkrótce
-          </Button>
+          {maDostep ? (
+            <Button size="sm" variant="secondary" onClick={anulujSubskrypcje}>
+              Zrezygnuj
+            </Button>
+          ) : (
+            <Button size="sm" onClick={() => setPaywallOpen(true)}>
+              <Sparkles className="size-4" />
+              Wykup dostęp
+            </Button>
+          )}
         </div>
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           <div className="rounded-lg bg-secondary p-4">
@@ -115,11 +157,25 @@ export default function UstawieniaPage() {
             </p>
           </div>
           <div className="rounded-lg bg-secondary p-4">
-            <p className="eyebrow pt-1 text-muted-foreground">Subskrypcja</p>
-            <p className="mt-2 text-sm">◦ Plan darmowy</p>
+            <p className="eyebrow pt-1 text-muted-foreground">
+              Limit dopasowań
+            </p>
+            <p className="mt-2 text-sm">
+              {maDostep
+                ? `Zostało ${pozostalo} z ${limitPlanu} dopasowań w tym miesiącu.`
+                : odblokowane.length > 0
+                  ? `${odblokowane.length} ${
+                      odblokowane.length === 1
+                        ? "dopasowanie odblokowane"
+                        : "dopasowań odblokowanych"
+                    } jednorazowo.`
+                  : `Plan ${PLANY.start.nazwa}: ${PLANY.start.limit} dopasowań, plan ${PLANY.pro.nazwa}: ${PLANY.pro.limit}.`}
+            </p>
           </div>
         </div>
       </SettingsCard>
+
+      <PaywallDialog open={paywallOpen} onOpenChange={setPaywallOpen} />
 
       {/* Dane */}
       <SettingsCard eyebrow="Twoje dane">
@@ -157,14 +213,7 @@ export default function UstawieniaPage() {
 
       {/* Konto */}
       <SettingsCard eyebrow="Konto">
-        <div className="flex items-start gap-3">
-          <UserRound className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">
-            Logowanie i synchronizacja między urządzeniami pojawią się w kroku 4
-            (Supabase). Na razie wszystko trzymamy lokalnie w Twojej
-            przeglądarce.
-          </p>
-        </div>
+        <KartaKonta />
       </SettingsCard>
 
       {/* Na początek */}

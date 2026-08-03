@@ -3,17 +3,18 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { FileText } from "lucide-react";
 import { useCvStore } from "@/lib/store";
-import { PaginatedCvSheet } from "@/components/paginated-cv-sheet";
+import { PdfPreview } from "@/components/pdf-preview";
 
-const SHEET_WIDTH = 794; // szerokość A4 przy 96 dpi — patrz paginated-cv-sheet.tsx
+const SHEET_WIDTH = 794; // szerokość A4 przy 96 dpi
 
 /**
  * Podgląd CV na żywo — arkusz(e) A4 „unoszące się" nad tłem, dane ze store'a.
  *
- * Renderowanie deleguje do `PaginatedCvSheet`: każda strona to osobny,
- * ograniczony prostokąt (jak w przeglądarkowym podglądzie PDF), więc od razu
- * widać, ile stron zajmie eksport i gdzie kończy się dokument — bez ryzyka, że
- * puste miejsce na końcu ostatniej strony wygląda jak coś ucięte.
+ * Renderowanie deleguje do `PdfPreview`, czyli do PRAWDZIWEGO pliku PDF
+ * generowanego w przeglądarce tym samym kodem co „Pobierz PDF”. To, co widać
+ * w podglądzie, jest dokładnie tym, co znajdzie się w pobranym pliku — łącznie
+ * z liczbą stron i miejscami podziału. Powód, dla którego nie ma tu drugiej
+ * implementacji szablonów w HTML, opisuje `pdf-preview.tsx`.
  *
  * Szerokość mierzymy z kontenera i ograniczamy do 794px (nie podbijamy powyżej
  * naturalnego rozmiaru A4) — na telefonie kartka się zmniejsza, na szerokim
@@ -58,7 +59,7 @@ export function CvPreview() {
         </div>
       ) : (
         szerokosc > 0 && (
-          <PaginatedCvSheet
+          <PdfPreview
             cv={cv}
             template={template}
             width={szerokosc}

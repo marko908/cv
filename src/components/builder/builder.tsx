@@ -15,6 +15,7 @@ import { isCvComplete, missingCvSections } from "@/lib/cv-schema";
 import { SavedIndicator } from "@/components/saved-indicator";
 import { NewCvDialog } from "@/components/new-cv-dialog";
 import { DownloadPdfButton } from "@/components/download-pdf-button";
+import { AuthDialog, useBramaKonta } from "@/components/auth/auth-dialog";
 import { SectionList } from "./section-list";
 import { Readiness } from "./readiness";
 import { MatchResults } from "./match-results";
@@ -35,6 +36,15 @@ export function Builder({
   const initialized = useRef(false);
   // Widok mobilny: edycja albo podgląd (na desktopie oba widoczne obok siebie).
   const [mobileView, setMobileView] = useState<"edit" | "preview">("edit");
+
+  // Bramka konta na dopasowaniu (kreator zostaje otwarty dla wszystkich).
+  const { uzytkownik, ladowanie, zZalogowanym, propsyDialogu } = useBramaKonta();
+  const [otworzPoLogowaniu, setOtworzPoLogowaniu] = useState(false);
+  // W trakcie sprawdzania sesji pokazujemy wariant dla zalogowanego. Okno to
+  // ułamek sekundy, a odwrotne założenie kazałoby ZALOGOWANEMU zobaczyć
+  // formularz rejestracji przy szybkim kliknięciu — to gorszy błąd niż
+  // wpuszczenie kogoś na ekran konfiguracji dopasowania sekundę za wcześnie.
+  const przepuscDoFlow = ladowanie || Boolean(uzytkownik);
 
   useEffect(() => {
     if (!initialized.current) {
@@ -67,16 +77,29 @@ export function Builder({
 
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             {complete ? (
-              <TailorFlow
-                defaultOpen={openTailor}
-                trigger={
-                  <Button size="sm" className="gap-2 font-bold">
-                    <Target className="size-4" />
-                    <span className="hidden sm:inline">Dopasuj do oferty</span>
-                    <span className="sm:hidden">Dopasuj</span>
-                  </Button>
-                }
-              />
+              przepuscDoFlow ? (
+                <TailorFlow
+                  defaultOpen={openTailor || otworzPoLogowaniu}
+                  trigger={
+                    <Button size="sm" className="gap-2 font-bold">
+                      <Target className="size-4" />
+                      <span className="hidden sm:inline">Dopasuj do oferty</span>
+                      <span className="sm:hidden">Dopasuj</span>
+                    </Button>
+                  }
+                />
+              ) : (
+                // Niezalogowany: najpierw konto, potem od razu ekran dopasowania.
+                <Button
+                  size="sm"
+                  className="gap-2 font-bold"
+                  onClick={() => zZalogowanym(() => setOtworzPoLogowaniu(true))}
+                >
+                  <Target className="size-4" />
+                  <span className="hidden sm:inline">Dopasuj do oferty</span>
+                  <span className="sm:hidden">Dopasuj</span>
+                </Button>
+              )
             ) : (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -118,6 +141,12 @@ export function Builder({
             />
           </div>
         </header>
+
+        <AuthDialog
+          {...propsyDialogu}
+          tytul="Załóż konto, żeby dopasować CV"
+          opis="Dopasowanie zapisuje się w Twojej historii — konto pozwala do niego wrócić i porównać wersje CV. Po założeniu konta przejdziemy dalej automatycznie."
+        />
 
         {/* Mobilny przełącznik Edycja / Podgląd (ukryty na md+) */}
         <div className="flex shrink-0 gap-1 border-b border-border/60 p-2 md:hidden">

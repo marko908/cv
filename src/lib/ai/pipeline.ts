@@ -2,7 +2,7 @@ import type { ScoreCriterion, TailoredCv } from "@/lib/cv-schema";
 import type { AiMeta } from "@/lib/store";
 import { buildLedgerFromCv, type FactLedger } from "./fact-ledger";
 import { parsujOferte, type ParsedOferta } from "./job-offer";
-import { dopasuj, type WynikDopasowania } from "./matching";
+import { dopasuj, type Pokrycie, type WynikDopasowania } from "./matching";
 import { ocenCv } from "./scoring";
 import { przepiszCv, zlozCv } from "./rewrite";
 import { validateAgainstLedger, type Violation } from "./validator";
@@ -12,6 +12,13 @@ import {
   zbudujPytaniaOMetryki,
   type PytanieWywiadu,
 } from "./interview";
+
+/** Porządek pokrycia — do wykrywania regresji („było pełne, jest brak"). */
+const RANGA_POKRYCIA: Record<Pokrycie, number> = {
+  brak: 0,
+  czesciowe: 1,
+  pelne: 2,
+};
 
 /**
  * Pełny przebieg dopasowania CV do oferty.
@@ -173,6 +180,59 @@ export async function uruchomDopasowanie(
 
   // 6. Wynik „po” liczony tym samym miernikiem co „przed”.
   let po = dopasuj(oferta, buildLedgerFromCv(tailoredCv));
+
+  // 6a⁻. STRAŻ POKRYCIA — przepisanie NIE MOŻE odebrać CV pokrycia wymagania,
+  //      które oryginał już miał.
+  //
+  //      Realny przypadek: podsumowanie „Specjalizuję się w wydajności
+  //      i dostępności interfejsów" zostało przez model zastąpione zdaniem
+  //      o technologiach, przez co CV straciło jedyny dowód na dwa wymagania
+  //      z oferty — i te same wymagania raport wypisywał potem jako BRAKUJĄCE.
+  //      Użytkownik dostawał komunikat „nie podałeś tego o sobie" o czymś, co
+  //      podał, a my usunęliśmy.
+  //
+  //      Straż słów kluczowych (`zgubionoSlowoKluczowe`) tego nie łapała, bo
+  //      chroni tylko frazy, które matcher wcześniej TRAFIŁ — a przy luce
+  //      w słowniku trafienia nie było. Ta straż jest od słownika niezależna:
+  //      porównuje realne pokrycie przed i po, więc działa też dla wymagań,
+  //      których jeszcze nie umiemy dopasować leksykalnie.
+  //
+  //      Podsumowanie to jedyne pole przepisywane w całości (punkty są chronione
+  //      pojedynczo w `zlozCv`), więc cofamy właśnie je i sprawdzamy, czy to
+  //      wystarczyło. Kosztuje to zero wywołań modelu.
+  const regresje = (wynik: WynikDopasowania): Set<string> => {
+    const rangaPrzed = new Map(
+      przed.dopasowania.map((d) => [d.wymaganie.id, RANGA_POKRYCIA[d.pokrycie]])
+    );
+    const stracone = new Set<string>();
+    for (const d of wynik.dopasowania) {
+      const byloWczesniej = rangaPrzed.get(d.wymaganie.id) ?? 0;
+      if (RANGA_POKRYCIA[d.pokrycie] < byloWczesniej) stracone.add(d.wymaganie.id);
+    }
+    return stracone;
+  };
+
+  const straconeTeraz = regresje(po);
+  if (
+    straconeTeraz.size > 0 &&
+    tailoredCv.professional_summary !== baseCv.professional_summary
+  ) {
+    const zOryginalnymPodsumowaniem: TailoredCv = {
+      ...tailoredCv,
+      professional_summary: baseCv.professional_summary,
+    };
+    const poCofnieciu = dopasuj(
+      oferta,
+      buildLedgerFromCv(zOryginalnymPodsumowaniem)
+    );
+    // Cofamy tylko wtedy, gdy to REALNIE odzyskuje pokrycie — inaczej
+    // zostawiamy lepiej napisane podsumowanie.
+    if (regresje(poCofnieciu).size < straconeTeraz.size) {
+      tailoredCv = zOryginalnymPodsumowaniem;
+      po = poCofnieciu;
+    }
+  }
+
   let ocenaPo = ocenCv(tailoredCv, po);
 
   // 6a. PODŁOGA WYNIKU — dopasowanie NIE MOŻE obniżyć oceny względem CV, które
