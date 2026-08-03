@@ -21,32 +21,50 @@ import { NextResponse, type NextRequest } from "next/server";
 export async function proxy(request: NextRequest) {
   let odpowiedz = NextResponse.next({ request });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(doUstawienia) {
-          // Ciasteczka trzeba wpisać w DWA miejsca: do żądania (żeby dalszy kod
-          // renderujący widział już odświeżoną sesję) i do odpowiedzi (żeby
-          // przeglądarka je zapamiętała). Pominięcie któregokolwiek daje
-          // trudne do namierzenia losowe wylogowania.
-          for (const { name, value } of doUstawienia) {
-            request.cookies.set(name, value);
-          }
-          odpowiedz = NextResponse.next({ request });
-          for (const { name, value, options } of doUstawienia) {
-            odpowiedz.cookies.set(name, value, options);
-          }
-        },
-      },
-    }
-  );
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const klucz = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
-  await supabase.auth.getUser();
+  // Brak konfiguracji NIE MOŻE położyć całej strony. Ten plik wykonuje się przy
+  // KAŻDYM żądaniu, więc wyjątek tutaj oznacza 500 na landingu, w kreatorze
+  // i wszędzie indziej — zamiast samego niedziałającego logowania.
+  // Realny przypadek: pierwsze wdrożenie na produkcję przed dodaniem zmiennych
+  // środowiskowych w panelu hostingu.
+  if (!url || !klucz) {
+    console.error(
+      "[proxy] Brak NEXT_PUBLIC_SUPABASE_URL lub NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY — " +
+        "sesja nie będzie odświeżana, logowanie nie zadziała. Uzupełnij zmienne środowiskowe."
+    );
+    return odpowiedz;
+  }
+
+  const supabase = createServerClient(url, klucz, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(doUstawienia) {
+        // Ciasteczka trzeba wpisać w DWA miejsca: do żądania (żeby dalszy kod
+        // renderujący widział już odświeżoną sesję) i do odpowiedzi (żeby
+        // przeglądarka je zapamiętała). Pominięcie któregokolwiek daje
+        // trudne do namierzenia losowe wylogowania.
+        for (const { name, value } of doUstawienia) {
+          request.cookies.set(name, value);
+        }
+        odpowiedz = NextResponse.next({ request });
+        for (const { name, value, options } of doUstawienia) {
+          odpowiedz.cookies.set(name, value, options);
+        }
+      },
+    },
+  });
+
+  // Awaria Supabase też nie ma prawa położyć strony — w najgorszym razie
+  // użytkownik zostanie wylogowany, ale kreator CV działa dalej.
+  try {
+    await supabase.auth.getUser();
+  } catch (e) {
+    console.error("[proxy] Nie udało się odświeżyć sesji:", e);
+  }
 
   return odpowiedz;
 }
