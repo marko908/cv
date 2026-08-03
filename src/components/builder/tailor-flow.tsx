@@ -95,6 +95,8 @@ export function TailorFlow({
   // Kumulowane między rundami i przekazywane do pipeline, żeby te same pytania
   // nie wracały w nieskończoność. Czyszczone przy nowej analizie.
   const obsluzoneRef = useRef<Set<string>>(new Set());
+  /** Czy wywiad był już w tej analizie użyty — proponujemy go tylko raz. */
+  const wywiadUzytyRef = useRef(false);
   // Sparsowana oferta z pierwszego przebiegu — odsyłana przy re-runach, żeby
   // pipeline nie parsował oferty od nowa (koniec drgania wyniku + niższy koszt).
   const ofertaRef = useRef<ParsedOferta | null>(null);
@@ -200,7 +202,8 @@ export function TailorFlow({
     if (o) ofertaRef.current = o;
     setAiMeta(t.aiMeta);
     setTailoringId(t.id);
-    setPytania(p);
+    // Po wykorzystanym wywiadzie nie proponujemy kolejnej tury pytań.
+    setPytania(wywiadUzytyRef.current ? [] : p);
     setStep("result");
   };
 
@@ -218,6 +221,7 @@ export function TailorFlow({
   // Świeża analiza od zera — czyścimy stan pętli wywiadu i cache oferty.
   const nowaAnaliza = () => {
     obsluzoneRef.current = new Set();
+    wywiadUzytyRef.current = false;
     ofertaRef.current = null;
     zastapRef.current = null;
     setPendingCv(null);
@@ -229,6 +233,7 @@ export function TailorFlow({
     setPytania([]);
     setPendingCv(null);
     obsluzoneRef.current = new Set();
+    wywiadUzytyRef.current = false;
     ofertaRef.current = null;
     zastapRef.current = null;
     setStep("config");
@@ -268,7 +273,13 @@ export function TailorFlow({
             <ResultStep
               tailoringId={tailoringId}
               pytania={pytania}
-              onWzmocnij={() => setStep("interview")}
+              onWzmocnij={() => {
+                // Wywiad pokazujemy RAZ na analizę (decyzja Marka 2026-08-02):
+                // kto nie odpowie, ten nie skorzysta. Bez tego po każdym
+                // przeliczeniu wracała kolejna tura pytań.
+                wywiadUzytyRef.current = true;
+                setStep("interview");
+              }}
               onClose={() => setOpen(false)}
               onRerun={resetFlow}
               onUnlock={() => setPaywallOpen(true)}
@@ -578,8 +589,12 @@ function InterviewStep({
   // Karta pytania — framing i pola zależą od rodzaju (doświadczenie vs cecha).
   const karta = (p: PytanieWywiadu) => {
     const s = stan[p.id] ?? { ma: false, szczegol: "" };
-    const tak = p.typ === "doswiadczenie" ? "Mam to" : "Wskaż w CV";
-    const nie = p.typ === "doswiadczenie" ? "Nie mam" : "Pomiń";
+    // Etykiety muszą odpowiadać NA TO pytanie. „Mam to / Nie mam" pod pytaniem
+    // o skalę punktu było odpowiedzią na zupełnie inne pytanie — użytkownik
+    // klikał „Mam to" w znaczeniu „tak, robiłem to", a nie „mam liczbę”
+    // (feedback Marka 2026-08-02).
+    const tak = p.cel ? "Podam" : p.typ === "doswiadczenie" ? "Mam to" : "Wskaż w CV";
+    const nie = p.cel ? "Nie wiem" : p.typ === "doswiadczenie" ? "Nie mam" : "Pomiń";
     return (
       <div key={p.id} className="card-surface p-4">
         <p className="text-sm font-medium">{p.pytanie}</p>

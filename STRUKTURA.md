@@ -83,6 +83,29 @@ Kolejność (co AI / co KOD):
 6. **wynik „po" tym samym miernikiem** — KOD — `matching.ts` ponownie
 6b. **rubryka oceny 0–100** — KOD — `scoring.ts` (`ocenCv`) → `aiMeta.scoreBreakdown` (przed/po na 9 ważonych kryteriach; wynik = suma, więc uzasadnialny i powtarzalny)
 7. **opis zmian + wskazówki** — KOD — `changes.ts` (`opiszZmiany` = „Co zmieniliśmy i dlaczego" z realnego diffa; `zbudujWskazowki` = findings edukacyjne). Straże anty-fantomowe: `znormalizuj` pomija interpunkcję/wielkość liter, więc kosmetyka (usunięta kropka, „.”→„!”) NIE jest raportowana jako poprawka; kolejność umiejętności raportowana TYLKO gdy wymagane z oferty realnie poszły w górę (i z ich nazwami), nie ze sztywnego szablonu; podsumowanie „wyeksponowaliśmy X" tylko dla wymagań faktycznie nowych vs wersja „przed"; dodane punkty (z wywiadu) opisywane jako „dodaliśmy".
+**WYWIAD UZUPEŁNIA, NIGDY NIE NADPISUJE (2026-08-02, feedback Marka).** Odpowiedź
+na pytanie o skalę jest DOKLEJANA do punktu w znaczniku `⟦uzupełnienie kandydata: …⟧`,
+a scala ją model w kroku 4 — łączy oba fakty w jedno zdanie, poprawia literówki
+i polskie znaki, a gdy odpowiedź nie wnosi nowego faktu („regularnie to robiłem"),
+zostawia oryginał. Wcześniej odpowiedź ZASTĘPOWAŁA punkt, jeśli miała ≥10 znaków —
+bez sprawdzania, czy zawiera liczbę. Odtworzone na realnej sesji: „Przeprowadziłem
+projekty komunikacyjne dla marek: Intel, LG, Xbox oraz ESL" → „Bylo wiele roznych
+prijektow, tak.", „Zarządzałem procesem tworzenia treści…" → „Regularnie to robilem."
+Cztery z pięciu punktów wychodziły z wywiadu GORSZE, z literówkami, i szły tak do
+pracodawcy. `usunZnacznikiUzupelnien` czyści znacznik na KAŻDEJ drodze wyjścia
+(podłoga wyniku, naprawa po walidatorze, brak klucza API) zostawiając nietknięty
+oryginał — najgorszy możliwy wynik wywiadu to „bez zmian". W pipeline służy do tego
+`bazaCzysta`: `baseCv` ze znacznikami idzie do rejestru faktów i do modelu, ale
+wszystkie ścieżki awaryjne cofają do wersji czystej.
+
+**Bez limitu pytań, wywiad RAZ na analizę** (decyzja Marka 2026-08-02): zniesione
+`MAX_PYTAN=5`, `maxPozycje=3` i `.slice(0,8)` w pipeline; `wywiadUzytyRef`
+w `tailor-flow` nie proponuje kolejnej tury. Nie pytamy o punkty, które konkret już
+mają — `maJuzKonkret` odsiewa liczby ORAZ wyliczenia nazw własnych (3+ wyrazów
+z wielkiej litery w środku zdania), bo „projekty dla marek: Intel, LG, Xbox, ESL"
+jest konkretny, tylko konkretem są marki. Etykiety przycisków idą za pytaniem
+(„Podam / Nie wiem" przy skali, „Mam to / Nie mam" przy kompetencji).
+
 + **wywiad** — KOD — `interview.ts` (`zbudujPytania` z luk oferty — każde pytanie niesie `kontekst`, czyli DOSŁOWNY cytat z ogłoszenia (`wymaganie.cytat`), pokazywany pod pytaniem w `tailor-flow`, bo zwięzłe wymaganie („Docker") wyrwane z kontekstu nie mówi, o jaki zakres pyta pracodawca; `zbudujPytaniaOMetryki` z punktów bez liczby — cytuje CAŁY punkt (helper `cytat`, limit 220 znaków i cięcie na granicy słowa), bo dawne ucinanie po 60 znakach gubiło sens: „…oraz współprace z influ…"; `zastosujOdpowiedzi` nakłada potwierdzone odpowiedzi na KOPIĘ CV, z deduplikacją dopinanych punktów → ponowny pipeline → wynik rośnie uczciwie). Domknięcie pętli: `tailor-flow` kumuluje id wszystkich pokazanych pytań (`obsluzoneRef`) i podaje je do pipeline przez `obsluzonePytania`; świeża analiza (`nowaAnaliza`)/`resetFlow` czyszczą ten zbiór.
 
 Straże jakości: `rewrite.zgubionoLiczbe()` (metryka z oryginału nie może zniknąć),

@@ -166,22 +166,21 @@ function cytat(tekst: string, max = MAX_CYTATU): string {
  */
 export function zbudujPytaniaOMetryki(cv: TailoredCv): PytanieWywiadu[] {
   const pytania: PytanieWywiadu[] = [];
-  const MAX_PYTAN = 5;
-  const maxPozycje = Math.min(3, cv.experience.length);
 
-  for (let e = 0; e < maxPozycje && pytania.length < MAX_PYTAN; e++) {
+  // BEZ LIMITU (decyzja Marka 2026-08-02): pytamy o wszystko, co da się wzmocnić.
+  // Wywiad pokazujemy RAZ na analizę — kto nie odpowie, ten nie skorzysta,
+  // więc sztuczne ograniczanie puli tylko zabierało chętnym okazję.
+  for (let e = 0; e < cv.experience.length; e++) {
     const exp = cv.experience[e];
     exp.bullets.forEach((b, j) => {
-      if (pytania.length >= MAX_PYTAN) return;
       const tekst = (b ?? "").trim();
-      // Istotny punkt bez liczby — kandydat do wzmocnienia metryką.
       if (tekst.length < 25) return;
-      if (digitsIn(tekst).length > 0) return;
+      if (maJuzKonkret(tekst)) return;
       pytania.push({
         id: `metryka-${e}-${j}`,
         typ: "doswiadczenie",
-        pytanie: `Czy możesz dodać konkretną liczbę do punktu: „${cytat(tekst)}”?`,
-        hint: 'Podaj cały punkt z liczbą — np. „Skróciłem czas obsługi o 30%” albo „Obsługiwałem 500 zgłoszeń miesięcznie”. Jeśli nie masz liczby, pomiń.',
+        pytanie: `Czy możesz podać skalę tego: „${cytat(tekst)}”?`,
+        hint: "Ilu klientów, ile projektów, jak duży zespół, o ile szybciej? Wystarczy sama liczba albo krótkie zdanie — resztę dopiszemy za Ciebie. Nie masz liczby? Pomiń.",
         slowa: [],
         wazne: false,
         cel: { exp: e, bullet: j },
@@ -190,6 +189,93 @@ export function zbudujPytaniaOMetryki(cv: TailoredCv): PytanieWywiadu[] {
   }
 
   return pytania;
+}
+
+/**
+ * Czy punkt niesie już konkret na tyle mocny, że pytanie o skalę byłoby
+ * zawracaniem głowy.
+ *
+ * Liczba to oczywisty przypadek. Drugi to WYLICZENIE NAZW WŁASNYCH —
+ * „Przeprowadziłem projekty komunikacyjne dla marek: Intel, LG, Xbox oraz ESL"
+ * jest konkretny, tylko konkretem są marki, nie cyfry. Pytanie „podaj skalę"
+ * przy takim punkcie brzmi absurdalnie i realnie kończyło się odpowiedzią
+ * „było wiele różnych projektów, tak" (feedback Marka 2026-08-02).
+ */
+function maJuzKonkret(tekst: string): boolean {
+  if (digitsIn(tekst).length > 0) return true;
+
+  // Nazwy własne w środku zdania: słowa z wielkiej litery, które nie są
+  // pierwszym wyrazem ani nie stoją po kropce. Trzy i więcej = wyliczenie.
+  const wyrazy = tekst.split(/\s+/);
+  let nazwy = 0;
+  for (let i = 1; i < wyrazy.length; i++) {
+    const poprzedni = wyrazy[i - 1];
+    if (/[.!?]$/.test(poprzedni)) continue;
+    const w = wyrazy[i].replace(/^[(„"']+/, "");
+    if (/^\p{Lu}\p{L}+/u.test(w)) nazwy++;
+  }
+  return nazwy >= 3;
+}
+
+/**
+ * UZUPEŁNIENIA Z WYWIADU — dlaczego doklejamy zamiast zastępować.
+ *
+ * Wcześniej odpowiedź na pytanie o metrykę PODMIENIAŁA punkt, o ile miała
+ * ≥10 znaków. Nikt nie sprawdzał, czy w ogóle zawiera liczbę. Odtworzenie
+ * realnej sesji (2026-08-02) pokazało skutek: punkt „Przeprowadziłem projekty
+ * komunikacyjne dla marek: Intel, LG, Xbox oraz ESL" zamienił się w „Bylo wiele
+ * roznych prijektow, tak.", a „Zarządzałem procesem tworzenia treści…"
+ * w „Regularnie to robilem." Cztery z pięciu punktów wyszły z wywiadu GORSZE
+ * niż weszły — razem z literówkami i bez polskich znaków. Narzędzie, które ma
+ * naprawiać CV, psuło je i wysyłało kandydata z tym na rozmowę.
+ *
+ * Teraz odpowiedź jest DOKLEJANA w znaczniku, a scalaniem zajmuje się model
+ * w kroku przepisywania: łączy oba fakty w jedno zdanie i pisze je poprawną
+ * polszczyzną. Kandydat nie musi formułować gotowego punktu — może rzucić samą
+ * liczbą. Gdy odpowiedź nie wnosi nic nowego, model zostawia oryginał.
+ *
+ * Znacznik NIGDY nie ma prawa trafić do dokumentu — `usunZnacznikiUzupelnien`
+ * czyści to, czego model nie przetworzył (np. gdy nie ma klucza API i pipeline
+ * schodzi na wariant awaryjny), zostawiając NIETKNIĘTY oryginał. Najgorszy
+ * możliwy wynik wywiadu to „bez zmian", nigdy „gorzej niż było".
+ */
+const ZNACZNIK_OTWARCIA = " ⟦uzupełnienie kandydata: ";
+const ZNACZNIK_ZAMKNIECIA = "⟧";
+
+function oznaczUzupelnienie(oryginal: string, odpowiedz: string): string {
+  return `${oryginal.trim()}${ZNACZNIK_OTWARCIA}${odpowiedz}${ZNACZNIK_ZAMKNIECIA}`;
+}
+
+/** Wydobywa uzupełnienia z punktu — do promptu i do testów. */
+export function czytajUzupelnienie(punkt: string): string | null {
+  const i = punkt.indexOf(ZNACZNIK_OTWARCIA);
+  if (i === -1) return null;
+  const j = punkt.indexOf(ZNACZNIK_ZAMKNIECIA, i);
+  if (j === -1) return null;
+  return punkt.slice(i + ZNACZNIK_OTWARCIA.length, j).trim();
+}
+
+/**
+ * Usuwa nieprzetworzone znaczniki, zostawiając sam oryginał punktu.
+ * Bezpiecznik na każdej drodze wyjścia z pipeline'u.
+ */
+export function usunZnacznikiUzupelnien(cv: TailoredCv): TailoredCv {
+  const czysc = (s: string) => {
+    const i = s.indexOf(ZNACZNIK_OTWARCIA);
+    if (i === -1) return s;
+    const j = s.indexOf(ZNACZNIK_ZAMKNIECIA, i);
+    const reszta = j === -1 ? "" : s.slice(j + ZNACZNIK_ZAMKNIECIA.length);
+    return (s.slice(0, i) + reszta).trim();
+  };
+
+  return {
+    ...cv,
+    experience: cv.experience.map((e) => ({
+      ...e,
+      bullets: e.bullets.map(czysc),
+    })),
+    projects: cv.projects.map((p) => ({ ...p, bullets: p.bullets.map(czysc) })),
+  };
 }
 
 /** Klucz porównania punktu — do deduplikacji (trim + zwężenie spacji + lower). */
@@ -263,13 +349,15 @@ export function zastosujOdpowiedzi(
     const p = poId.get(odp.id);
     if (!p) continue;
 
-    // Pytanie o metrykę: ZASTĘPUJEMY konkretny punkt wersją z liczbą podaną
-    // przez użytkownika (nie dopisujemy obok, żeby nie dublować treści).
+    // Pytanie o skalę: DOKLEJAMY uzupełnienie do punktu, nigdy go nie
+    // zastępujemy. Dalej robi z tym porządek model w kroku przepisywania —
+    // scala oba fakty w jedno zdanie i pisze je poprawną polszczyzną.
     if (p.cel) {
-      const szczegol = oczyscOdpowiedz(odp.szczegol ?? "");
+      const szczegol = (odp.szczegol ?? "").trim().replace(/\s+/g, " ");
       const poz = wynik.experience[p.cel.exp];
-      if (szczegol && szczegol.length >= 10 && poz?.bullets[p.cel.bullet] !== undefined) {
-        poz.bullets[p.cel.bullet] = szczegol;
+      const oryginal = poz?.bullets[p.cel.bullet];
+      if (szczegol.length >= 3 && oryginal !== undefined) {
+        poz.bullets[p.cel.bullet] = oznaczUzupelnienie(oryginal, szczegol);
       }
       continue;
     }

@@ -8,6 +8,7 @@ import { przepiszCv, zlozCv } from "./rewrite";
 import { validateAgainstLedger, type Violation } from "./validator";
 import { opiszZmiany, zbudujWskazowki } from "./changes";
 import {
+  usunZnacznikiUzupelnien,
   zbudujPytania,
   zbudujPytaniaOMetryki,
   type PytanieWywiadu,
@@ -152,6 +153,18 @@ export async function uruchomDopasowanie(
   const ledger: FactLedger = buildLedgerFromCv(baseCv);
   const przed: WynikDopasowania = dopasuj(oferta, ledger);
 
+  /**
+   * CV wejściowe BEZ znaczników uzupełnień z wywiadu.
+   *
+   * `baseCv` może zawierać dopiski ⟦uzupełnienie kandydata: …⟧ — potrzebuje ich
+   * rejestr faktów (żeby walidator uznał podaną liczbę za legalną) i model przy
+   * przepisywaniu (żeby scalił oba fakty). Ale KAŻDA droga awaryjna cofa CV
+   * właśnie do wersji wejściowej — podłoga wyniku, naprawa po walidatorze,
+   * odniesienie dla dziennika zmian. Bez tej czystej kopii znacznik trafiłby
+   * do dokumentu wysyłanego pracodawcy.
+   */
+  const bazaCzysta = usunZnacznikiUzupelnien(baseCv);
+
   // Trafione słowa kluczowe z oferty (obecne w CV wejściowym) — straż
   // przepisywania nie pozwoli ich zgubić, bo ich utrata obniża wynik ATS.
   const trafioneSlowa = [
@@ -176,7 +189,7 @@ export async function uruchomDopasowanie(
   // 5. Walidacja i naprawa. Rejestr faktów pochodzi z ORYGINAŁU — to on jest
   //    źródłem prawdy, a nie to, co model właśnie napisał.
   const walidacja = validateAgainstLedger(tailoredCv, ledger);
-  tailoredCv = naprawCv(tailoredCv, baseCv, walidacja.violations);
+  tailoredCv = naprawCv(tailoredCv, bazaCzysta, walidacja.violations);
 
   // 6. Wynik „po” liczony tym samym miernikiem co „przed”.
   let po = dopasuj(oferta, buildLedgerFromCv(tailoredCv));
@@ -240,9 +253,9 @@ export async function uruchomDopasowanie(
   //     (np. przy bardzo krótkiej ofercie, gdzie jedno słowo waży dużo), wracamy
   //     do CV wejściowego: użytkownik w najgorszym razie dostaje +0, nigdy minus.
   //     To gwarancja w kodzie, nie prośba do modelu.
-  const ocenaBazy = ocenCv(baseCv, przed);
+  const ocenaBazy = ocenCv(bazaCzysta, przed);
   if (ocenaPo.wynik < ocenaBazy.wynik) {
-    tailoredCv = baseCv;
+    tailoredCv = bazaCzysta;
     po = przed;
     ocenaPo = ocenaBazy;
   }
@@ -254,9 +267,9 @@ export async function uruchomDopasowanie(
   // czyli na re-runie po wywiadzie), inaczej samo baseCv. Dzięki temu po
   // wywiadzie widać skumulowaną poprawę względem punktu wyjścia, a nie względem
   // już wzbogaconego CV (które fałszywie pokazywało „+0").
-  const odniesienie = opcje.oryginalCv ?? baseCv;
+  const odniesienie = opcje.oryginalCv ?? bazaCzysta;
   const dopOdniesienie =
-    odniesienie === baseCv
+    odniesienie === bazaCzysta
       ? przed
       : dopasuj(oferta, buildLedgerFromCv(odniesienie));
   const ocenaPrzed = ocenCv(odniesienie, dopOdniesienie);
@@ -291,13 +304,18 @@ export async function uruchomDopasowanie(
   // Odfiltrowujemy pytania już obsłużone w tej sesji — bez tego te same pytania
   // (odrzucona luka „nie mam", pominięta metryka) wracałyby w każdej rundzie
   // bez końca. To domyka pętlę wywiadu.
+  // BEZ LIMITU LICZBY PYTAŃ (decyzja Marka 2026-08-02) — wywiad pokazujemy raz,
+  // więc obcinanie puli tylko zabierało chętnym możliwość wzmocnienia CV.
   const obsluzone = new Set(opcje.obsluzonePytania ?? []);
   const pytania = [
     ...zbudujPytania(po.luki),
     ...zbudujPytaniaOMetryki(tailoredCv),
-  ]
-    .filter((p) => !obsluzone.has(p.id))
-    .slice(0, 8);
+  ].filter((p) => !obsluzone.has(p.id));
+
+  // OSTATNI BEZPIECZNIK: znacznik uzupełnienia nie ma prawa opuścić pipeline'u
+  // żadną drogą — ani przez podłogę wyniku, ani przez naprawę po walidatorze,
+  // ani gdy model go po prostu przepisał zamiast scalić.
+  tailoredCv = usunZnacznikiUzupelnien(tailoredCv);
 
   return {
     jobTitle: tytulDopasowania(oferta),

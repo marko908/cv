@@ -141,6 +141,23 @@ usuwasz — ale przepisujesz je na język CV: mocny czasownik na początku, konk
 bez potocznych wtrąceń i literówek. Zachowaj przy tym każdą liczbę i nazwę
 narzędzia, które kandydat podał.
 
+UZUPEŁNIENIA Z WYWIADU — ⟦uzupełnienie kandydata: …⟧.
+Niektóre punkty mają na końcu dopisek w takim nawiasie. To odpowiedź kandydata
+na pytanie o skalę tego punktu — surowa, często bez polskich znaków i z
+literówkami, czasem to sama liczba („30 mediów”, „o 99%”).
+
+Twoje zadanie: SCAL oba fakty w JEDNO zdanie i napisz je poprawną polszczyzną.
+
+  - Treść sprzed nawiasu jest nadrzędna. Niczego z niej nie gub — ani nazw
+    własnych, ani zakresu obowiązków. Uzupełnienie ma ją WZBOGACIĆ, nie zastąpić.
+  - Liczbę z uzupełnienia przenieś dokładnie tak, jak ją podał kandydat.
+  - Popraw literówki i uzupełnij polskie znaki („robilem” → „robiłem”,
+    „prijektow” → „projektów”). To jest dokument, który idzie do pracodawcy.
+  - JEŚLI UZUPEŁNIENIE NIE WNOSI NOWEGO FAKTU (np. „regularnie to robiłem”,
+    „było wiele różnych projektów”, samo „tak”) — ZIGNORUJ JE i zwróć oryginalny
+    punkt bez zmian. Lepszy dobry punkt bez liczby niż punkt rozmyty pustą frazą.
+  - Sam nawias ⟦…⟧ NIGDY nie pojawia się w wyniku.
+
 KAŻDY PUNKT OSOBNO.
 Dla każdego punktu z oryginału zwracasz dokładnie jeden przepisany punkt
 z polem „punkt_zrodlowy” wskazującym jego numer. Nie łączysz dwóch punktów
