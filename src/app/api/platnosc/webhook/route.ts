@@ -26,15 +26,21 @@ export const maxDuration = 60;
  * ponawianie czegoś, czego nie umiemy zweryfikować, nic nie da.
  */
 export async function POST(request: Request) {
-  if (!czyStripeDostepny()) {
-    return NextResponse.json({ ok: false }, { status: 503 });
+  // Brakujące zmienne nazywamy WPROST i w odpowiedzi, nie tylko w logu.
+  // Webhooka diagnozuje się z zewnątrz — z panelu Stripe'a albo `curl`em —
+  // gdzie logów Vercela nie widać. Gołe 503 kazało zgadywać, której z dwóch
+  // zmiennych brakuje (realnie kosztowało to jedną nieudaną płatność testową).
+  const brakujace: string[] = [];
+  if (!czyStripeDostepny()) brakujace.push("STRIPE_SECRET_KEY");
+  if (!process.env.STRIPE_WEBHOOK_SECRET) brakujace.push("STRIPE_WEBHOOK_SECRET");
+
+  if (brakujace.length > 0) {
+    const opis = `Brak zmiennych środowiskowych: ${brakujace.join(", ")}.`;
+    console.error(`[webhook] ${opis} Dodaj je i przebuduj wdrożenie.`);
+    return NextResponse.json({ ok: false, error: opis }, { status: 503 });
   }
 
-  const sekret = process.env.STRIPE_WEBHOOK_SECRET;
-  if (!sekret) {
-    console.error("[webhook] Brak STRIPE_WEBHOOK_SECRET.");
-    return NextResponse.json({ ok: false }, { status: 503 });
-  }
+  const sekret = process.env.STRIPE_WEBHOOK_SECRET!;
 
   const podpis = request.headers.get("stripe-signature");
   if (!podpis) return NextResponse.json({ ok: false }, { status: 400 });
