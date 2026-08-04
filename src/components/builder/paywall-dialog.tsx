@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Target, Zap } from "lucide-react";
+import { Check, Loader2, Target, Zap } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useCvStore } from "@/lib/store";
 import {
   CENA_JEDNORAZOWA,
   LISTA_PLANOW,
@@ -44,24 +43,59 @@ export function PaywallDialog({
   onOpenChange: (open: boolean) => void;
   tailoringId?: string | null;
 }) {
-  const aktywujSubskrypcje = useCvStore((s) => s.aktywujSubskrypcje);
-  const odblokujDopasowanie = useCvStore((s) => s.odblokujDopasowanie);
   const [okres, setOkres] = useState<OkresRozliczeniowy>("miesiac");
   const [widok, setWidok] = useState<"cennik" | "jednorazowo">("cennik");
+  const [wTrakcie, setWTrakcie] = useState<string | null>(null);
+  const [blad, setBlad] = useState("");
 
   const zamknij = () => {
     setWidok("cennik");
+    setBlad("");
     onOpenChange(false);
   };
 
-  const kupPlan = (plan: PlanId) => {
-    aktywujSubskrypcje(plan, okres);
-    zamknij();
+  /**
+   * Rozpoczyna płatność i przekierowuje do Stripe'a.
+   *
+   * Store'a NIE ruszamy: dostęp nadaje wyłącznie webhook po potwierdzonej
+   * płatności. Wcześniej te przyciski wołały `aktywujSubskrypcje` lokalnie,
+   * co dawało dostęp każdemu, kto kliknął — dobre na demo, nie do sprzedaży.
+   */
+  const zaplac = async (
+    klucz: string,
+    dane: Record<string, unknown>
+  ): Promise<void> => {
+    setWTrakcie(klucz);
+    setBlad("");
+    try {
+      const res = await fetch("/api/platnosc/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dane),
+      });
+      const wynik = await res.json().catch(() => null);
+      if (!res.ok || !wynik?.url) {
+        throw new Error(wynik?.error ?? "Nie udało się rozpocząć płatności.");
+      }
+      // Pełne przejście, nie router.push — cel jest poza aplikacją.
+      // `assign`, nie przypisanie do `location.href`: to drugie jest modyfikacją
+      // obiektu spoza komponentu i słusznie wytyka je reguła immutability.
+      window.location.assign(wynik.url as string);
+    } catch (e) {
+      setWTrakcie(null);
+      setBlad(e instanceof Error ? e.message : "Nie udało się rozpocząć płatności.");
+    }
   };
 
+  const kupPlan = (plan: PlanId) =>
+    zaplac(plan, { rodzaj: "subskrypcja", plan, okres });
+
   const kupJedno = () => {
-    if (tailoringId) odblokujDopasowanie(tailoringId);
-    zamknij();
+    if (!tailoringId) return;
+    return zaplac("jednorazowo", {
+      rodzaj: "jednorazowo",
+      dopasowanieId: tailoringId,
+    });
   };
 
   const handleOpenChange = (next: boolean) => {
@@ -179,11 +213,17 @@ export function PaywallDialog({
                     </ul>
 
                     <Button
-                      className="btn-label mt-5 font-bold"
+                      className="btn-label mt-5 gap-2 font-bold"
                       variant={plan.polecany ? "default" : "secondary"}
                       onClick={() => kupPlan(plan.id)}
+                      disabled={wTrakcie !== null}
                     >
-                      Wybieram {plan.nazwa}
+                      {wTrakcie === plan.id && (
+                        <Loader2 className="size-4 animate-spin" />
+                      )}
+                      {wTrakcie === plan.id
+                        ? "Przechodzę do płatności…"
+                        : `Wybieram ${plan.nazwa}`}
                     </Button>
                   </div>
                 ))}
@@ -213,11 +253,18 @@ export function PaywallDialog({
             </DialogHeader>
 
             <div className="flex shrink-0 flex-col gap-2">
+              {blad && <p className="text-sm text-destructive">{blad}</p>}
               <Button
-                className="btn-label h-11 w-full font-bold"
+                className="btn-label h-11 w-full gap-2 font-bold"
                 onClick={kupJedno}
+                disabled={wTrakcie !== null}
               >
-                Odblokuj to dopasowanie · {CENA_JEDNORAZOWA} zł
+                {wTrakcie === "jednorazowo" && (
+                  <Loader2 className="size-4 animate-spin" />
+                )}
+                {wTrakcie === "jednorazowo"
+                  ? "Przechodzę do płatności…"
+                  : `Odblokuj to dopasowanie · ${CENA_JEDNORAZOWA} zł`}
               </Button>
               <Button
                 variant="ghost"
