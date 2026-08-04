@@ -468,6 +468,18 @@ config→running→interview→result; karta pytania pokazuje pod treścią `kon
 PDF, font Lato z `public/fonts`; `CvPdf` deleguje układy własne do dedykowanych komponentów) · `template-gallery.tsx` (galeria: wiersz na kategorię, przewijanie w bok; używana przez `template-picker.tsx` i `new-cv-dialog.tsx`) · `pdf-preview.tsx` (`PdfPreview` / `PdfThumb` — podgląd = PRAWDZIWY plik PDF wygenerowany w przeglądarce i narysowany przez pdf.js na kanwie, strona po stronie; patrz „Konwencje i pułapki"; używane przez `cv-preview.tsx` i `template-thumb.tsx`) · `confirm-delete-button.tsx` (`ConfirmDeleteButton` — jedyny dozwolony kosz na listach: widoczny na dotyku, potwierdzenie drugim kliknięciem) · `template-thumb.tsx` (miniatura = przeskalowany
 CvDocument; bez propa `width` MIERZY kontener i wypełnia go — nie da się wtedy uciąć CV w szerokości; `crop` = przycięcie tylko w pionie; `demo` podstawia `STOCK_PHOTO` w układach ze zdjęciem, gdy użytkownik nie wgrał własnego — TYLKO w galerii, nigdy w CV ani PDF; `full` pokazuje wszystkie strony zamiast pierwszej — używane w porównaniu) · `select-cv-dialog.tsx` · `cv-library-sync.tsx` (autosync aktywne CV→biblioteka) · `store-hydration.tsx` · `ui/` (shadcn).
 
+**Usunięte z UI 2026-08-04 (decyzja Marka):** wybór przykładowego CV
+(`sample-cv-picker.tsx` skasowany; dane `sample-cv.ts` ZOSTAJĄ — używa ich
+12 skryptów testowych) oraz karta „Twoje dane" w ustawieniach (eksport JSON
+i „wyczyść dane lokalne"). Powód eksportu/czyszczenia: obie pozycje dotyczyły
+`localStorage`, które po przejściu na bazę przestało być źródłem prawdy —
+eksport zrzucałby niepełny stan, a „wyczyść" czyściło jedną przeglądarkę,
+sugerując usunięcie danych z konta. Prawdziwe odpowiedniki są w bazie
+(`eksportuj_moje_dane`, `usun_moje_konto`). Przy okazji zniknął pasek
+narzędziowy w `section-list.tsx` z przyciskiem „Wyczyść", który kasował całe CV
+jednym kliknięciem bez potwierdzenia — po synchronizacji z bazą taka pomyłka
+propaguje się na wszystkie urządzenia.
+
 **Trasy** (`src/app/`): `/` landing · `/rejestracja` · `/logowanie` ·
 `/reset-hasla` (wszystkie trzy = `StronaAuth`) · `/app` Start (onboarding/hub) · `/app/kreator`
 lista „Moje CV" (+ Dodaj nowe; import CV tylko w edytorze) · `/app/kreator/edytor` edytor ·

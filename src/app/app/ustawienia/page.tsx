@@ -2,14 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import {
-  CreditCard,
-  Download,
-  ExternalLink,
-  Loader2,
-  Sparkles,
-  Trash2,
-} from "lucide-react";
+import { CreditCard, ExternalLink, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { KartaKonta } from "@/components/auth/karta-konta";
 import { SavedIndicator } from "@/components/saved-indicator";
@@ -20,7 +13,6 @@ import {
   useNazwaPlanu,
   usePozostaloDopasowan,
 } from "@/lib/store";
-import { emptyCv } from "@/lib/cv-schema";
 import { PaywallDialog } from "@/components/builder/paywall-dialog";
 import { CENA_JEDNORAZOWA, PLANY } from "@/lib/subscription";
 
@@ -42,8 +34,6 @@ function SettingsCard({
 }
 
 export default function UstawieniaPage() {
-  const { cv, template, jobPosting, aiMeta, loadCv, setJobPosting, setAiMeta } =
-    useCvStore();
   const tailorings = useCvStore((s) => s.tailorings);
   const subscription = useCvStore((s) => s.subscription);
   const maDostep = useMaSubskrypcje();
@@ -51,7 +41,6 @@ export default function UstawieniaPage() {
   const limitPlanu = useLimitPlanu();
   const pozostalo = usePozostaloDopasowan();
   const odblokowane = useCvStore((s) => s.odblokowaneDopasowania);
-  const [confirmClear, setConfirmClear] = useState(false);
   const [paywallOpen, setPaywallOpen] = useState(false);
   const [otwieramPanel, setOtwieramPanel] = useState(false);
   const [bladPlatnosci, setBladPlatnosci] = useState("");
@@ -100,38 +89,13 @@ export default function UstawieniaPage() {
     }).length;
   })();
 
-  const exportJson = () => {
-    const data = { cv, template, jobPosting, aiMeta };
-    const blob = new Blob([JSON.stringify(data, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "cv-copilot-dane.json";
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const clearAll = () => {
-    if (!confirmClear) {
-      setConfirmClear(true);
-      setTimeout(() => setConfirmClear(false), 4000);
-      return;
-    }
-    loadCv(emptyCv);
-    setJobPosting({ url: "", text: "" });
-    setAiMeta({ addedKeywords: [], changesLog: [] });
-    setConfirmClear(false);
-  };
-
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-6 sm:px-8 sm:py-10">
       <div className="flex items-center justify-between">
         <div>
           <p className="eyebrow text-muted-foreground">Ustawienia</p>
           <h1 className="mt-1 text-xl font-extrabold tracking-tight">
-            Plan, dane i konto
+            Plan i konto
           </h1>
         </div>
         <SavedIndicator />
@@ -224,39 +188,13 @@ export default function UstawieniaPage() {
 
       <PaywallDialog open={paywallOpen} onOpenChange={setPaywallOpen} />
 
-      {/* Dane */}
-      <SettingsCard eyebrow="Twoje dane">
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-secondary p-4">
-            <div>
-              <p className="text-sm font-bold">Eksport danych (JSON)</p>
-              <p className="mt-0.5 text-sm text-muted-foreground">
-                Pobierz swoje CV, ofertę i wyniki analizy jako plik JSON.
-              </p>
-            </div>
-            <Button size="sm" variant="secondary" onClick={exportJson}>
-              <Download className="size-4" />
-              Pobierz
-            </Button>
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-secondary p-4">
-            <div>
-              <p className="text-sm font-bold">Wyczyść dane lokalne</p>
-              <p className="mt-0.5 text-sm text-muted-foreground">
-                Usuwa CV, ofertę i wyniki z tej przeglądarki. Nieodwracalne.
-              </p>
-            </div>
-            <Button
-              size="sm"
-              variant="destructive"
-              onClick={clearAll}
-            >
-              <Trash2 className="size-4" />
-              {confirmClear ? "Na pewno? Kliknij ponownie" : "Wyczyść"}
-            </Button>
-          </div>
-        </div>
-      </SettingsCard>
+      {/* Karta „Twoje dane" (eksport JSON + wyczyszczenie danych lokalnych)
+          usunięta 2026-08-04. Obie pozycje dotyczyły localStorage, które po
+          przejściu na bazę przestało być źródłem prawdy — eksport zrzucałby
+          niepełny stan, a „wyczyść" czyściło tylko jedną przeglądarkę,
+          sugerując usunięcie danych z konta. Prawdziwe odpowiedniki są
+          w bazie: RPC `eksportuj_moje_dane` i `usun_moje_konto` (to drugie
+          wpięte w kartę Konto). */}
 
       {/* Konto */}
       <SettingsCard eyebrow="Konto">
@@ -278,9 +216,15 @@ export default function UstawieniaPage() {
         </div>
       </SettingsCard>
 
+      {/* Stało tu: „Twoje dane są przechowywane lokalnie i nie opuszczają
+          przeglądarki". Po przejściu na Supabase to była już NIEPRAWDA —
+          a to zdanie dotyczy prywatności, więc nie może być nieaktualne. */}
+      {/* Sformułowane tak, by było prawdziwe TAKŻE dla niezalogowanego —
+          inaczej stoi w sprzeczności z kartą Konto, która mówi mu wprost,
+          że jego CV są tylko w tej przeglądarce. */}
       <p className="eyebrow pb-4 text-center text-muted-foreground/60">
-        Twoje dane są przechowywane lokalnie i nie opuszczają przeglądarki,
-        dopóki nie użyjesz funkcji AI.
+        Po zalogowaniu Twoje CV są zapisane na koncie, na serwerach w Unii
+        Europejskiej.
       </p>
     </div>
   );

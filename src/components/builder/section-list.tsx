@@ -15,7 +15,6 @@ import { templateUsesPhoto } from "@/lib/cv-templates";
 import type { TailoredCv } from "@/lib/cv-schema";
 import { PersonalInfoDialog, SECTION_DIALOGS } from "./section-dialogs";
 import { AddSectionDialog } from "./add-section-dialog";
-import { SampleCvPicker } from "@/components/sample-cv-picker";
 import { CvImportButton } from "@/components/cv-import-button";
 import { cn } from "@/lib/utils";
 
@@ -98,7 +97,6 @@ export function SectionList() {
   const template = useCvStore((s) => s.template);
   const enabledSections = useCvStore((s) => s.enabledSections);
   const removeSection = useCvStore((s) => s.removeSection);
-  const loadCv = useCvStore((s) => s.loadCv);
 
   const personalFilled =
     cv.personal_info.full_name.trim().length > 0 &&
@@ -172,27 +170,11 @@ export function SectionList() {
         />
       </div>
 
-      {/* Skrót do przykładu / wyczyszczenia */}
-      <div className="mt-1 flex min-w-0 flex-wrap items-center gap-2 border-t border-border/60 pt-3">
-        <SampleButtons loadCv={loadCv} />
-      </div>
+      {/* Był tu pasek narzędzi deweloperskich: wczytanie przykładowego CV
+          i „Wyczyść". Usunięty 2026-08-04 — przykłady służyły wyłącznie
+          testom Marka, a „Wyczyść" kasowało całe CV jednym kliknięciem, bez
+          potwierdzenia i bez cofnięcia. Po przejściu na bazę taka pomyłka
+          propaguje się na wszystkie urządzenia użytkownika. */}
     </div>
-  );
-}
-
-function SampleButtons({ loadCv }: { loadCv: (cv: TailoredCv) => void }) {
-  const resetCv = useCvStore((s) => s.resetCv);
-  return (
-    <>
-      <SampleCvPicker onSelect={(cv) => loadCv(cv)} compact />
-      <Button
-        variant="ghost"
-        size="sm"
-        className="shrink-0 text-xs text-muted-foreground"
-        onClick={resetCv}
-      >
-        Wyczyść
-      </Button>
-    </>
   );
 }

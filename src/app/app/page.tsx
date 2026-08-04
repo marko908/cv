@@ -1,10 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   ArrowRight,
-  Zap,
   Briefcase,
   GraduationCap,
   Check,
@@ -14,7 +12,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { DownloadPdfButton } from "@/components/download-pdf-button";
 import { SelectCvDialog } from "@/components/select-cv-dialog";
-import { SampleCvPicker } from "@/components/sample-cv-picker";
 import { useCvStore, useMaDostepDo } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -194,8 +191,6 @@ function StartHub() {
 
 /* ---------- Onboarding: samouczek dla nowych ---------- */
 function StartOnboarding() {
-  const router = useRouter();
-  const newCvFrom = useCvStore((s) => s.newCvFrom);
   const { cvFilled, jobFilled, analyzed } = useProgress();
 
   const headline = cvFilled
@@ -253,10 +248,8 @@ function StartOnboarding() {
   const activeIndex = steps.findIndex((s) => s.state === "now");
 
   return (
-    // Poniżej `lg` kolumny idą jedna pod drugą, a nie znika ta druga. Wcześniej
-    // miała `hidden … lg:flex`, więc na telefonie nie było w ogóle wejścia
-    // w „Wczytaj przykładowe CV" — czyli najszybszej drogi, żeby nowy
-    // użytkownik zobaczył produkt w działaniu.
+    // Poniżej `lg` kolumny idą jedna pod drugą, a nie znika ta druga —
+    // na telefonie prawa kolumna też ma być dostępna.
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-6 sm:px-8 sm:py-10 lg:flex-row">
       {/* Kolumna główna */}
       <div className="min-w-0 flex-1">
@@ -325,26 +318,6 @@ function StartOnboarding() {
 
       {/* Prawa kolumna */}
       <div className="flex w-full shrink-0 flex-col gap-4 lg:w-72">
-        <div className="card-surface p-5">
-          <p className="eyebrow flex items-center gap-1.5 text-primary">
-            <Zap className="size-3.5" />
-            Szybka wygrana
-          </p>
-          <h3 className="mt-3 text-sm font-bold">Zobacz produkt w akcji</h3>
-          <p className="mt-1.5 text-sm text-muted-foreground">
-            Wczytaj przykładowe CV i pooglądaj edytor na żywych danych.
-          </p>
-          <div className="mt-3">
-            <SampleCvPicker
-              buttonLabel="Otwórz w edytorze"
-              onSelect={(cv, sample) => {
-                newCvFrom(cv, "nowoczesny", sample.name);
-                router.push("/app/kreator/edytor");
-              }}
-            />
-          </div>
-        </div>
-
         <div className="card-surface p-5">
           <p className="eyebrow text-muted-foreground">Rozwój</p>
           <div className="mt-3 flex items-start gap-3">
