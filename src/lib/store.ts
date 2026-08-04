@@ -20,8 +20,6 @@ import {
   kluczMiesiaca,
   limitPlanu,
   pozostaloDopasowan,
-  type OkresRozliczeniowy,
-  type PlanId,
   type Subscription,
   type UzycieMiesieczne,
 } from "./subscription";
@@ -239,13 +237,18 @@ interface CvState {
   updateTailoringCv: (id: string, cv: TailoredCv) => void;
   resetReview: () => void;
 
-  // Subskrypcja (docelowo: Stripe). `aktywujSubskrypcje` to miejsce, w które
-  // wejdzie potwierdzenie płatności — dziś włącza dostęp lokalnie.
-  aktywujSubskrypcje: (plan: PlanId, okres: OkresRozliczeniowy) => void;
-  anulujSubskrypcje: () => void;
+  /**
+   * DOSTĘPU NIE NADAJE SIĘ ZE STORE'A.
+   *
+   * Były tu `aktywujSubskrypcje`, `anulujSubskrypcje` i `odblokujDopasowanie` —
+   * z czasów, gdy paywall był demonstracyjny. Po podpięciu Stripe'a zostały
+   * USUNIĘTE, bo to pułapka: nadawały dostęp bez płatności jedną linijką,
+   * a stan i tak znikał przy odświeżeniu (uprawnienia czyta się z bazy).
+   *
+   * Subskrypcje i zakupy zapisuje wyłącznie webhook `/api/platnosc/webhook`,
+   * a store dostaje je gotowe przez `pobierzUprawnienia` w synchronizacji.
+   */
   zliczDopasowanie: () => void;
-  /** Jednorazowy zakup POJEDYNCZEGO dopasowania. */
-  odblokujDopasowanie: (id: string) => void;
   /**
    * Przenosi opłacone jednorazowo odblokowanie na rekord, który ZASTĘPUJE stary
    * (przeliczenie po wywiadzie tworzy nowe id). Bez tego użytkownik, który
@@ -516,30 +519,10 @@ export const useCvStore = create<CvState>()(
         })),
       resetReview: () => set({ aiMeta: emptyAiMeta }),
 
-      // ---- Subskrypcja ----
-      // Dostęp jest własnością KONTA, nie pojedynczego dopasowania. Dzięki temu
-      // przeliczenie po wywiadzie (nowy rekord) nie może odebrać opłaconego
-      // dostępu — wcześniej właśnie tak się działo.
-      aktywujSubskrypcje: (plan, okres) =>
-        set(() => {
-          const koniec = new Date();
-          if (okres === "rok") koniec.setFullYear(koniec.getFullYear() + 1);
-          else koniec.setMonth(koniec.getMonth() + 1);
-          return {
-            subscription: {
-              status: "aktywna",
-              plan,
-              okres,
-              koniecOkresu: koniec.getTime(),
-            },
-          };
-        }),
-      odblokujDopasowanie: (id) =>
-        set((s) =>
-          s.odblokowaneDopasowania.includes(id)
-            ? s
-            : { odblokowaneDopasowania: [...s.odblokowaneDopasowania, id] }
-        ),
+      // ---- Uprawnienia ----
+      // Dostęp jest własnością KONTA i pochodzi WYŁĄCZNIE z bazy (zapisuje ją
+      // webhook Stripe'a). Store go tylko przechowuje do odczytu — nie ma tu
+      // ani jednej akcji, która potrafiłaby dostęp nadać.
       przeniesOdblokowanie: (zId, naId) =>
         set((s) => {
           if (!s.odblokowaneDopasowania.includes(zId)) return s;
@@ -548,7 +531,6 @@ export const useCvStore = create<CvState>()(
             odblokowaneDopasowania: bez.includes(naId) ? bez : [...bez, naId],
           };
         }),
-      anulujSubskrypcje: () => set({ subscription: BRAK_SUBSKRYPCJI }),
       zliczDopasowanie: () =>
         set((s) => {
           const miesiac = kluczMiesiaca();

@@ -376,6 +376,21 @@ a w env trzymamy wyłącznie identyfikatory cen, bo tylko one różnią się mi�
 sandboxem a produkcją. Kwota w dwóch miejscach prędzej czy później znaczyłaby,
 że cennik pokazuje co innego niż kasa.
 
+**Panel klienta:** `/api/platnosc/portal` → Billing Portal Stripe'a (zmiana karty,
+faktury, anulowanie). Nie budujemy tego sami — anulowanie i zmiana planu wymagają
+poprawnych rozliczeń proporcjonalnych, a zmiany wracają do nas webhookiem, więc
+baza pozostaje spójna. Anulowanie NIE odbiera dostępu od razu
+(`cancel_at_period_end` + `czyAktywna`). Wymaga jednorazowego włączenia panelu
+w ustawieniach Stripe'a.
+
+**ZE STORE'A NIE DA SIĘ NADAĆ DOSTĘPU — akcje `aktywujSubskrypcje`,
+`anulujSubskrypcje` i `odblokujDopasowanie` zostały USUNIĘTE** (2026-08-02, przy
+podpięciu Stripe'a). Pochodziły z czasów demonstracyjnego paywalla i były pułapką:
+nadawały dostęp bez płatności jedną linijką, a po przejściu na bazę i tak znikały
+przy odświeżeniu — użytkownik „kupował", po czym tracił dostęp, a w Stripe nic się
+nie działo. Został wyłącznie `przeniesOdblokowanie` (lokalna spójność przy
+przeliczeniu) i `zliczDopasowanie`.
+
 **DOSTĘP NADAJE WYŁĄCZNIE WEBHOOK.** Powrót z płatności (`success_url`) to zwykłe
 przekierowanie, które da się wpisać ręcznie w pasku adresu — nie jest dowodem
 zapłaty. `subskrypcja` i `zakup` zapisuje tylko webhook rolą `service_role`.
@@ -477,7 +492,8 @@ API: `runtime nodejs`, `maxDuration 60`.
 - **Testowe konto do klikania UI** → `scripts/probne-konto-testowe.ts` (poza repo, wzorzec `probne-*` w .gitignore): `node --env-file=.env.local --import tsx scripts/probne-konto-testowe.ts` i `… usun`. Tworzy konto z `email_confirm: true`, więc ŻADEN mail nie wychodzi i nie zjada limitu Resend
 - **Ceny, progi planów, limity, cena jednorazowa, darmowa pula** → `subscription.ts` (jedno źródło; UI tylko to renderuje, serwer bierze stąd limit do RPC)
 - **Zapis/odczyt danych konta** → `src/lib/supabase/repo.ts`; kiedy się dzieje → `synchronizacja-konta.tsx`
-- **Podpięcie Stripe** → `useMaDostepDo`/`useMaSubskrypcje` w `store.ts` + `aktywujSubskrypcje`/`odblokujDopasowanie`; nic więcej w UI nie dotyka uprawnień
+- **Płatności** → `lib/stripe.ts` (klient, ceny z env) · `/api/platnosc/checkout` (start płatności) · `/api/platnosc/webhook` (JEDYNE miejsce nadające dostęp) · `/api/platnosc/portal` (zarządzanie subskrypcją). Cennik w Stripe zakłada `npm run stripe:produkty`
+- **Sprawdzanie uprawnień w UI** → `useMaDostepDo`/`useMaSubskrypcje` w `store.ts`; store wypełnia je z bazy przez `pobierzUprawnienia` — nic w UI nie nadaje dostępu
 - **Schemat bazy / RLS / RPC** → `supabase/migrations/` (nowa migracja, nigdy edycja starej) + odświeżenie `src/lib/supabase/typy-bazy.ts`; opis i konfiguracja panelu w `supabase/README.md`
 - **Ustawienia logowania (kod na maila, Google, SMTP, redirecty)** → panel Supabase, NIE migracja — lista kroków w `supabase/README.md`
 

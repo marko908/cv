@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Download, ExternalLink, Trash2, Sparkles } from "lucide-react";
+import {
+  CreditCard,
+  Download,
+  ExternalLink,
+  Loader2,
+  Sparkles,
+  Trash2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { KartaKonta } from "@/components/auth/karta-konta";
 import { SavedIndicator } from "@/components/saved-indicator";
@@ -39,7 +46,6 @@ export default function UstawieniaPage() {
     useCvStore();
   const tailorings = useCvStore((s) => s.tailorings);
   const subscription = useCvStore((s) => s.subscription);
-  const anulujSubskrypcje = useCvStore((s) => s.anulujSubskrypcje);
   const maDostep = useMaSubskrypcje();
   const nazwaPlanu = useNazwaPlanu();
   const limitPlanu = useLimitPlanu();
@@ -47,6 +53,34 @@ export default function UstawieniaPage() {
   const odblokowane = useCvStore((s) => s.odblokowaneDopasowania);
   const [confirmClear, setConfirmClear] = useState(false);
   const [paywallOpen, setPaywallOpen] = useState(false);
+  const [otwieramPanel, setOtwieramPanel] = useState(false);
+  const [bladPlatnosci, setBladPlatnosci] = useState("");
+
+  /**
+   * Zarządzanie subskrypcją oddajemy panelowi Stripe'a.
+   *
+   * Wcześniej „Zrezygnuj" wołało `anulujSubskrypcje` w store — czyli zmieniało
+   * stan tylko w przeglądarce. Po podpięciu bazy uprawnienia czyta się
+   * z Postgresa, więc taka „rezygnacja" znikałaby przy odświeżeniu, a w Stripe
+   * subskrypcja biegłaby dalej i dalej pobierałaby pieniądze.
+   */
+  const otworzPanelPlatnosci = async () => {
+    setOtwieramPanel(true);
+    setBladPlatnosci("");
+    try {
+      const res = await fetch("/api/platnosc/portal", { method: "POST" });
+      const dane = await res.json().catch(() => null);
+      if (!res.ok || !dane?.url) {
+        throw new Error(dane?.error ?? "Nie udało się otworzyć panelu płatności.");
+      }
+      window.location.assign(dane.url as string);
+    } catch (e) {
+      setOtwieramPanel(false);
+      setBladPlatnosci(
+        e instanceof Error ? e.message : "Nie udało się otworzyć panelu płatności."
+      );
+    }
+  };
 
   const koniecOkresu = subscription.koniecOkresu
     ? new Date(subscription.koniecOkresu).toLocaleDateString("pl-PL")
@@ -137,8 +171,18 @@ export default function UstawieniaPage() {
             </p>
           </div>
           {maDostep ? (
-            <Button size="sm" variant="secondary" onClick={anulujSubskrypcje}>
-              Zrezygnuj
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={otworzPanelPlatnosci}
+              disabled={otwieramPanel}
+            >
+              {otwieramPanel ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <CreditCard className="size-4" />
+              )}
+              Zarządzaj subskrypcją
             </Button>
           ) : (
             <Button size="sm" onClick={() => setPaywallOpen(true)}>
@@ -147,6 +191,9 @@ export default function UstawieniaPage() {
             </Button>
           )}
         </div>
+        {bladPlatnosci && (
+          <p className="mt-3 text-sm text-destructive">{bladPlatnosci}</p>
+        )}
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           <div className="rounded-lg bg-secondary p-4">
             <p className="font-mono text-2xl font-bold">{analizyWTymMiesiacu}</p>
