@@ -480,8 +480,49 @@ narzędziowy w `section-list.tsx` z przyciskiem „Wyczyść", który kasował c
 jednym kliknięciem bez potwierdzenia — po synchronizacji z bazą taka pomyłka
 propaguje się na wszystkie urządzenia.
 
+## Dokumenty prawne (od 2026-08-04)
+
+Pakiet od prawnika (Creativa Legal) uzupełniony danymi firmy i **dopasowany do
+tego, co kod realnie robi**. Firma: Markonn Marko Nowak, JDG/CEIDG, NIP
+6443568932, REGON 522854985, ul. Mariana Maliny 5a/17, 41-200 Sosnowiec,
+marko@aplikando.pl, czynny podatnik VAT.
+
+**`src/lib/prawne/dane.ts` = JEDNO ŹRÓDŁO danych firmy.** Instrukcja prawnika
+wymaga, żeby oznaczenie przedsiębiorcy było IDENTYCZNE w regulaminie, polityce,
+stopce i dokumentach sprzedażowych — dlatego treści dokumentów składają je stąd,
+a nie wpisują na sztywno. Tu też `DATA_OBOWIAZYWANIA` i `WERSJA_DOKUMENTOW`.
+
+Treści: `regulamin.ts` (18 §) · `polityka-prywatnosci.ts` · `regulamin-newslettera.ts`
+— jako Markdown-podobne stringi. **Numeracja jest DOSŁOWNIE tym, co stoi
+w źródle**, bo cały regulamin odsyła do „§ 1 ust. 5 pkt 1"; automatyczne `<ol>`
+przesunęłoby wszystkie odesłania przy wstawieniu jednego ustępu. Dlatego
+`components/prawne/dokument-prawny.tsx` to własny, ~200-liniowy renderer, a nie
+biblioteka markdown. Składnia: `##` nagłówek §, `1.` ustęp, `   1)` punkt
+(3 spacje), `      a)` litera (6 spacji), `| a | b |` tabela, `**bold**`, `[x](/y)`.
+
+**REGULAMIN OPISUJE APLIKACJĘ TAKĄ, JAKA JEST.** Zmiana flow rejestracji, cen,
+dostawcy modeli AI albo listy dostawców = zmiana dokumentu w TYM SAMYM commicie
+(ta sama zasada co dla tego pliku). Realne rozjazdy złapane przy pisaniu:
+stopka landingu głosiła „Twoje dane nie opuszczają przeglądarki" (nieprawda od
+przejścia na Supabase — usunięte); wzór obiecywał eksport danych z ustawień,
+a `eksportuj_moje_dane` nie ma przycisku w UI (dokument opisuje eksport na
+żądanie mailowe, bo tak jest naprawdę).
+
+Dokumenty NIEpublikowane, w `dokumenty-prawne/` (poza `src`): umowa powierzenia
+B2B + lista podwykonawców · wzory 4 zgód · wzory 3 wiadomości o zmianie ·
+specyfikacja banera cookies z gotowym promptem · **`WDROZENIE.md`** = checklista
+prawnika + 22 odstępstwa od wzoru z uzasadnieniem + blokery przed publikacją.
+
+**Blokery odnotowane w `WDROZENIE.md`** (nie są zrobione): skrzynka
+marko@aplikando.pl musi działać (jest punktem kontaktowym DSA) · tier Gemini API
+musi być PŁATNY, bo darmowy trenuje na danych, a dokumenty stwierdzają, że nie ·
+umowy powierzenia z dostawcami (art. 28 RODO) · polityka opisuje GA4/Meta
+Pixel/Clarity, których jeszcze nie ma — publikować razem z banerem cookies.
+
 **Trasy** (`src/app/`): `/` landing · `/rejestracja` · `/logowanie` ·
-`/reset-hasla` (wszystkie trzy = `StronaAuth`) · `/app` Start (onboarding/hub) · `/app/kreator`
+`/reset-hasla` (wszystkie trzy = `StronaAuth`) · `/regulamin` ·
+`/polityka-prywatnosci` · `/regulamin-newslettera` (grupa `(prawne)`, wspólny
+layout z `SiteHeader` + `Stopka`) · `/app` Start (onboarding/hub) · `/app/kreator`
 lista „Moje CV" (+ Dodaj nowe; import CV tylko w edytorze) · `/app/kreator/edytor` edytor ·
 `/app/dopasowania` historia · `/app/dopasowania/[id]` szczegóły (score-breakdown,
 compare, changes, findings, paywall) · `/app/ustawienia`. API: `/api/dopasuj`
@@ -516,6 +557,7 @@ API: `runtime nodejs`, `maxDuration 60`.
 - **Sprawdzanie uprawnień w UI** → `useMaDostepDo`/`useMaSubskrypcje` w `store.ts`; store wypełnia je z bazy przez `pobierzUprawnienia` — nic w UI nie nadaje dostępu
 - **Schemat bazy / RLS / RPC** → `supabase/migrations/` (nowa migracja, nigdy edycja starej) + odświeżenie `src/lib/supabase/typy-bazy.ts`; opis i konfiguracja panelu w `supabase/README.md`
 - **Ustawienia logowania (kod na maila, Google, SMTP, redirecty)** → panel Supabase, NIE migracja — lista kroków w `supabase/README.md`
+- **Dane firmy w dokumentach prawnych i stopce** → `src/lib/prawne/dane.ts` (jedno źródło); treść dokumentów → `src/lib/prawne/{regulamin,polityka-prywatnosci,regulamin-newslettera}.ts`; co jeszcze zostało do wdrożenia → `dokumenty-prawne/WDROZENIE.md`
 
 ## Konwencje i pułapki
 

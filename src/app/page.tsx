@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SiteHeader } from "@/components/site-header";
+import { Stopka } from "@/components/stopka";
 
 const features = [
   {
@@ -142,12 +143,15 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="py-8">
-        <p className="text-center text-xs text-muted-foreground">
-          Aplikando — MVP. Twoje dane nie opuszczają przeglądarki, dopóki
-          nie użyjesz funkcji AI.
-        </p>
-      </footer>
+      {/*
+        Poprzednia stopka głosiła: „Twoje dane nie opuszczają przeglądarki,
+        dopóki nie użyjesz funkcji AI". Po przejściu na Supabase (2026-08-02)
+        to nieprawda — CV zapisane na koncie idzie do bazy przy każdej zmianie.
+        Zdanie o zakresie przetwarzania danych na stronie sprzedażowej to
+        informacja handlowa; niezgodne z Polityką prywatności byłoby ryzykiem
+        wprowadzenia konsumenta w błąd. Prawdziwy opis stoi teraz w Polityce.
+      */}
+      <Stopka />
     </div>
   );
 }
