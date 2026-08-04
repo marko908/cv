@@ -82,42 +82,52 @@ Tego nie da się zrobić migracją SQL:
 
 ## Środowiska (od 2026-08-02)
 
-| | Gałąź | Baza | Stripe |
-| --- | --- | --- | --- |
-| **Produkcja** | `main` | projekt `Aplikando` (zdalny) | live |
-| **Dev / testy** | `dev` | **Supabase lokalnie** (Docker) | sandbox |
+| | Gałąź | Adres | Baza | Stripe |
+| --- | --- | --- | --- | --- |
+| **Produkcja** | `main` | aplikando.pl | projekt `Aplikando` | live |
+| **Testy** | `dev` | `cv-git-dev-….vercel.app` | **ta sama** | sandbox |
 
-Drugiego zdalnego projektu nie zakładamy: darmowy plan Supabase daje 2 projekty
-na osobę i limit jest wyczerpany. Lokalny stack jest za darmo, ma ten sam schemat
-(te same migracje z tego katalogu) i własną skrzynkę na maile, więc testy kont
-i płatności nie dotykają produkcji ani limitu Resend.
+Klucze rozdziela Vercel: zmienne w środowisku **Production** to live, w **Preview**
+to sandbox. Kod nie zna trybu i nie ma go znać — wynika on wyłącznie z użytego
+klucza. Dzięki temu nie da się pomylić środowisk logiką w aplikacji.
 
-### Uruchomienie lokalnej bazy
+**Obie gałęzie korzystają z TEJ SAMEJ bazy** (rezygnacja z osobnego Supabase dla
+dev — darmowy plan daje 2 projekty na osobę i limit jest wyczerpany, a lokalny
+stack wymagałby Dockera). Dlatego `subskrypcja`, `zakup` i `zdarzenie_stripe` mają
+kolumnę `tryb_testowy`, braną wprost z `livemode` zdarzenia Stripe'a. Sprzątanie
+po testach:
 
-Wymaga **Docker Desktop** (jednorazowa instalacja, na Windows z WSL2).
+```sql
+delete from public.zakup where tryb_testowy;
+delete from public.subskrypcja where tryb_testowy;
+delete from public.zdarzenie_stripe where tryb_testowy;
+```
+
+### Cennik w Stripe
 
 ```bash
-npm run db:start
+npm run stripe:produkty
 ```
 
-Komenda wypisze adresy i klucze. Do `.env.local` na czas pracy na `dev` wchodzą
-te lokalne, nie produkcyjne:
+Zakłada produkty i ceny z `subscription.ts` (Start 29/290, Pro 49/490,
+jednorazowo 12 — wszystko PLN brutto) i wypisuje identyfikatory `price_…` gotowe
+do wklejenia w zmienne. Jest **idempotentny** — kolejne uruchomienie niczego nie
+duplikuje, tylko pokazuje to, co już istnieje.
 
-```
-NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<anon key z db:start>
-SUPABASE_SERVICE_ROLE_KEY=<service_role key z db:start>
-```
+Skrypt **odmawia działania na kluczu produkcyjnym**, dopóki nie poda się jawnie
+`-- --produkcja`. Tryb sprawdza przez API (`balance.livemode`), nie po prefiksie
+klucza. Cennik na żywym koncie zakłada się świadomie, nie przez pomyłkę
+w `.env.local`.
 
-Przydatne adresy lokalne: **Studio** `http://localhost:54323` (podgląd danych),
-**skrzynka pocztowa** `http://localhost:54324` (tu lądują kody aktywacyjne).
+### Lokalna baza (opcjonalnie, obecnie nieużywana)
 
-`npm run db:reset` odtwarza bazę od zera ze wszystkich migracji — najszybszy
-sposób, żeby sprawdzić, czy migracje układają się w spójny schemat.
+`supabase/config.toml` i komendy `db:start` / `db:stop` / `db:reset` zostają
+w repo na przyszłość. Wymagają **Docker Desktop**. Dziś ich nie używamy —
+dev i produkcja dzielą jedną bazę zdalną.
 
-**Migracje pisze się raz i stosuje w obu miejscach:** lokalnie przez
-`db:reset`, na produkcji przez `apply_migration`. Nigdy nie edytujemy migracji,
-która już poszła na produkcję — dopisujemy nową.
+**Migracje pisze się raz:** na produkcji przez `apply_migration`, lokalnie (gdy
+kiedyś wróci) przez `db:reset`. Nigdy nie edytujemy migracji, która już poszła
+na produkcję — dopisujemy nową.
 
 ## Migracje
 
