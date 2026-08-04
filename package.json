@@ -20,6 +20,7 @@
     "test:pipeline": "node --env-file=.env.local --import tsx scripts/test-pipeline-live.ts",
     "test:mail": "node --env-file=.env.local --import tsx scripts/test-mail-live.ts",
     "stripe:produkty": "node --env-file=.env.local --import tsx scripts/stripe-produkty.ts",
+    "stripe:synchronizuj": "node --env-file=.env.local --import tsx scripts/stripe-synchronizuj.ts",
     "db:start": "supabase start",
     "db:stop": "supabase stop",
     "db:reset": "supabase db reset",

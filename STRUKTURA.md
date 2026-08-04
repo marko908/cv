@@ -376,6 +376,14 @@ a w env trzymamy wyłącznie identyfikatory cen, bo tylko one różnią się mi�
 sandboxem a produkcją. Kwota w dwóch miejscach prędzej czy później znaczyłaby,
 że cennik pokazuje co innego niż kasa.
 
+**Gdy webhook nie dojdzie: `npm run stripe:synchronizuj`** — czyta subskrypcje
+wprost ze Stripe'a i dopisuje je do bazy, używając TYCH SAMYCH funkcji mapujących
+co webhook (`statusZeStripe`, `planZCeny`), więc nie ma drugiej interpretacji
+statusów. Idempotentny. Powód istnienia: klient zapłacił, a aplikacja o tym nie
+wie — to najgorszy rodzaj błędu, bo dotyka ludzi, którzy właśnie dali nam
+pieniądze. Realny przypadek (2026-08-04): brakowało `STRIPE_WEBHOOK_SECRET` na
+Vercelu, więc trasa zwracała 503, a zdarzenia wisiały w kolejce Stripe'a.
+
 **Panel klienta:** `/api/platnosc/portal` → Billing Portal Stripe'a (zmiana karty,
 faktury, anulowanie). Nie budujemy tego sami — anulowanie i zmiana planu wymagają
 poprawnych rozliczeń proporcjonalnych, a zmiany wracają do nas webhookiem, więc
