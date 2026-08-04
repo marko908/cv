@@ -1,0 +1,170 @@
+import { NextResponse } from "next/server";
+import { klientSerwer } from "@/lib/supabase/klient-serwer";
+import { klientAdmin } from "@/lib/supabase/klient-admin";
+import {
+  czyStripeDostepny,
+  idCenyJednorazowej,
+  idCenySubskrypcji,
+  stripe,
+} from "@/lib/stripe";
+import type { OkresRozliczeniowy, PlanId } from "@/lib/subscription";
+
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
+/**
+ * Rozpoczęcie płatności — zwraca adres, pod który przekierowujemy użytkownika.
+ *
+ * DWIE DROGI, zgodnie z modelem: subskrypcja (Start/Pro × miesiąc/rok) albo
+ * jednorazowe odblokowanie JEDNEGO dopasowania.
+ *
+ * Czego tu świadomie NIE MA:
+ *  - kwot — cena jest po stronie Stripe'a (identyfikator ceny z env). Gdyby
+ *    kwota szła z żądania, klient mógłby ją sobie ustawić;
+ *  - decyzji o dostępie — o tym, że użytkownik zapłacił, dowiadujemy się
+ *    WYŁĄCZNIE z webhooka. Powrót z płatności to tylko przekierowanie
+ *    w przeglądarce i nie jest żadnym dowodem.
+ */
+export async function POST(request: Request) {
+  if (!czyStripeDostepny()) {
+    return NextResponse.json(
+      { ok: false, error: "Płatności nie są jeszcze skonfigurowane." },
+      { status: 503 }
+    );
+  }
+
+  const supabase = await klientSerwer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json(
+      { ok: false, error: "Zaloguj się, żeby dokonać zakupu." },
+      { status: 401 }
+    );
+  }
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json(
+      { ok: false, error: "Nieprawidłowe żądanie." },
+      { status: 400 }
+    );
+  }
+
+  const { rodzaj, plan, okres, dopasowanieId } = (body ?? {}) as {
+    rodzaj?: string;
+    plan?: PlanId;
+    okres?: OkresRozliczeniowy;
+    dopasowanieId?: string;
+  };
+
+  const origin = new URL(request.url).origin;
+
+  try {
+    // Klient Stripe'a jest własnością konta — jeden na użytkownika, żeby
+    // historia płatności i panel klienta trzymały się kupy.
+    const admin = klientAdmin();
+    const { data: profil } = await admin
+      .from("profil")
+      .select("stripe_customer_id, email")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    let customerId = profil?.stripe_customer_id ?? null;
+    if (!customerId) {
+      const customer = await stripe().customers.create({
+        email: profil?.email ?? user.email ?? undefined,
+        // Po tym polu webhook odnajduje konto, nawet gdy zdarzenie nie niesie
+        // naszych metadanych (np. przy zmianach robionych z panelu Stripe'a).
+        metadata: { user_id: user.id },
+      });
+      customerId = customer.id;
+      await admin
+        .from("profil")
+        .update({ stripe_customer_id: customerId })
+        .eq("id", user.id);
+    }
+
+    if (rodzaj === "subskrypcja") {
+      if (!plan || !okres) {
+        return NextResponse.json(
+          { ok: false, error: "Nie wiem, który plan wykupić." },
+          { status: 400 }
+        );
+      }
+
+      const sesja = await stripe().checkout.sessions.create({
+        mode: "subscription",
+        customer: customerId,
+        line_items: [{ price: idCenySubskrypcji(plan, okres), quantity: 1 }],
+        locale: "pl",
+        // Metadane trafiają też do subskrypcji, bo webhook `customer.subscription.*`
+        // nie widzi metadanych sesji checkoutu.
+        subscription_data: { metadata: { user_id: user.id, plan, okres } },
+        metadata: { user_id: user.id, plan, okres },
+        success_url: `${origin}/app/ustawienia?platnosc=ok`,
+        cancel_url: `${origin}/app/ustawienia?platnosc=anulowana`,
+      });
+
+      return NextResponse.json({ ok: true, url: sesja.url });
+    }
+
+    if (rodzaj === "jednorazowo") {
+      if (!dopasowanieId) {
+        return NextResponse.json(
+          { ok: false, error: "Nie wiem, które dopasowanie odblokować." },
+          { status: 400 }
+        );
+      }
+
+      // Dopasowanie MUSI należeć do tego użytkownika — inaczej dałoby się
+      // opłacić cudzy rekord i (po stronie webhooka) nadać sobie do niego dostęp.
+      const { data: dop } = await supabase
+        .from("dopasowanie")
+        .select("id, korzen_id")
+        .eq("id", dopasowanieId)
+        .maybeSingle();
+
+      if (!dop) {
+        return NextResponse.json(
+          { ok: false, error: "Nie znaleziono tego dopasowania." },
+          { status: 404 }
+        );
+      }
+
+      // Kupujemy KORZEŃ łańcucha — dzięki temu przeliczenie po wywiadzie
+      // (nowy rekord zamiast starego) nie odbiera opłaconego dostępu.
+      const korzen = dop.korzen_id ?? dop.id;
+
+      const sesja = await stripe().checkout.sessions.create({
+        mode: "payment",
+        customer: customerId,
+        line_items: [{ price: idCenyJednorazowej(), quantity: 1 }],
+        locale: "pl",
+        payment_intent_data: {
+          metadata: { user_id: user.id, dopasowanie_id: korzen },
+        },
+        metadata: { user_id: user.id, dopasowanie_id: korzen },
+        success_url: `${origin}/app/dopasowania/${dopasowanieId}?platnosc=ok`,
+        cancel_url: `${origin}/app/dopasowania/${dopasowanieId}?platnosc=anulowana`,
+      });
+
+      return NextResponse.json({ ok: true, url: sesja.url });
+    }
+
+    return NextResponse.json(
+      { ok: false, error: "Nieznany rodzaj płatności." },
+      { status: 400 }
+    );
+  } catch (e) {
+    console.error("[checkout]", e);
+    return NextResponse.json(
+      { ok: false, error: "Nie udało się rozpocząć płatności." },
+      { status: 500 }
+    );
+  }
+}

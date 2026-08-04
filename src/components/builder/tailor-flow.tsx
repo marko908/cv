@@ -87,6 +87,7 @@ export function TailorFlow({
     removeTailoring,
     zliczDopasowanie,
     przeniesOdblokowanie,
+    tailorings,
   } = useCvStore();
 
   // Rekord do zastąpienia po przeliczeniu z wywiadu (żeby nie mnożyć historii).
@@ -184,7 +185,20 @@ export function TailorFlow({
       setStep("config");
       return;
     }
-    const { tailoring: t, pytania: p, oferta: o } = res;
+    const { tailoring: surowy, pytania: p, oferta: o } = res;
+
+    // Łańcuch przeliczeń: nowy rekord dziedziczy korzeń po zastępowanym,
+    // a gdy to pierwsze dopasowanie — korzeniem jest on sam (pole zostaje puste).
+    // Po tym korzeniu wiąże się jednorazowy zakup, więc opłacony dostęp przeżywa
+    // wywiad także wtedy, gdy użytkownik wróci do dopasowania z innego urządzenia
+    // (lokalne `przeniesOdblokowanie` działa tylko w tej przeglądarce).
+    const zastepowany = zastapRef.current
+      ? tailorings.find((x) => x.id === zastapRef.current)
+      : undefined;
+    const t: Tailoring = zastepowany
+      ? { ...surowy, korzenId: zastepowany.korzenId ?? zastepowany.id }
+      : surowy;
+
     addTailoring(t);
     // Licznik uczciwego użycia. Przeliczenie po wywiadzie ZASTĘPUJE rekord,
     // ale zużyło osobne wywołania modelu, więc liczy się jak nowe dopasowanie.

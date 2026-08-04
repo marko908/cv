@@ -366,6 +366,41 @@ jak prawdziwa analiza. Mock jest demem przy braku klucza, nie obejściem limitu.
 Zużycie tokenów loguje `zuzycie_ai` (rolą `service_role`, zapis nie może
 wywrócić odpowiedzi); `koszt_usd` zostaje 0 do czasu dodania cennika per model.
 
+**PŁATNOŚCI (Stripe, 2026-08-02):** `src/lib/stripe.ts` (klient TYLKO serwerowy —
+rzuca wyjątkiem w przeglądarce; `idCenySubskrypcji`/`idCenyJednorazowej` czytają
+identyfikatory cen z env, `planZCeny` mapuje z powrotem, `statusZeStripe` tłumaczy
+statusy) · `/api/platnosc/checkout` · `/api/platnosc/webhook`.
+
+**Kwoty NIE są duplikowane w warstwie Stripe** — ceny żyją w `subscription.ts`,
+a w env trzymamy wyłącznie identyfikatory cen, bo tylko one różnią się między
+sandboxem a produkcją. Kwota w dwóch miejscach prędzej czy później znaczyłaby,
+że cennik pokazuje co innego niż kasa.
+
+**DOSTĘP NADAJE WYŁĄCZNIE WEBHOOK.** Powrót z płatności (`success_url`) to zwykłe
+przekierowanie, które da się wpisać ręcznie w pasku adresu — nie jest dowodem
+zapłaty. `subskrypcja` i `zakup` zapisuje tylko webhook rolą `service_role`.
+Idempotencja: wstawienie id zdarzenia do `zdarzenie_stripe` jest bramką (błąd
+`23505` = już obsłużone → 200 i wyjście). Bez tego ponowione zdarzenie —
+a Stripe ponawia po każdym błędzie i timeoucie — zapisałoby drugi zakup za tę
+samą płatność. Błąd naszej bazy zwraca 500, żeby Stripe ponowił; błąd podpisu 400,
+bo ponawianie nieweryfikowalnego żądania nic nie da.
+
+**Pułapka: obiekt zdarzenia siedzi w `zdarzenie.data.object`, nie `zdarzenie.object`**
+(to drugie to literalny string „event"). Rzutowanie go dałoby ciche `undefined`
+w każdym polu — złapane przez `tsc`, nie przez testy.
+
+**Jednorazowy zakup dotyczy KORZENIA łańcucha** (`dopasowanie.korzen_id`), a nie
+konkretnego rekordu: przeliczenie po wywiadzie kasuje stary rekord i tworzy nowy,
+więc zakup przypięty do samego `id` znikałby razem z nim. `tailor-flow` ustawia
+`korzenId` przy zastępowaniu, `repo.ts` go zapisuje. Lokalne `przeniesOdblokowanie`
+zostaje, ale działa tylko w jednej przeglądarce — korzeń działa wszędzie.
+
+**`tryb_testowy` w `subskrypcja`/`zakup`/`zdarzenie_stripe`** — brany wprost
+z `livemode` zdarzenia. Sandbox i produkcja dzielą JEDNĄ bazę (rezygnacja
+z osobnego środowiska dev), więc bez tego pola testowa subskrypcja wygląda
+identycznie jak opłacona. Dostępu nie blokuje (w sandboxie ma działać) — służy
+raportowaniu przychodu i sprzątaniu po testach.
+
 **Stan konta w UI:** `menu-konta.tsx` (`MenuKonta` na dole sidebara — e-mail
 `truncate` + wylogowanie, dla niezalogowanego „Zaloguj się"; `PrzyciskiKontaNaglowek`
 na landingu — „Zaloguj się" obok CTA) · `karta-konta.tsx` (sekcja „Konto"

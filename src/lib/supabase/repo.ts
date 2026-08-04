@@ -89,6 +89,7 @@ export async function pobierzDopasowania(): Promise<Tailoring[]> {
 
   return (data ?? []).map((w) => ({
     id: w.id,
+    korzenId: w.korzen_id ?? undefined,
     createdAt: ms(w.utworzono),
     jobTitle: w.tytul_oferty,
     jobUrl: w.url_oferty,
@@ -111,6 +112,8 @@ export async function zapiszDopasowania(
       pozycje.map((t) => ({
         id: t.id,
         user_id: userId,
+        // Korzeń łańcucha przeliczeń — po nim wiąże się jednorazowy zakup.
+        korzen_id: t.korzenId ?? null,
         tytul_oferty: t.jobTitle,
         url_oferty: t.jobUrl,
         tresc_oferty: t.jobText,

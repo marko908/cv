@@ -171,6 +171,7 @@ export type Database = {
           stripe_customer_id: string
           stripe_status: string | null
           stripe_subscription_id: string
+          tryb_testowy: boolean
           updated_at: string
           user_id: string
           utworzono: string
@@ -185,6 +186,7 @@ export type Database = {
           stripe_customer_id: string
           stripe_status?: string | null
           stripe_subscription_id: string
+          tryb_testowy?: boolean
           updated_at?: string
           user_id: string
           utworzono?: string
@@ -199,6 +201,7 @@ export type Database = {
           stripe_customer_id?: string
           stripe_status?: string | null
           stripe_subscription_id?: string
+          tryb_testowy?: boolean
           updated_at?: string
           user_id?: string
           utworzono?: string
@@ -221,6 +224,7 @@ export type Database = {
           metoda: string | null
           status: Database["public"]["Enums"]["status_zakupu"]
           stripe_payment_intent_id: string
+          tryb_testowy: boolean
           updated_at: string
           user_id: string
           utworzono: string
@@ -233,6 +237,7 @@ export type Database = {
           metoda?: string | null
           status?: Database["public"]["Enums"]["status_zakupu"]
           stripe_payment_intent_id: string
+          tryb_testowy?: boolean
           updated_at?: string
           user_id: string
           utworzono?: string
@@ -245,6 +250,7 @@ export type Database = {
           metoda?: string | null
           status?: Database["public"]["Enums"]["status_zakupu"]
           stripe_payment_intent_id?: string
+          tryb_testowy?: boolean
           updated_at?: string
           user_id?: string
           utworzono?: string
@@ -273,6 +279,7 @@ export type Database = {
           id: string
           payload: Json | null
           przetworzono: string | null
+          tryb_testowy: boolean
           typ: string
           utworzono: string
         }
@@ -281,6 +288,7 @@ export type Database = {
           id: string
           payload?: Json | null
           przetworzono?: string | null
+          tryb_testowy?: boolean
           typ: string
           utworzono?: string
         }
@@ -289,6 +297,7 @@ export type Database = {
           id?: string
           payload?: Json | null
           przetworzono?: string | null
+          tryb_testowy?: boolean
           typ?: string
           utworzono?: string
         }

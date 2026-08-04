@@ -138,6 +138,14 @@ export interface AiMeta {
 /** Zapisane dopasowanie CV do jednej oferty (pozycja historii). */
 export interface Tailoring {
   id: string;
+  /**
+   * Pierwsze dopasowanie w łańcuchu przeliczeń (pusto = ten rekord JEST
+   * pierwszy). Przeliczenie po wywiadzie tworzy nowy rekord i kasuje stary,
+   * więc jednorazowy zakup za 12 zł przypięty do samego `id` znikałby razem
+   * z nim. Zakup wiąże się z korzeniem — dzięki temu skorzystanie z wywiadu
+   * nie odbiera opłaconego dostępu.
+   */
+  korzenId?: string;
   createdAt: number;
   jobTitle: string;
   jobUrl: string;
