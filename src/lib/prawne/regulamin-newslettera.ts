@@ -6,10 +6,22 @@
  * Dane spółki kapitałowej zastąpione danymi JDG (Administrator to przedsiębiorca
  * wpisany do CEIDG — nie ma KRS ani kapitału zakładowego).
  *
- * ⚠️ Publikuj RAZEM z formularzem zapisu do Newslettera. Regulamin bez
- * działającego formularza opisuje usługę, której nie ma; formularz bez
- * regulaminu narusza checklistę prawnika (poz. 3). Wymagania techniczne
- * po stronie kodu: `dokumenty-prawne/WDROZENIE.md`, sekcja „Newsletter".
+ * ⚠️ TEN DOKUMENT NIE JEST OBECNIE PUBLIKOWANY. Newslettera nie ma (decyzja
+ * Marka 2026-08-04: „na razie nie potrzebuję, kiedyś to dodamy"), a regulamin
+ * bez działającego formularza opisywałby usługę, której nie ma — jego § 5
+ * mówi o formularzu zapisu, potwierdzeniu e-mail i linku rezygnacji.
+ * Trasa `/regulamin-newslettera` została z tego powodu usunięta, a odnośnik
+ * zniknął ze stopki. Treść zostaje gotowa do użycia.
+ *
+ * PRZYWRÓCENIE (gdy powstanie formularz zapisu) — cztery kroki:
+ *   1. odtwórz `src/app/(prawne)/regulamin-newslettera/page.tsx`
+ *      (wzór: `regulamin/page.tsx`, podmień import i metadata),
+ *   2. dodaj wpis do `ODNOSNIKI` w `src/components/stopka.tsx`,
+ *   3. przywróć moduł „Umowa o dostarczanie Newslettera" w polityce
+ *      prywatności (cel przetwarzania) i dopisz Newsletter przy Resend
+ *      w tabeli odbiorców,
+ *   4. wykonaj sekcję „Newsletter" w `dokumenty-prawne/WDROZENIE.md`
+ *      (checkbox zgody, link rezygnacji w każdej wysyłce, PDF w potwierdzeniu).
  *
  * Składnia — patrz `regulamin.ts`.
  */

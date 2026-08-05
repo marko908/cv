@@ -20,10 +20,15 @@
 import Link from "next/link";
 import { APLIKACJA, FIRMA, SCIEZKI } from "@/lib/prawne/dane";
 
+/*
+ * Newslettera na razie nie ma (decyzja Marka 2026-08-04: „kiedyś to dodamy"),
+ * więc nie ma tu odnośnika do `SCIEZKI.regulaminNewslettera` — trasa jest
+ * niepublikowana. Gotowa treść czeka w `lib/prawne/regulamin-newslettera.ts`;
+ * przywrócenie = odtworzenie strony + jeden wpis w tej tablicy.
+ */
 const ODNOSNIKI = [
   { href: SCIEZKI.regulamin, etykieta: "Regulamin" },
   { href: SCIEZKI.politykaPrywatnosci, etykieta: "Polityka prywatności" },
-  { href: SCIEZKI.regulaminNewslettera, etykieta: "Regulamin newslettera" },
 ] as const;
 
 export function Stopka() {

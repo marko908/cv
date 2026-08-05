@@ -17,7 +17,7 @@ opublikowany dokument byłby nieprawdziwy albo bezskuteczny.
 
 ### 1. Skrzynka marko@aplikando.pl musi działać
 
-Ten adres stoi w regulaminie, polityce prywatności, regulaminie newslettera
+Ten adres stoi w regulaminie, w polityce prywatności
 **i jako punkt kontaktowy DSA**. Adres, na który nikt nie odbiera, to nie
 formalność: art. 11 DSA wymaga punktu kontaktowego dla organów, a art. 12 —
 dla użytkowników. Do tej skrzynki trafiają też reklamacje (termin 14 dni),
@@ -80,6 +80,12 @@ Masz dwie drogi, obie poprawne:
 Czego **nie** wolno: opublikować polityki opisującej GA4 i wdrożyć GA4 tydzień
 później bez banera. To przetwarzanie bez zgody.
 
+**Ta sama zasada zadziałała już dwa razy przy pisaniu dokumentów** i warto ją
+zapamiętać: dokument opisujący funkcję, której nie ma w kodzie, jest wadliwy
+tak samo jak dokument pomijający funkcję, która jest. Z tego powodu usunięto
+opis rejestracji przez konto Google (odstępstwo nr 23) i cofnięto publikację
+regulaminu newslettera (odstępstwo nr 24).
+
 ---
 
 ## ✅ Zrobione w tym kroku
@@ -88,12 +94,12 @@ później bez banera. To przetwarzanie bez zgody.
 |---|---|---|
 | 1 | Regulamin aplikacji (18 §) | `src/lib/prawne/regulamin.ts` → `/regulamin` |
 | 2 | Polityka prywatności | `src/lib/prawne/polityka-prywatnosci.ts` → `/polityka-prywatnosci` |
-| 3 | Regulamin newslettera | `src/lib/prawne/regulamin-newslettera.ts` → `/regulamin-newslettera` |
+| 3 | Regulamin newslettera — treść gotowa, **publikacja odłożona** (sekcja D) | `src/lib/prawne/regulamin-newslettera.ts` |
 | 4 | Załącznik nr 1 — umowa powierzenia (B2B) + lista podwykonawców | `dokumenty-prawne/zalacznik-1-umowa-powierzenia.md` |
 | 5 | Wzory 4 zgód (checkboxy) | `dokumenty-prawne/wzory-zgod.md` |
 | 6 | Wzory 3 wiadomości o zmianie | `dokumenty-prawne/wzory-wiadomosci-o-zmianie.md` |
 | 7 | Specyfikacja banera cookies + prompt dla agenta | `dokumenty-prawne/specyfikacja-baner-cookies.md` |
-| 8 | Stopka z danymi firmy i odnośnikami | `src/components/stopka.tsx` (landing + podstrony prawne) |
+| 8 | Stopka z danymi firmy i odnośnikami do regulaminu i polityki | `src/components/stopka.tsx` (landing + podstrony prawne) |
 | 9 | Dane firmy jako jedno źródło prawdy | `src/lib/prawne/dane.ts` |
 
 **Poprawione przy okazji:** stopka landingu głosiła *„Twoje dane nie opuszczają
@@ -115,7 +121,7 @@ linkami.
 
 - [ ] **Rejestracja** (`src/components/auth/formularz-auth.tsx`, ekran
       `rejestracja`) — zgoda nr 1 (regulamin + polityka), wymagana. Blokuje
-      przycisk, dopóki niezaznaczona. Dotyczy też rejestracji przez Google.
+      przycisk, dopóki niezaznaczona.
 - [ ] **Zakup subskrypcji i odblokowanie jednorazowe**
       (`src/components/builder/paywall-dialog.tsx` → `/api/platnosc/checkout`) —
       zgoda nr 1 **oraz** zgoda nr 2 (rozpoczęcie świadczenia przed upływem
@@ -133,7 +139,6 @@ linkami.
       `@react-pdf/renderer` — ten sam mechanizm co eksport CV).
 - [ ] Załącznik do maila potwierdzającego **utworzenie konta** oraz
       **zawarcie umowy odpłatnej** (`src/lib/mail.ts`).
-- [ ] Załącznik z regulaminem newslettera do maila potwierdzającego zapis.
 - [ ] W potwierdzeniu zamówienia napisz wprost, że użytkownik udzielił zgody
       nr 2 i jaki jest tego skutek (art. 15 ust. 1 ustawy o prawach konsumenta —
       potwierdzenie na trwałym nośniku domyka utratę prawa odstąpienia).
@@ -145,19 +150,29 @@ linkami.
 - [ ] Po wdrożeniu: usuń komentarz `⚠️ DO DODANIA RAZEM Z BANEREM COOKIES`
       ze `src/components/stopka.tsx` i dodaj przycisk „Ustawienia cookies".
 
-### D. Newsletter
+### D. Newsletter — ODŁOŻONY (decyzja Marka 2026-08-04)
 
-Regulamin newslettera jest opublikowany, ale formularza zapisu nie ma.
+Newslettera na razie nie ma i nie planujemy go teraz. Dlatego **cofnięto jego
+publikację**, żeby żaden opublikowany dokument nie opisywał nieistniejącej usługi:
 
-- [ ] Formularz zapisu (pole e-mail + checkbox zgody nr 3).
-- [ ] Zapis do `profil.zgoda_marketing` (kolumna i grant już istnieją).
+- trasa `/regulamin-newslettera` — usunięta,
+- odnośnik w stopce — usunięty,
+- moduł „Umowa o dostarczanie Newslettera" w polityce prywatności — usunięty
+  (komentarz prawnika nr 20: *„moduł należy usunąć, jeżeli wysyłka Newslettera
+  nie jest prowadzona"*); cele przetwarzania przenumerowano z 12 na 11,
+- wzmianka o Newsletterze przy Resend w tabeli odbiorców — usunięta.
+
+Treść regulaminu **zostaje gotowa** w `src/lib/prawne/regulamin-newslettera.ts`,
+z instrukcją przywrócenia w komentarzu na górze pliku (4 kroki).
+
+Gdy wrócisz do tematu, do zrobienia:
+
+- [ ] Formularz zapisu (pole e-mail + checkbox zgody nr 3 z `wzory-zgod.md`).
+- [ ] Zapis do `profil.zgoda_marketing` (kolumna i grant kolumnowy już istnieją).
 - [ ] **Link rezygnacji w KAŻDYM wysłanym newsletterze** — regulamin § 5 ust. 8
       pkt 1 to obiecuje, a bez tego wysyłka jest niezgodna z prawem.
 - [ ] Mail potwierdzający zapis z regulaminem w PDF.
-
-Do czasu wdrożenia formularza regulamin newslettera opisuje usługę, której nie
-ma. Nie jest to naruszenie (nikt nie może się zapisać), ale wygląda nieporządnie —
-rozważ publikację tej podstrony dopiero razem z formularzem.
+- [ ] Przywrócenie publikacji wg 4 kroków z komentarza w pliku treści.
 
 ### E. Drobne
 
@@ -226,6 +241,8 @@ listę** — to są miejsca, w których warto się upewnić.
 | 20 | § 13 ust. 5: własność intelektualna **nie obejmuje CV użytkownika** | Wzór tego nie mówił wprost, a przy narzędziu do tworzenia dokumentów to pierwsze pytanie, jakie zada rozsądny użytkownik. |
 | 21 | Umowa powierzenia: przetwarzanie **tylko cyfrowe** | Wzór mówił „oraz w formie papierowej". Nieprawda dla Aplikanda. |
 | 22 | Umowa powierzenia: dodano Załącznik nr 2 z listą podwykonawców | Wzór miał ogólną zgodę na podpowierzenie bez listy. Każdy klient B2B i tak o nią zapyta. |
+| 23 | **Usunięto rejestrację przez konto Google** z regulaminu (§ 4) i z polityki (cel nr 1) | Logowania Google **nie ma w kodzie** — zero wywołań `signInWithOAuth` w całym `src/`. Provider jest skonfigurowany po stronie Supabase (`supabase/README.md`, krok 3), ale w UI nie ma przycisku, więc nikt nie może się tak zarejestrować. Po dodaniu przycisku: przywróć ustęp o rejestracji przez Google w § 4, dopisz do polityki (cel nr 1) imię, nazwisko i zdjęcie profilowe z konta Google, oraz przywróć „uwierzytelnianie kontem Google" przy Google w tabeli odbiorców. |
+| 24 | **Cofnięto publikację regulaminu newslettera** i usunięto moduł newslettera z polityki | Newslettera nie ma i nie jest teraz planowany (decyzja Marka 2026-08-04). Szczegóły i instrukcja przywrócenia — sekcja D powyżej. |
 
 ---
 
@@ -258,10 +275,10 @@ Odwzorowanie pliku „4 Checklista wdrożenia - dokumenty SaaS".
 | 1 | Aktywne linki do regulaminu w treści zgód | ⬜ czeka na checkboxy (sekcja A) |
 | 1 | Regulamin w PDF w mailu potwierdzającym | ⬜ sekcja B |
 | 2 | Umowa powierzenia — uzupełnienie wzoru | ✅ + Załącznik nr 2 |
-| 3 | Regulamin newslettera — uzupełnienie | ✅ |
-| 3 | Regulamin newslettera na podstronie | ✅ `/regulamin-newslettera` |
-| 3 | Aktywny link w treści zgody na newsletter | ⬜ czeka na formularz (sekcja D) |
-| 3 | Regulamin newslettera w PDF w mailu | ⬜ sekcja B |
+| 3 | Regulamin newslettera — uzupełnienie | ✅ treść gotowa, publikacja odłożona |
+| 3 | Regulamin newslettera na podstronie | ⏸ odłożone — newslettera nie ma |
+| 3 | Aktywny link w treści zgody na newsletter | ⏸ odłożone (sekcja D) |
+| 3 | Regulamin newslettera w PDF w mailu | ⏸ odłożone (sekcja D) |
 | 4 | Polityka prywatności — uzupełnienie | ✅ |
 | 4 | Polityka na dedykowanej podstronie | ✅ `/polityka-prywatnosci` |
 | 4 | Aktywne linki do polityki w treści zgód | ⬜ sekcja A |
@@ -270,10 +287,10 @@ Odwzorowanie pliku „4 Checklista wdrożenia - dokumenty SaaS".
 | 5 | Aktywne linki we wdrożonych zgodach | ⬜ sekcja A |
 | 5 | Checkboxy domyślnie odznaczone | ⬜ sekcja A |
 | 6 | Zgoda przy formularzu kontaktowym | ⬜ sekcja E (jeśli dotyczy) |
-| 7 | Zgoda marketingowa — uzupełnienie | ✅ treść gotowa |
-| 7 | Zgoda w formularzu zapisu do newslettera | ⬜ sekcja D |
-| 7 | Aktywne linki w zgodzie marketingowej | ⬜ sekcja D |
-| 7 | Checkbox domyślnie odznaczony | ⬜ sekcja D |
+| 7 | Zgoda marketingowa — uzupełnienie | ✅ treść gotowa, wdrożenie odłożone |
+| 7 | Zgoda w formularzu zapisu do newslettera | ⏸ odłożone (sekcja D) |
+| 7 | Aktywne linki w zgodzie marketingowej | ⏸ odłożone (sekcja D) |
+| 7 | Checkbox domyślnie odznaczony | ⏸ odłożone (sekcja D) |
 | — | Zgoda na dostarczanie usługi przed odstąpieniem (Krok V instrukcji) | ⬜ sekcja A |
 
 ---

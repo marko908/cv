@@ -12,16 +12,23 @@
  *   - dane spółki kapitałowej (KRS, kapitał zakładowy) — Administrator to JDG.
  *
  * ⚠️ SYNCHRONIZACJA Z NARZĘDZIAMI ANALITYCZNYMI
- * Sekcja „Pliki cookies" i „Odbiorcy danych osobowych" opisują Google
- * Analytics 4, Meta Pixel i Microsoft Clarity. Te narzędzia są PLANOWANE, nie
- * wdrożone. Politykę publikuj RAZEM z banerem zgód i tymi narzędziami — albo
- * usuń wiersze narzędzi, których ostatecznie nie wdrożysz. Polityka opisująca
- * nieistniejące narzędzia jest tak samo wadliwa jak pomijająca istniejące.
+ * Tabela narzędzi w sekcji „Pliki cookies" NIE jest już wpisana w treść —
+ * generuje ją `TABELA_COOKIES_MD` z `cookies-rejestr.ts`, z tej samej listy,
+ * którą renderuje panel zgód w banerze. Rozjazd między polityką a banerem jest
+ * więc niemożliwy z konstrukcji. Dodanie/usunięcie narzędzia = zmiana WYŁĄCZNIE
+ * w rejestrze (+ podniesienie `WERSJA_ZGODY` w `lib/cookies/zgody.ts`).
+ *
+ * Narzędzia ładują się dopiero po zgodzie właściwej kategorii
+ * (`components/cookies/skrypty-narzedzi.tsx`) i tylko wtedy, gdy w env jest ich
+ * identyfikator. Sekcja „Odbiorcy danych osobowych" wymienia je niezależnie od
+ * tego, czy identyfikator jest już ustawiony — jeżeli któregoś narzędzia
+ * ostatecznie nie wdrożysz, usuń je z rejestru ORAZ z listy odbiorców.
  * Szczegóły: `dokumenty-prawne/WDROZENIE.md`.
  *
  * Składnia — patrz `regulamin.ts`. Dodatkowo tabele w składni „| a | b |".
  */
 
+import { TABELA_COOKIES_MD } from "./cookies-rejestr";
 import {
   ADRES,
   APLIKACJA,
@@ -71,7 +78,7 @@ Korzystanie z Aplikacji wymaga przetwarzania Twoich danych osobowych. Poniżej z
 
 ### 1. Zawarcie i wykonanie Umowy o Konto
 
-**Przetwarzane dane osobowe:** adres poczty elektronicznej; a w przypadku rejestracji przy użyciu konta Google – także imię i nazwisko oraz zdjęcie profilowe udostępnione przez tego dostawcę.
+**Przetwarzane dane osobowe:** adres poczty elektronicznej.
 
 **Podstawa prawna:** art. 6 ust. 1 lit. b RODO (przetwarzanie jest niezbędne do wykonania Umowy o Konto zawartej z osobą, której dane dotyczą, lub podjęcia działań w celu jej zawarcia).
 
@@ -93,15 +100,7 @@ Podanie ww. danych osobowych jest warunkiem wykonania Umowy (ich podanie jest do
 
 Podanie ww. danych jest warunkiem uzyskania dostępu do Usług Płatnych. Administrator będzie przetwarzał ww. dane osobowe przez czas trwania Umowy, a następnie do czasu przedawnienia roszczeń z niej wynikających.
 
-### 4. Zawarcie i wykonanie Umowy o dostarczanie Newslettera
-
-**Przetwarzane dane osobowe:** adres poczty elektronicznej.
-
-**Podstawa prawna:** art. 6 ust. 1 lit. b RODO (przetwarzanie jest niezbędne do wykonania Umowy o dostarczanie Newslettera zawartej z osobą, której dane dotyczą, lub podjęcia działań w celu jej zawarcia) oraz art. 6 ust. 1 lit. f RODO (przetwarzanie jest niezbędne w celu realizacji prawnie uzasadnionego interesu Administratora, w tym przypadku informowania o nowościach i promocjach dostępnych w Aplikacji).
-
-Podanie ww. danych osobowych jest dobrowolne, ale niezbędne w celu otrzymywania Newslettera (konsekwencją ich niepodania będzie niemożność jego otrzymywania). Administrator będzie przetwarzał ww. dane osobowe do czasu skutecznego wniesienia sprzeciwu, rezygnacji z Newslettera lub osiągnięcia celu przetwarzania albo do czasu przedawnienia roszczeń wynikających z Umowy o dostarczanie Newslettera – w zależności od tego, które z wymienionych zdarzeń nastąpi wcześniej.
-
-### 5. Przeprowadzenie postępowania reklamacyjnego
+### 4. Przeprowadzenie postępowania reklamacyjnego
 
 **Przetwarzane dane osobowe:** imię i nazwisko, adres poczty elektronicznej, dane zawarte w treści reklamacji.
 
@@ -109,7 +108,7 @@ Podanie ww. danych osobowych jest dobrowolne, ale niezbędne w celu otrzymywania
 
 Podanie ww. danych osobowych jest warunkiem otrzymania odpowiedzi na reklamację (ich podanie jest dobrowolne, lecz konsekwencją ich niepodania będzie niemożność jej rozpatrzenia). Administrator będzie przetwarzał ww. dane osobowe przez czas postępowania reklamacyjnego, a w wypadku realizacji uprawnień – do czasu ich przedawnienia.
 
-### 6. Rozpatrywanie zgłoszeń treści niedozwolonych i odwołań od decyzji
+### 5. Rozpatrywanie zgłoszeń treści niedozwolonych i odwołań od decyzji
 
 **Przetwarzane dane osobowe:** imię i nazwisko lub nazwa, dane kontaktowe (w tym adres poczty elektronicznej), dane zawarte w treści zgłoszenia lub odwołania.
 
@@ -117,7 +116,7 @@ Podanie ww. danych osobowych jest warunkiem otrzymania odpowiedzi na reklamację
 
 Podanie ww. danych osobowych jest warunkiem rozpatrzenia zgłoszenia lub odwołania (ich podanie jest dobrowolne, lecz konsekwencją ich niepodania będzie niemożność ich rozpatrzenia). Administrator będzie przetwarzał ww. dane przez czas postępowania, a w wypadku realizacji uprawnień – do czasu ich przedawnienia.
 
-### 7. Obsługa zapytań i zgłoszeń błędów
+### 6. Obsługa zapytań i zgłoszeń błędów
 
 **Przetwarzane dane osobowe:** adres poczty elektronicznej, inne dane zawarte w wiadomości do Administratora.
 
@@ -125,7 +124,7 @@ Podanie ww. danych osobowych jest warunkiem rozpatrzenia zgłoszenia lub odwoła
 
 Podanie ww. danych osobowych jest dobrowolne, ale niezbędne w celu otrzymania odpowiedzi (konsekwencją ich niepodania będzie niemożność jej otrzymania). Administrator będzie przetwarzał ww. dane osobowe do czasu skutecznego wniesienia sprzeciwu lub osiągnięcia celu przetwarzania – w zależności od tego, które z wymienionych zdarzeń nastąpi wcześniej.
 
-### 8. Spełnianie obowiązków podatkowych i księgowych
+### 7. Spełnianie obowiązków podatkowych i księgowych
 
 **Przetwarzane dane osobowe:** imię i nazwisko lub firma, adres zamieszkania lub siedziby, NIP (jeżeli został podany), dane o dokonanych transakcjach.
 
@@ -133,7 +132,7 @@ Podanie ww. danych osobowych jest dobrowolne, ale niezbędne w celu otrzymania o
 
 Podanie ww. danych osobowych jest dobrowolne, ale niezbędne w celu spełnienia przez Administratora ciążących na nim obowiązków podatkowych. Administrator będzie przetwarzał ww. dane osobowe przez okres 5 lat od końca roku kalendarzowego, w którym upłynął termin płatności podatku.
 
-### 9. Wypełnienie obowiązków związanych z ochroną danych osobowych
+### 8. Wypełnienie obowiązków związanych z ochroną danych osobowych
 
 **Przetwarzane dane osobowe:** imię i nazwisko, podane przez Ciebie dane kontaktowe (adres poczty elektronicznej, adres do korespondencji), treść zgłoszonego żądania oraz udzielonej odpowiedzi.
 
@@ -141,7 +140,7 @@ Podanie ww. danych osobowych jest dobrowolne, ale niezbędne w celu spełnienia 
 
 Podanie ww. danych osobowych jest dobrowolne, ale niezbędne w celu prawidłowego wykonywania przez Administratora obowiązków wynikających z przepisów o ochronie danych osobowych, m.in. realizacji przyznanych Ci przez RODO uprawnień. Administrator będzie przetwarzał ww. dane osobowe do czasu upływu terminów przedawnienia roszczeń z tytułu naruszenia przepisów o ochronie danych osobowych.
 
-### 10. Ustalenie, dochodzenie lub obrona przed roszczeniami
+### 9. Ustalenie, dochodzenie lub obrona przed roszczeniami
 
 **Przetwarzane dane osobowe:** imię i nazwisko lub firma, adres poczty elektronicznej, adres zamieszkania lub siedziby, NIP, dane o zawartych Umowach i dokonanych płatnościach.
 
@@ -149,7 +148,7 @@ Podanie ww. danych osobowych jest dobrowolne, ale niezbędne w celu prawidłoweg
 
 Podanie ww. danych osobowych jest dobrowolne, ale niezbędne w celu ustalenia, dochodzenia lub obrony przed roszczeniami. Administrator będzie przetwarzał ww. dane osobowe do czasu upływu terminów przedawnienia tych roszczeń.
 
-### 11. Administrowanie Aplikacją i zapewnienie jej bezpieczeństwa
+### 10. Administrowanie Aplikacją i zapewnienie jej bezpieczeństwa
 
 **Przetwarzane dane osobowe:** adres IP, data i czas serwera, informacje o przeglądarce internetowej, informacje o systemie operacyjnym, adres wywoływanego zasobu i kod odpowiedzi serwera. Powyższe dane zapisywane są automatycznie w tzw. logach serwera, przy każdorazowym korzystaniu z Aplikacji (administrowanie nią bez użycia logów serwera i automatycznego zapisu nie byłoby możliwe).
 
@@ -157,7 +156,7 @@ Podanie ww. danych osobowych jest dobrowolne, ale niezbędne w celu ustalenia, d
 
 Podanie ww. danych osobowych jest dobrowolne, ale niezbędne w celu zapewnienia prawidłowego działania Aplikacji. Administrator będzie przetwarzał ww. dane osobowe **przez okres nie dłuższy niż 30 dni**, a w razie wykrycia naruszenia bezpieczeństwa – do czasu jego wyjaśnienia oraz upływu terminów przedawnienia związanych z nim roszczeń.
 
-### 12. Analiza sposobu korzystania z Aplikacji oraz działania marketingowe
+### 11. Analiza sposobu korzystania z Aplikacji oraz działania marketingowe
 
 **Przetwarzane dane osobowe:** identyfikator nadany plikiem cookie lub podobną technologią, adres IP (w postaci skróconej, jeżeli narzędzie na to pozwala), przybliżona lokalizacja, rodzaj urządzenia, systemu operacyjnego i przeglądarki, źródło wejścia do Aplikacji, odwiedzone podstrony, czas spędzony w Aplikacji, kliknięcia i inne zdarzenia dotyczące korzystania z Aplikacji.
 
@@ -169,7 +168,7 @@ Podanie ww. danych osobowych jest całkowicie dobrowolne, a ich niepodanie (odmo
 
 Jeżeli wyrazisz zgodę na marketingowe pliki cookies, Twoje dane osobowe będą przetwarzane w sposób zautomatyzowany, w tym profilowane, w celu stworzenia Twojego profilu na potrzeby marketingu bezpośredniego oraz kierowania do Ciebie reklam dostosowanych do Twoich preferencji. **Nie będzie to wywoływać wobec Ciebie żadnych skutków prawnych ani w podobny sposób istotnie wpływać na Twoją sytuację** – w szczególności nie wpływa na dostępność Usług, ich zakres, cenę ani na warunki zawartej z Tobą Umowy.
 
-Do profilowania wykorzystywane są wyłącznie dane wskazane w pkt 12 powyżej, czyli informacje o sposobie korzystania z Aplikacji. **Do profilowania nie jest wykorzystywana treść Twojego CV, treść ogłoszeń o pracę, które wprowadzasz, ani wyniki Dopasowań.**
+Do profilowania wykorzystywane są wyłącznie dane wskazane w pkt 11 powyżej, czyli informacje o sposobie korzystania z Aplikacji. **Do profilowania nie jest wykorzystywana treść Twojego CV, treść ogłoszeń o pracę, które wprowadzasz, ani wyniki Dopasowań.**
 
 Podstawą prawną profilowania jest art. 6 ust. 1 lit. a RODO (Twoja zgoda). Możesz ją w każdej chwili cofnąć w panelu ustawień plików cookies, dostępnym w stopce Aplikacji – wówczas profilowanie ustanie, a Ty nadal będziesz mógł korzystać z Aplikacji w pełnym zakresie.
 
@@ -181,8 +180,8 @@ Odbiorcami danych osobowych są następujące podmioty zewnętrzne współpracuj
 | Vercel Inc. (USA) | hosting i udostępnianie Aplikacji, analityka ruchu | wszystkie dane przetwarzane w Aplikacji, dane z logów serwera |
 | Supabase Inc. (USA; instancja bazy danych zlokalizowana we Frankfurcie nad Menem, Niemcy) | baza danych, uwierzytelnianie, przechowywanie plików | dane Konta, treść CV, historia Dopasowań, zdjęcia |
 | Stripe Payments Europe, Limited (Irlandia) oraz Stripe, Inc. (USA) | obsługa płatności i subskrypcji | adres e-mail, identyfikatory klienta i subskrypcji, dane transakcji |
-| Google Ireland Limited oraz Google LLC (USA) | modele sztucznej inteligencji (Gemini API), uwierzytelnianie kontem Google, analityka (Google Analytics 4) | treść CV i treść ogłoszenia przekazywane w celu wykonania Dopasowania; dane konta Google przy logowaniu; dane o korzystaniu z Aplikacji |
-| Resend, Inc. (USA) | wysyłka wiadomości e-mail (kody aktywacyjne, powiadomienia, Newsletter) | adres e-mail, treść wiadomości |
+| Google Ireland Limited oraz Google LLC (USA) | modele sztucznej inteligencji (Gemini API), analityka (Google Analytics 4) | treść CV i treść ogłoszenia przekazywane w celu wykonania Dopasowania; dane o korzystaniu z Aplikacji |
+| Resend, Inc. (USA) | wysyłka wiadomości e-mail (kody aktywacyjne, powiadomienia) | adres e-mail, treść wiadomości |
 | Meta Platforms Ireland Limited (Irlandia) | działania marketingowe i pomiar ich skuteczności (Meta Pixel) | dane o korzystaniu z Aplikacji – wyłącznie po wyrażeniu zgody |
 | Microsoft Ireland Operations Limited oraz Microsoft Corporation (USA) | analiza sposobu korzystania z Aplikacji (Microsoft Clarity) | dane o korzystaniu z Aplikacji – wyłącznie po wyrażeniu zgody |
 | Podmiot świadczący usługi księgowe na rzecz Administratora | prowadzenie ksiąg i rozliczenia podatkowe | dane z dokumentów księgowych |
@@ -233,15 +232,7 @@ W związku z przetwarzaniem danych osobowych przysługują Ci następujące upra
 5. **Swoją decyzję możesz zmienić w każdej chwili** – panel ustawień plików cookies jest stale dostępny pod odnośnikiem „Ustawienia cookies" w stopce Aplikacji.
 6. Administrator korzysta z następujących plików cookies i wykorzystujących je narzędzi:
 
-| Narzędzie | Dostawca | Kategoria | Funkcje i zakres pobieranych danych | Okres działania |
-| Cookies uwierzytelniające (sb-…-auth-token) | Administrator / Supabase | niezbędne | Utrzymanie sesji zalogowania. Bez nich niemożliwe jest korzystanie z Konta. Zakres: token sesji, identyfikator użytkownika. | do wylogowania, nie dłużej niż 7 dni |
-| Zapis zgód cookies | Administrator | niezbędne | Zapamiętanie Twojego wyboru w panelu zgód, żeby nie pytać ponownie przy każdej wizycie. Zakres: identyfikator wersji zgody, wybrane kategorie, data wyrażenia. | 12 miesięcy |
-| Dane kreatora CV (pamięć lokalna przeglądarki) | Administrator | niezbędne | Przechowanie CV tworzonego bez zakładania Konta, w pamięci Twojego urządzenia. Dane te nie są wysyłane do Administratora do czasu utworzenia Konta. | do wyczyszczenia danych przeglądarki |
-| Cookies płatności (__stripe_mid, __stripe_sid) | Stripe | niezbędne | Zabezpieczenie procesu płatności przed nadużyciami i powiązanie sesji płatniczej. Zakres: identyfikator urządzenia i sesji płatniczej. | sesyjne oraz do 12 miesięcy |
-| Vercel Analytics / Speed Insights | Vercel | analityczne | Pomiar liczby odwiedzin, źródeł ruchu i wydajności ładowania podstron. Narzędzie działa bez identyfikowania pojedynczych osób. Zakres: adres podstrony, źródło wejścia, rodzaj urządzenia, parametry wydajności. | do 24 godzin (identyfikator wyliczany dziennie, nietrwały) |
-| Google Analytics 4 | Google | analityczne | Zbieranie danych statystycznych o sposobie korzystania z Aplikacji: liczba i czas trwania odwiedzin, źródło wejścia, przybliżona lokalizacja, odwiedzone podstrony, wykonane działania. | do 14 miesięcy lub do momentu ich usunięcia |
-| Microsoft Clarity | Microsoft | analityczne | Analiza zachowania na stronie (mapy kliknięć, nagrania sesji z ukrytą treścią pól tekstowych) w celu wykrywania błędów interfejsu. Zakres: zdarzenia interfejsu, rodzaj urządzenia i przeglądarki. | do 12 miesięcy lub do momentu ich usunięcia |
-| Meta Pixel | Meta Platforms Ireland | marketingowe | Ustalenie, że odwiedziłeś Aplikację, skierowanie do Ciebie reklam wyświetlanych w serwisach Facebook i Instagram oraz mierzenie ich skuteczności. | do 3 miesięcy lub do momentu ich usunięcia |
+${TABELA_COOKIES_MD}
 
 7. **Treść Twojego CV, treść ogłoszeń o pracę oraz wyniki Dopasowań nie są przekazywane do żadnego z narzędzi analitycznych ani marketingowych** wymienionych w tabeli powyżej.
 8. Za pośrednictwem większości powszechnie używanych przeglądarek możesz sprawdzić, czy na Twoim urządzeniu końcowym zostały zainstalowane pliki cookies, jak również usunąć zainstalowane pliki cookies oraz zablokować instalowanie ich w przyszłości przez Aplikację. Wyłączenie lub ograniczenie obsługi niezbędnych plików cookies może jednak spowodować poważne trudności w korzystaniu z Aplikacji, w szczególności brak możliwości zalogowania się na Konto.
