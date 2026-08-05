@@ -9,6 +9,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { CheckboxZgody } from "@/components/prawne/checkbox-zgody";
+import {
+  EtykietaZgodaOdstapienie,
+  EtykietaZgodaRegulamin,
+} from "@/components/prawne/etykiety-zgod";
 import { cn } from "@/lib/utils";
 import {
   CENA_JEDNORAZOWA,
@@ -20,6 +25,46 @@ import {
   type OkresRozliczeniowy,
   type PlanId,
 } from "@/lib/subscription";
+
+/**
+ * Dwa checkboxy wymagane przed KAŻDYM zakupem (Regulamin § 4 ust. 8 pkt 3) —
+ * osobny komponent, bo widok "cennik" i "jednorazowo" pokazują je osobno,
+ * a treść i logika mają być identyczne. `prefiks` różnicuje `id`, żeby
+ * `htmlFor`/`id` się nie powtarzały, gdyby oba widoki kiedyś wylądowały
+ * w DOM naraz.
+ */
+function ZgodyZakupu({
+  zgodaRegulamin,
+  setZgodaRegulamin,
+  zgodaOdstapienie,
+  setZgodaOdstapienie,
+  prefiks,
+}: {
+  zgodaRegulamin: boolean;
+  setZgodaRegulamin: (wartosc: boolean) => void;
+  zgodaOdstapienie: boolean;
+  setZgodaOdstapienie: (wartosc: boolean) => void;
+  prefiks: string;
+}) {
+  return (
+    <div className="space-y-2">
+      <CheckboxZgody
+        id={`${prefiks}-zgoda-regulamin`}
+        zaznaczone={zgodaRegulamin}
+        naZmiane={setZgodaRegulamin}
+      >
+        <EtykietaZgodaRegulamin />
+      </CheckboxZgody>
+      <CheckboxZgody
+        id={`${prefiks}-zgoda-odstapienie`}
+        zaznaczone={zgodaOdstapienie}
+        naZmiane={setZgodaOdstapienie}
+      >
+        <EtykietaZgodaOdstapienie />
+      </CheckboxZgody>
+    </div>
+  );
+}
 
 /**
  * Dwie drogi do dostępu i dwa kroki:
@@ -48,9 +93,24 @@ export function PaywallDialog({
   const [wTrakcie, setWTrakcie] = useState<string | null>(null);
   const [blad, setBlad] = useState("");
 
+  // Dwa checkboxy wymagane przy KAŻDYM zakupie (Regulamin § 4 ust. 8 pkt 3):
+  // regulamin+polityka oraz zgoda na rozpoczęcie usługi przed upływem terminu
+  // na odstąpienie (bez niej dopasowanie za 12 zł dałoby się „zwrócić" po
+  // pobraniu raportu). Domyślnie odznaczone, resetowane przy KAŻDYM zamknięciu
+  // okna — zgoda nie ma prawa „zostać zaznaczona" z poprzedniej wizyty.
+  const [zgodaRegulamin, setZgodaRegulamin] = useState(false);
+  const [zgodaOdstapienie, setZgodaOdstapienie] = useState(false);
+  const zgodyKompletne = zgodaRegulamin && zgodaOdstapienie;
+
+  const resetZgod = () => {
+    setZgodaRegulamin(false);
+    setZgodaOdstapienie(false);
+  };
+
   const zamknij = () => {
     setWidok("cennik");
     setBlad("");
+    resetZgod();
     onOpenChange(false);
   };
 
@@ -65,13 +125,25 @@ export function PaywallDialog({
     klucz: string,
     dane: Record<string, unknown>
   ): Promise<void> => {
+    // Druga linia obrony obok `disabled` na przyciskach — gdyby ktoś jednak
+    // wywołał zakup bez zaznaczonych zgód. Serwer i tak waliduje je jeszcze
+    // raz (`/api/platnosc/checkout` odrzuca żądanie bez obu zgód).
+    if (!zgodyKompletne) {
+      setBlad("Zaznacz obie zgody powyżej, żeby kontynuować.");
+      return;
+    }
     setWTrakcie(klucz);
     setBlad("");
     try {
       const res = await fetch("/api/platnosc/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dane),
+        body: JSON.stringify({
+          ...dane,
+          zgodaRegulamin: true,
+          zgodaOdstapienie: true,
+          zgodaZnacznikCzasu: new Date().toISOString(),
+        }),
       });
       const wynik = await res.json().catch(() => null);
       if (!res.ok || !wynik?.url) {
@@ -105,7 +177,10 @@ export function PaywallDialog({
       setWidok("jednorazowo");
       return;
     }
-    if (!next) setWidok("cennik");
+    if (!next) {
+      setWidok("cennik");
+      resetZgod();
+    }
     onOpenChange(next);
   };
 
@@ -216,7 +291,7 @@ export function PaywallDialog({
                       className="btn-label mt-5 gap-2 font-bold"
                       variant={plan.polecany ? "default" : "secondary"}
                       onClick={() => kupPlan(plan.id)}
-                      disabled={wTrakcie !== null}
+                      disabled={wTrakcie !== null || !zgodyKompletne}
                     >
                       {wTrakcie === plan.id && (
                         <Loader2 className="size-4 animate-spin" />
@@ -230,10 +305,20 @@ export function PaywallDialog({
               </div>
             </div>
 
-            <p className="shrink-0 text-center text-xs text-muted-foreground">
-              Płatność kartą, BLIK-iem lub Przelewami24. Rezygnujesz w każdej
-              chwili — dostęp zostaje do końca opłaconego okresu.
-            </p>
+            <div className="shrink-0 space-y-2 border-t border-border pt-3">
+              <ZgodyZakupu
+                zgodaRegulamin={zgodaRegulamin}
+                setZgodaRegulamin={setZgodaRegulamin}
+                zgodaOdstapienie={zgodaOdstapienie}
+                setZgodaOdstapienie={setZgodaOdstapienie}
+                prefiks="cennik"
+              />
+              {blad && <p className="text-sm text-destructive">{blad}</p>}
+              <p className="text-center text-xs text-muted-foreground">
+                Płatność kartą, BLIK-iem lub Przelewami24. Rezygnujesz
+                w każdej chwili — dostęp zostaje do końca opłaconego okresu.
+              </p>
+            </div>
           </>
         ) : (
           <>
@@ -252,12 +337,19 @@ export function PaywallDialog({
               </p>
             </DialogHeader>
 
-            <div className="flex shrink-0 flex-col gap-2">
+            <div className="flex shrink-0 flex-col gap-3">
+              <ZgodyZakupu
+                zgodaRegulamin={zgodaRegulamin}
+                setZgodaRegulamin={setZgodaRegulamin}
+                zgodaOdstapienie={zgodaOdstapienie}
+                setZgodaOdstapienie={setZgodaOdstapienie}
+                prefiks="jednorazowo"
+              />
               {blad && <p className="text-sm text-destructive">{blad}</p>}
               <Button
                 className="btn-label h-11 w-full gap-2 font-bold"
                 onClick={kupJedno}
-                disabled={wTrakcie !== null}
+                disabled={wTrakcie !== null || !zgodyKompletne}
               >
                 {wTrakcie === "jednorazowo" && (
                   <Loader2 className="size-4 animate-spin" />

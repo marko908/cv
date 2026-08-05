@@ -12,8 +12,39 @@ czynny podatnik VAT, ceny brutto 29 / 49 / 12 zł.
 
 ## ⛔ BLOKERY — załatw PRZED publikacją
 
-Bez tych czterech rzeczy nie publikuj dokumentów. Każda z nich powoduje, że
-opublikowany dokument byłby nieprawdziwy albo bezskuteczny.
+Bez tych pięciu rzeczy nie publikuj dokumentów ani nie włączaj płatności na
+produkcji. Każda z nich powoduje, że opublikowany dokument byłby nieprawdziwy,
+bezskuteczny, albo że mechanizm zgód po prostu nic by nie zapisywał.
+
+### 0. Zastosuj migrację `20260805103000_zgody.sql` — checkboxy nie zadziałają bez niej
+
+Tabela `zgoda` (dziennik dowodowy zgód — sekcja A niżej) jest opisana w
+`supabase/migrations/20260805103000_zgody.sql`, ale **nie została jeszcze
+zastosowana do bazy** — w tamtej sesji tunel do Supabase (MCP) nie miał
+uprawnień do wykonania migracji ani do odczytania listy zastosowanych
+migracji. `src/lib/supabase/typy-bazy.ts` zawiera już ręcznie dopisane typy
+dla tej tabeli (oznaczone komentarzem na górze pliku), więc **kod się
+kompiluje i wygląda na gotowy — ale zapisy do `zgoda` będą realnie zawodzić**,
+dopóki migracja nie zostanie zastosowana. Dzięki temu, że `zapiszZgode()`
+nigdy nie rzuca (patrz `src/lib/prawne/zapis-zgody.ts`), rejestracja i zakup
+będą działać normalnie, tylko dziennik zgód zostanie pusty — błąd wyląduje
+w logach serwera, nie u użytkownika. Nie polegaj na tym stanie dłużej niż
+do najbliższego wdrożenia.
+
+Zastosuj jednym z trzech sposobów:
+
+- **Supabase CLI** (jeśli masz go podłączonego do projektu): `supabase db push`
+  z katalogu `cv-copilot/`.
+- **SQL Editor w panelu Supabase**: Dashboard → SQL Editor → wklej całą treść
+  pliku migracji → Run.
+- **Ponownie przez Claude**, w sesji, w której narzędzia MCP Supabase mają
+  uprawnienia do zapisu (poprzednia sesja miała dostęp tylko do części
+  narzędzi — `list_migrations` i `get_project_url` zwracały błąd uprawnień).
+
+Po zastosowaniu **odśwież `typy-bazy.ts` normalnie** (Supabase MCP
+`generate_typescript_types` albo
+`npx supabase gen types typescript --project-id urjpluqutufsgkzysazq`) — nadpisze
+ręczny wpis identyczną treścią, więc regenerowanie jest bezpieczne.
 
 ### 1. Skrzynka marko@aplikando.pl musi działać
 
@@ -107,6 +138,10 @@ regulaminu newslettera (odstępstwo nr 24).
 | 8 | Mechanizm zgód cookies w kodzie (baner, panel, Consent Mode v2, kasowanie plików, rejestr narzędzi) | `src/lib/cookies/`, `src/components/cookies/`, `src/lib/prawne/cookies-rejestr.ts` |
 | 9 | Stopka z danymi firmy, odnośnikami i przyciskiem „Ustawienia cookies” | `src/components/stopka.tsx` (landing + podstrony prawne) |
 | 10 | Dane firmy jako jedno źródło prawdy | `src/lib/prawne/dane.ts` |
+| 11 | Checkboxy zgód przy rejestracji i przy zakupie (dwie zgody, oba przyciski zakupu) | `formularz-auth.tsx`, `paywall-dialog.tsx`, `components/prawne/{etykiety-zgod,checkbox-zgody}.tsx`, `components/ui/checkbox.tsx` |
+| 12 | Dziennik zgód w bazie (tabela `zgoda`, niezmienny, RLS) — **migracja jeszcze niezastosowana, patrz bloker 0** | `supabase/migrations/20260805103000_zgody.sql`, `src/lib/prawne/zapis-zgody.ts` |
+| 13 | Walidacja zgód po stronie serwera przy zakupie | `src/app/api/platnosc/checkout/route.ts` |
+| 14 | Instrukcja konfiguracji GTM od zera (kroki 1–10, z tabelą kontrolną tagów) | `dokumenty-prawne/instrukcja-gtm.md` |
 
 **Poprawione przy okazji:** stopka landingu głosiła *„Twoje dane nie opuszczają
 przeglądarki, dopóki nie użyjesz funkcji AI"*. Po przejściu na Supabase
@@ -120,24 +155,38 @@ prywatności byłaby ryzykiem wprowadzenia konsumenta w błąd.
 
 Kolejność od najpilniejszego.
 
-### A. Checkboxy zgód (checklista prawnika, poz. 5 i 7)
+### A. Checkboxy zgód — ZROBIONE (checklista prawnika, poz. 5 i 7)
 
-Treści gotowe w `wzory-zgod.md`. Wszystkie domyślnie odznaczone, z aktywnymi
-linkami.
+Treści z `wzory-zgod.md`, jedno źródło (`components/prawne/etykiety-zgod.tsx`)
+używane w obu miejscach, żeby brzmienie nigdy się nie rozjechało. Checkbox
+UI: `components/ui/checkbox.tsx` (shadcn/radix-nova, ten sam wzorzec co
+`switch.tsx`). Wszystkie **domyślnie odznaczone**, z aktywnymi linkami
+(`target="_blank"`, żeby kliknięcie nie skasowało wypełnianego formularza).
 
-- [ ] **Rejestracja** (`src/components/auth/formularz-auth.tsx`, ekran
-      `rejestracja`) — zgoda nr 1 (regulamin + polityka), wymagana. Blokuje
-      przycisk, dopóki niezaznaczona.
-- [ ] **Zakup subskrypcji i odblokowanie jednorazowe**
-      (`src/components/builder/paywall-dialog.tsx` → `/api/platnosc/checkout`) —
-      zgoda nr 1 **oraz** zgoda nr 2 (rozpoczęcie świadczenia przed upływem
-      terminu na odstąpienie). Dwa osobne checkboxy.
-- [ ] **Utrwalenie zgody nr 2** — bez tego jest bezskuteczna. Zapisz fakt,
-      wersję treści i znacznik czasu przy rekordzie `zakup` / `subskrypcja`
-      (albo w `metadata` sesji Stripe, skąd webhook przeniesie to do bazy).
-- [ ] **Zapis zgód w bazie** — art. 7 ust. 1 RODO nakłada na Ciebie ciężar
-      dowodu, że zgoda została udzielona. Potrzebna tabela albo kolumny:
-      identyfikator użytkownika, rodzaj zgody, wersja treści, data i godzina.
+- [x] **Rejestracja** (`formularz-auth.tsx`, ekran `rejestracja`) — zgoda
+      regulamin+polityka, wymagana. Przycisk „Załóż konto” jest `disabled`
+      bez niej (plus walidacja w `zarejestruj()` jako druga linia obrony).
+      Działa identycznie w modalu (`AuthDialog`) i na pełnej trasie
+      (`StronaAuth`) — jedna implementacja formularza, patrz komentarz na
+      górze pliku.
+- [x] **Zakup subskrypcji i odblokowanie jednorazowe**
+      (`paywall-dialog.tsx`) — DWA osobne checkboxy (`ZgodyZakupu`): zgoda
+      regulamin+polityka ORAZ zgoda na rozpoczęcie usługi przed upływem
+      terminu na odstąpienie. Gatują OBA przyciski zakupu (plan i down-sell
+      12 zł). Resetowane do stanu odznaczonego przy każdym zamknięciu okna
+      (`resetZgod()`) — zgoda nie „zostaje zaznaczona” z poprzedniej wizyty.
+- [x] **Utrwalenie zgody nr 2** — `/api/platnosc/checkout` odrzuca żądanie
+      (400) bez obu zgód, niezależnie od stanu UI — druga linia obrony na
+      wypadek uderzenia w trasę z pominięciem przycisków. Znacznik czasu
+      rzeczywistego zaznaczenia leci z klienta (`zgodaZnacznikCzasu`), nie
+      jest liczony dopiero na serwerze.
+- [x] **Zapis zgód w bazie** — tabela `zgoda` (`user_id`, `rodzaj`,
+      `wersja_dokumentow`, `kontekst`, `udzielono_o`), niezmienny dziennik
+      (bez UPDATE/DELETE nawet dla właściciela). Zapisuje
+      `src/lib/prawne/zapis-zgody.ts` — **nigdy nie rzuca** (wzorzec
+      z `lib/mail.ts`): awaria zapisu loguje błąd, ale nie blokuje
+      rejestracji ani zakupu. **Migracja jeszcze nie zastosowana do bazy —
+      patrz bloker nr 0 wyżej.**
 
 ### B. Regulamin w PDF w mailu potwierdzającym (checklista prawnika, poz. 1 i 3)
 
@@ -162,16 +211,27 @@ Google Tag Managera. Kontener ładuje się dopiero po zgodzie na co najmniej
 jedną kategorię opcjonalną — kto odrzuci wszystko, nie wyśle do Google ani
 jednego żądania.
 
-Zostało:
+**Nie masz jeszcze konta GTM ani żadnego tagu (stan na 2026-08-05).** Pełna
+instrukcja od zera, krok po kroku, z dokładnymi ścieżkami klikania:
+**`dokumenty-prawne/instrukcja-gtm.md`**. Skrót tego, co tam jest:
 
-- [ ] **Konfiguracja panelu GTM** — lista kroków w `specyfikacja-baner-cookies.md`,
-      sekcja 5. Krytyczne: **Meta Pixel i Clarity nie respektują Consent Mode**,
-      więc każdy z nich musi mieć w GTM ustawione „Dodatkowe sprawdzenia zgody”
-      (`ad_storage` dla Meta, `analytics_storage` dla Clarity). Bez tego odpalą
-      się mimo odmowy — poprawny baner tego nie uratuje.
-- [ ] `NEXT_PUBLIC_GTM_ID` w env na Vercelu (Preview + Production).
-- [ ] **Weryfikacja** — sekcja 6 specyfikacji. Najważniejszy test to wybór
-      mieszany: analityczne TAK, marketingowe NIE → `_ga` jest, `_fbp` nie ma.
+- [ ] Konto + kontener Web w GTM, identyfikator `GTM-XXXXXXX`.
+- [ ] `NEXT_PUBLIC_GTM_ID` w env na Vercelu — **TYLKO Production, nie
+      Preview** (instrukcja, krok 0): inaczej każde kliknięcie w test na
+      preview leci do tych samych danych GA4/Meta co ruch prawdziwych
+      użytkowników, ten sam problem co bez `tryb_testowy` przy Stripe.
+- [ ] Tag GA4 (typ „Google Tag” — respektuje Consent Mode automatycznie,
+      bez ręcznych ustawień zgody).
+- [ ] Tag Microsoft Clarity — **⚠️ Additional Consent Checks →
+      `analytics_storage`**, bo Clarity NIE respektuje Consent Mode samo
+      z siebie.
+- [ ] Tag Meta Pixel — **⚠️ Additional Consent Checks → `ad_storage`**
+      (ten sam powód), plus wyzwalacz History Change dla `PageView` przy
+      nawigacji w aplikacji jednostronicowej.
+- [ ] **Weryfikacja w trybie Preview/Debug GTM PRZED publikacją** —
+      instrukcja, krok 8; pełna checklista też w `specyfikacja-baner-cookies.md`,
+      sekcja 6. Najważniejszy test to wybór mieszany: analityczne TAK,
+      marketingowe NIE → `_ga` jest, `_fbp` nie ma.
 - [ ] **Zasada organizacyjna:** nowy tag w GTM = wpis w `cookies-rejestr.ts`
       + podniesienie `WERSJA_ZGODY` + dopiero potem publikacja kontenera.
       Od wpięcia GTM dodanie narzędzia przestało być commitem, więc kod już
@@ -300,7 +360,7 @@ Odwzorowanie pliku „4 Checklista wdrożenia - dokumenty SaaS".
 |---|---|---|
 | 1 | Uzupełnienie wzoru regulaminu | ✅ |
 | 1 | Regulamin na dedykowanej podstronie | ✅ `/regulamin` |
-| 1 | Aktywne linki do regulaminu w treści zgód | ⬜ czeka na checkboxy (sekcja A) |
+| 1 | Aktywne linki do regulaminu w treści zgód | ✅ sekcja A |
 | 1 | Regulamin w PDF w mailu potwierdzającym | ⬜ sekcja B |
 | 2 | Umowa powierzenia — uzupełnienie wzoru | ✅ + Załącznik nr 2 |
 | 3 | Regulamin newslettera — uzupełnienie | ✅ treść gotowa, publikacja odłożona |
@@ -309,17 +369,17 @@ Odwzorowanie pliku „4 Checklista wdrożenia - dokumenty SaaS".
 | 3 | Regulamin newslettera w PDF w mailu | ⏸ odłożone (sekcja D) |
 | 4 | Polityka prywatności — uzupełnienie | ✅ |
 | 4 | Polityka na dedykowanej podstronie | ✅ `/polityka-prywatnosci` |
-| 4 | Aktywne linki do polityki w treści zgód | ⬜ sekcja A |
-| 4 | Mechanizm informowania o cookies | ⬜ sekcja C |
-| 5 | Zgoda na regulamin i politykę w formularzach | ⬜ sekcja A |
-| 5 | Aktywne linki we wdrożonych zgodach | ⬜ sekcja A |
-| 5 | Checkboxy domyślnie odznaczone | ⬜ sekcja A |
+| 4 | Aktywne linki do polityki w treści zgód | ✅ sekcja A |
+| 4 | Mechanizm informowania o cookies | ✅ kod gotowy, czeka na konfigurację GTM (sekcja C) |
+| 5 | Zgoda na regulamin i politykę w formularzach | ✅ sekcja A (rejestracja + zakup) |
+| 5 | Aktywne linki we wdrożonych zgodach | ✅ sekcja A |
+| 5 | Checkboxy domyślnie odznaczone | ✅ sekcja A |
 | 6 | Zgoda przy formularzu kontaktowym | ⬜ sekcja E (jeśli dotyczy) |
 | 7 | Zgoda marketingowa — uzupełnienie | ✅ treść gotowa, wdrożenie odłożone |
 | 7 | Zgoda w formularzu zapisu do newslettera | ⏸ odłożone (sekcja D) |
 | 7 | Aktywne linki w zgodzie marketingowej | ⏸ odłożone (sekcja D) |
 | 7 | Checkbox domyślnie odznaczony | ⏸ odłożone (sekcja D) |
-| — | Zgoda na dostarczanie usługi przed odstąpieniem (Krok V instrukcji) | ⬜ sekcja A |
+| — | Zgoda na dostarczanie usługi przed odstąpieniem (Krok V instrukcji) | ✅ sekcja A |
 
 ---
 

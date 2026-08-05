@@ -5,7 +5,10 @@ import { ArrowLeft, Loader2, MailCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CheckboxZgody } from "@/components/prawne/checkbox-zgody";
+import { EtykietaZgodaRegulamin } from "@/components/prawne/etykiety-zgod";
 import { klientPrzegladarka } from "@/lib/supabase/klient-przegladarka";
+import { zapiszZgode } from "@/lib/prawne/zapis-zgody";
 
 /**
  * FORMULARZ KONTA — jeden komponent na wszystkie ekrany: rejestrację,
@@ -115,6 +118,18 @@ export function FormularzAuth({
   const [info, setInfo] = useState("");
   const [odliczanie, setOdliczanie] = useState(0);
 
+  // Zgoda na Regulamin i Politykę prywatności — wymagana do rejestracji
+  // (Regulamin § 4 ust. 2 pkt 3). Domyślnie odznaczona: użytkownik musi
+  // zaznaczyć ją sam.
+  const [zgodaRegulamin, setZgodaRegulamin] = useState(false);
+  // Moment RZECZYWISTEGO zaznaczenia — złapany przy submicie formularza.
+  // Gdy rejestracja wymaga potwierdzenia kodem z maila, wiersz w tabeli
+  // `zgoda` powstaje dopiero PO potwierdzeniu, ale ma nosić czas zgody,
+  // nie czas zapisu (mogą dzielić je sekundy albo minuty).
+  const [znacznikZgodyRejestracji, setZnacznikZgodyRejestracji] = useState<
+    string | null
+  >(null);
+
   useEffect(() => {
     onEkran?.(ekran);
     // `onEkran` celowo poza zależnościami: rodzic zwykle przekazuje świeżą
@@ -144,6 +159,13 @@ export function FormularzAuth({
       setBlad(`Hasło musi mieć co najmniej ${MIN_HASLO} znaków.`);
       return;
     }
+    // Druga linia obrony obok `disabled` na przycisku — gdyby ktoś jednak
+    // wysłał formularz bez zgody (np. programowo).
+    if (!zgodaRegulamin) {
+      setBlad("Zaznacz zgodę na Regulamin i Politykę prywatności.");
+      return;
+    }
+    const znacznik = new Date().toISOString();
     zacznij();
     const { data, error } = await supabase.auth.signUp({ email, password: haslo });
     setZajete(false);
@@ -159,9 +181,22 @@ export function FormularzAuth({
       return setBlad("Konto z tym adresem już istnieje — zaloguj się.");
     }
 
-    // Gdy potwierdzanie maila jest wyłączone, sesja jest od razu.
-    if (data.session) return onSukces?.();
+    // Gdy potwierdzanie maila jest wyłączone, sesja jest od razu — możemy
+    // zapisać zgodę już teraz, `auth.uid()` w RLS zobaczy świeżą sesję.
+    if (data.session && data.user) {
+      await zapiszZgode({
+        klient: supabase,
+        userId: data.user.id,
+        rodzaj: "regulamin_polityka",
+        kontekst: "rejestracja",
+        udzielonoO: znacznik,
+      });
+      return onSukces?.();
+    }
 
+    // Sesji jeszcze nie ma — zapiszemy zgodę po potwierdzeniu kodu, ale ze
+    // znacznikiem czasu z TEJ chwili, nie z chwili zapisu.
+    setZnacznikZgodyRejestracji(znacznik);
     setOdliczanie(ODSTEP_S);
     setEkran("kod-rejestracji");
   }
@@ -169,13 +204,23 @@ export function FormularzAuth({
   async function potwierdzKod(e: React.FormEvent) {
     e.preventDefault();
     zacznij();
-    const { error } = await supabase.auth.verifyOtp({
+    const { data, error } = await supabase.auth.verifyOtp({
       email,
       token: kod.trim(),
       type: "signup",
     });
     setZajete(false);
     if (error) return setBlad(poPolsku(error.message));
+
+    if (data.user) {
+      await zapiszZgode({
+        klient: supabase,
+        userId: data.user.id,
+        rodzaj: "regulamin_polityka",
+        kontekst: "rejestracja",
+        udzielonoO: znacznikZgodyRejestracji ?? undefined,
+      });
+    }
     onSukces?.();
   }
 
@@ -269,9 +314,17 @@ export function FormularzAuth({
     </>
   );
 
-  function przyciskGlowny(etykieta: string, wTrakcie: string) {
+  function przyciskGlowny(
+    etykieta: string,
+    wTrakcie: string,
+    dodatkowoWylaczony = false
+  ) {
     return (
-      <Button type="submit" className="btn-label w-full font-bold" disabled={zajete}>
+      <Button
+        type="submit"
+        className="btn-label w-full font-bold"
+        disabled={zajete || dodatkowoWylaczony}
+      >
         {zajete && <Loader2 className="size-4 animate-spin" />}
         {zajete ? wTrakcie : etykieta}
       </Button>
@@ -432,10 +485,21 @@ export function FormularzAuth({
         />
       </div>
 
+      {rejestracja && (
+        <CheckboxZgody
+          id="auth-zgoda-regulamin"
+          zaznaczone={zgodaRegulamin}
+          naZmiane={setZgodaRegulamin}
+        >
+          <EtykietaZgodaRegulamin />
+        </CheckboxZgody>
+      )}
+
       {komunikaty}
       {przyciskGlowny(
         rejestracja ? "Załóż konto" : "Zaloguj się",
-        rejestracja ? "Zakładam konto…" : "Loguję…"
+        rejestracja ? "Zakładam konto…" : "Loguję…",
+        rejestracja && !zgodaRegulamin
       )}
 
       <p className="text-center text-sm text-muted-foreground">

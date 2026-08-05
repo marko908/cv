@@ -510,22 +510,56 @@ a `eksportuj_moje_dane` nie ma przycisku w UI (dokument opisuje eksport na
 
 Dokumenty NIEpublikowane, w `dokumenty-prawne/` (poza `src`): umowa powierzenia
 B2B + lista podwykonawców · wzory 4 zgód · wzory 3 wiadomości o zmianie ·
-specyfikacja banera cookies z gotowym promptem · **`WDROZENIE.md`** = checklista
-prawnika + 22 odstępstwa od wzoru z uzasadnieniem + blokery przed publikacją.
+specyfikacja zgód na cookies · **`instrukcja-gtm.md`** = konfiguracja Google
+Tag Managera od zera, krok po kroku (konto nie jest jeszcze założone) ·
+**`WDROZENIE.md`** = checklista prawnika + 25 odstępstw od wzoru z uzasadnieniem
++ blokery przed publikacją.
 
-**Blokery odnotowane w `WDROZENIE.md`** (nie są zrobione): skrzynka
-marko@aplikando.pl musi działać (jest punktem kontaktowym DSA) · tier Gemini API
-musi być PŁATNY, bo darmowy trenuje na danych, a dokumenty stwierdzają, że nie ·
-umowy powierzenia z dostawcami (art. 28 RODO) · konfiguracja panelu GTM, patrz
-niżej.
+**Zgody użytkownika (checkboxy, od 2026-08-05).** Dwie zgody z Regulaminu —
+regulamin+polityka (§ 4 ust. 2 pkt 3) i usługa przed upływem terminu na
+odstąpienie (§ 4 ust. 8 pkt 3, § 8 ust. 5) — mają wspólną treść
+w `components/prawne/etykiety-zgod.tsx` i wspólny wiersz-komponent
+`components/prawne/checkbox-zgody.tsx`, na `components/ui/checkbox.tsx`
+(shadcn/radix-nova, ten sam wzorzec `data-checked`/`data-unchecked` co
+`switch.tsx`). **Rejestracja** (`formularz-auth.tsx`, wspólna dla modalu
+i pełnej trasy) wymaga pierwszej zgody, blokuje „Załóż konto" bez niej.
+**Zakup** (`paywall-dialog.tsx`, komponent `ZgodyZakupu`) wymaga OBU, gatuje
+oba przyciski zakupu (plan i down-sell 12 zł), resetuje stan przy każdym
+zamknięciu okna — zgoda nie ma prawa „zostać zaznaczona" z poprzedniej wizyty.
+`/api/platnosc/checkout` waliduje obie zgody SERWEROWO (400 bez nich)
+niezależnie od stanu UI — druga linia obrony na wypadek uderzenia w trasę
+z pominięciem przycisków.
+
+**Dziennik dowodowy zgód** (art. 7 ust. 1 RODO — ciężar dowodu, że zgoda
+została udzielona, spoczywa na administratorze) — tabela `zgoda`
+(`supabase/migrations/20260805103000_zgody.sql`): `user_id`, `rodzaj`
+(`regulamin_polityka` | `usluga_przed_odstapieniem`), `wersja_dokumentow`,
+`kontekst` (np. `rejestracja`, `zakup_subskrypcja:pro:rok`), `udzielono_o`
+(czas RZECZYWISTEGO zaznaczenia, dostarczany przez klienta — może różnić się
+od czasu zapisu, gdy rejestracja czeka na kod z maila). Niezmienny dziennik:
+bez UPDATE/DELETE nawet dla właściciela wiersza; `on delete set null`, nie
+`cascade` — dowód zgody musi przetrwać dłużej niż samo konto. Zapisuje
+`src/lib/prawne/zapis-zgody.ts` — **NIGDY nie rzuca** (wzorzec `lib/mail.ts`):
+awaria zapisu loguje błąd, ale nie blokuje rejestracji ani zakupu.
+**⚠️ Migracja jeszcze NIEzastosowana do bazy** (sesja bez uprawnień MCP do
+zapisu) — `typy-bazy.ts` ma ręcznie dopisane typy dla tej tabeli, oznaczone
+komentarzem na górze pliku; do czasu zastosowania migracji zapisy do `zgoda`
+będą cicho zawodzić (logi serwera, nie błąd u użytkownika).
+
+**Blokery odnotowane w `WDROZENIE.md`** (nie są zrobione): migracja zgód
+niezastosowana do bazy (wyżej) · skrzynka marko@aplikando.pl musi działać
+(jest punktem kontaktowym DSA) · tier Gemini API musi być PŁATNY, bo darmowy
+trenuje na danych, a dokumenty stwierdzają, że nie · umowy powierzenia
+z dostawcami (art. 28 RODO) · konfiguracja panelu GTM od zera, patrz niżej.
 
 ## Zgody na cookies i narzędzia analityczne (od 2026-08-05)
 
 Własny mechanizm zgód na shadcn/radix — **żadnej zewnętrznej platformy CMP**
 (Cookiebot/Osano). Podstawa prawna: art. 398 ustawy z 12 lipca 2024 r. – Prawo
 komunikacji elektronicznej (zastąpił art. 173 Prawa telekomunikacyjnego).
-Pełne wymagania i checklista konfiguracji panelu GTM:
-`dokumenty-prawne/specyfikacja-baner-cookies.md`.
+Pełne wymagania prawne i architektura: `dokumenty-prawne/specyfikacja-baner-cookies.md`.
+Konfiguracja panelu GTM od zera (konto jeszcze nie istnieje), krok po kroku:
+`dokumenty-prawne/instrukcja-gtm.md`.
 
 **`src/lib/prawne/cookies-rejestr.ts` = JEDNO ŹRÓDŁO listy narzędzi.** Zasila
 JEDNOCZEŚNIE tabelę w Polityce prywatności (`TABELA_COOKIES_MD` jest wstawiane
@@ -657,6 +691,8 @@ API: `runtime nodejs`, `maxDuration 60`.
 - **Lista narzędzi cookies (tabela w polityce ORAZ panel zgód)** → `src/lib/prawne/cookies-rejestr.ts` — jedno źródło, plus PODNIESIENIE `WERSJA_ZGODY` w `src/lib/cookies/zgody.ts`
 - **Dodanie/zamiana narzędzia analitycznego lub marketingowego** → wpis w rejestrze + hook ładujący w `src/components/cookies/skrypty-narzedzi.tsx` + identyfikator w env; nigdy import skryptu poza tym plikiem
 - **Treść banera, przyciski, kategorie** → `src/components/cookies/{baner-cookies,panel-cookies}.tsx`
+- **Treść dwóch checkboxów zgody (regulamin+polityka, usługa przed odstąpieniem)** → `src/components/prawne/etykiety-zgod.tsx` — jedno źródło dla rejestracji i zakupu, zmień w OBU miejscach zgodnie z Regulaminem, jeśli zmieniasz brzmienie
+- **Dziennik zgód (tabela `zgoda`)** → `supabase/migrations/20260805103000_zgody.sql` (schemat+RLS) + `src/lib/prawne/zapis-zgody.ts` (zapis, nigdy nie rzuca); wywołania w `formularz-auth.tsx` i `/api/platnosc/checkout`
 
 ## Konwencje i pułapki
 

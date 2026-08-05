@@ -5,6 +5,13 @@
  * z aktualnego stanu bazy (Supabase MCP `generate_typescript_types` albo
  * `npx supabase gen types typescript --project-id urjpluqutufsgkzysazq`).
  *
+ * ⚠️ Blok `zgoda` / `rodzaj_zgody` (2026-08-05) jest dopisany RĘCZNIE, bo tunel
+ * do Supabase w tamtej sesji nie miał uprawnień do zastosowania migracji
+ * (`supabase/migrations/20260805103000_zgody.sql` istnieje, ale NIE została
+ * jeszcze zastosowana do bazy). Zastosuj ją, a potem odśwież ten plik
+ * normalnym poleceniem z akapitu wyżej — nadpisze ten ręczny wpis identyczną
+ * treścią, więc regenerowanie jest bezpieczne.
+ *
  * Uwaga: `tresc`, `cv_bazowe`, `cv_dopasowane` i `ai_meta` mają tu typ `Json`,
  * bo baza zna tylko JSONB. Prawdziwym kontraktem tych kolumn jest `TailoredCv`
  * i `AiMeta` — przy odczycie przepuszczaj je przez Zoda z `cv-schema.ts`,
@@ -402,6 +409,44 @@ export type Database = {
           },
         ]
       }
+      zgoda: {
+        Row: {
+          id: string
+          kontekst: string
+          rodzaj: Database["public"]["Enums"]["rodzaj_zgody"]
+          udzielono_o: string
+          user_id: string | null
+          utworzono: string
+          wersja_dokumentow: string
+        }
+        Insert: {
+          id?: string
+          kontekst: string
+          rodzaj: Database["public"]["Enums"]["rodzaj_zgody"]
+          udzielono_o?: string
+          user_id?: string | null
+          utworzono?: string
+          wersja_dokumentow: string
+        }
+        Update: {
+          id?: string
+          kontekst?: string
+          rodzaj?: Database["public"]["Enums"]["rodzaj_zgody"]
+          udzielono_o?: string
+          user_id?: string | null
+          utworzono?: string
+          wersja_dokumentow?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zgoda_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profil"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       zuzycie_miesieczne: {
         Row: {
           dopasowania: number
@@ -447,6 +492,7 @@ export type Database = {
     Enums: {
       okres_rozliczeniowy: "miesiac" | "rok"
       plan_id: "start" | "pro"
+      rodzaj_zgody: "regulamin_polityka" | "usluga_przed_odstapieniem"
       status_subskrypcji: "aktywna" | "zalega" | "anulowana"
       status_zakupu: "oczekuje" | "oplacony" | "nieudany" | "zwrocony"
     }
@@ -561,6 +607,7 @@ export const Constants = {
     Enums: {
       okres_rozliczeniowy: ["miesiac", "rok"],
       plan_id: ["start", "pro"],
+      rodzaj_zgody: ["regulamin_polityka", "usluga_przed_odstapieniem"],
       status_subskrypcji: ["aktywna", "zalega", "anulowana"],
       status_zakupu: ["oczekuje", "oplacony", "nieudany", "zwrocony"],
     },

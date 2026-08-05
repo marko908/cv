@@ -7,6 +7,7 @@ import {
   idCenySubskrypcji,
   stripe,
 } from "@/lib/stripe";
+import { zapiszZgode } from "@/lib/prawne/zapis-zgody";
 import type { OkresRozliczeniowy, PlanId } from "@/lib/subscription";
 
 export const runtime = "nodejs";
@@ -55,12 +56,34 @@ export async function POST(request: Request) {
     );
   }
 
-  const { rodzaj, plan, okres, dopasowanieId } = (body ?? {}) as {
+  const {
+    rodzaj,
+    plan,
+    okres,
+    dopasowanieId,
+    zgodaRegulamin,
+    zgodaOdstapienie,
+    zgodaZnacznikCzasu,
+  } = (body ?? {}) as {
     rodzaj?: string;
     plan?: PlanId;
     okres?: OkresRozliczeniowy;
     dopasowanieId?: string;
+    zgodaRegulamin?: boolean;
+    zgodaOdstapienie?: boolean;
+    zgodaZnacznikCzasu?: string;
   };
+
+  // Druga linia obrony obok `disabled` na przyciskach w paywall-dialog.tsx —
+  // ktoś mógłby uderzyć w tę trasę bezpośrednio, z pominięciem checkboxów.
+  // Bez zgody nr 2 (rozpoczęcie usługi przed upływem terminu na odstąpienie)
+  // Odblokowanie Jednorazowe dałoby się „zwrócić" po pobraniu raportu.
+  if (zgodaRegulamin !== true || zgodaOdstapienie !== true) {
+    return NextResponse.json(
+      { ok: false, error: "Zaznacz obie zgody, żeby kontynuować." },
+      { status: 400 }
+    );
+  }
 
   const origin = new URL(request.url).origin;
 
@@ -110,6 +133,26 @@ export async function POST(request: Request) {
         cancel_url: `${origin}/app/ustawienia?platnosc=anulowana`,
       });
 
+      // Dziennik dowodowy zgód (art. 7 ust. 1 RODO) — nigdy nie rzuca, awaria
+      // zapisu nie ma prawa zatrzymać przekierowania do płatności.
+      const kontekst = `zakup_subskrypcja:${plan}:${okres}`;
+      await Promise.all([
+        zapiszZgode({
+          klient: supabase,
+          userId: user.id,
+          rodzaj: "regulamin_polityka",
+          kontekst,
+          udzielonoO: zgodaZnacznikCzasu,
+        }),
+        zapiszZgode({
+          klient: supabase,
+          userId: user.id,
+          rodzaj: "usluga_przed_odstapieniem",
+          kontekst,
+          udzielonoO: zgodaZnacznikCzasu,
+        }),
+      ]);
+
       return NextResponse.json({ ok: true, url: sesja.url });
     }
 
@@ -152,6 +195,24 @@ export async function POST(request: Request) {
         success_url: `${origin}/app/dopasowania/${dopasowanieId}?platnosc=ok`,
         cancel_url: `${origin}/app/dopasowania/${dopasowanieId}?platnosc=anulowana`,
       });
+
+      const kontekst = `zakup_jednorazowo:${korzen}`;
+      await Promise.all([
+        zapiszZgode({
+          klient: supabase,
+          userId: user.id,
+          rodzaj: "regulamin_polityka",
+          kontekst,
+          udzielonoO: zgodaZnacznikCzasu,
+        }),
+        zapiszZgode({
+          klient: supabase,
+          userId: user.id,
+          rodzaj: "usluga_przed_odstapieniem",
+          kontekst,
+          udzielonoO: zgodaZnacznikCzasu,
+        }),
+      ]);
 
       return NextResponse.json({ ok: true, url: sesja.url });
     }
