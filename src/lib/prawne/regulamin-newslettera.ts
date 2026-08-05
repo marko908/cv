@@ -27,7 +27,6 @@
  */
 
 import {
-  ADRES,
   APLIKACJA,
   DATA_OBOWIAZYWANIA,
   FIRMA,
@@ -43,9 +42,7 @@ export const REGULAMIN_NEWSLETTERA = `
 1. Niniejszy regulamin (dalej: „Regulamin") określa zasady i warunki dostarczania Newslettera aplikacji „${APLIKACJA.nazwa}", działającej pod adresem internetowym ${APLIKACJA.adresWww} (dalej: „Aplikacja").
 2. Regulamin jest regulaminem, o którym mowa w art. 8 ustawy z dnia 18 lipca 2002 r. o świadczeniu usług drogą elektroniczną (dalej: „Ustawa o świadczeniu usług drogą elektroniczną").
 3. Dostawcą Newslettera jest ${OZNACZENIE_PRZEDSIEBIORCY} (dalej: „Dostawca").
-4. Kontakt z Dostawcą jest możliwy za pomocą:
-   1) poczty elektronicznej – pod adresem: ${FIRMA.email},
-   2) poczty tradycyjnej – pod adresem: ${ADRES}.
+4. Kontakt z Dostawcą jest możliwy za pomocą poczty elektronicznej – pod adresem: ${FIRMA.email}.
 5. Przed rozpoczęciem subskrypcji Newslettera Subskrybent zobowiązany jest zapoznać się z Regulaminem oraz [Polityką prywatności](${SCIEZKI.politykaPrywatnosci}).
 6. W sprawach nieuregulowanych w Regulaminie stosuje się postanowienia [Regulaminu aplikacji ${APLIKACJA.nazwa}](${SCIEZKI.regulamin}) (dalej: „Regulamin Aplikacji").
 

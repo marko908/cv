@@ -30,7 +30,6 @@
 
 import { TABELA_COOKIES_MD } from "./cookies-rejestr";
 import {
-  ADRES,
   APLIKACJA,
   DATA_OBOWIAZYWANIA,
   FIRMA,
@@ -51,12 +50,9 @@ Administratorem Twoich danych osobowych jest ${OZNACZENIE_PRZEDSIEBIORCY} (dalej
 
 ## Kontakt z Administratorem
 
-We wszystkich sprawach związanych z przetwarzaniem danych osobowych możesz kontaktować się z Administratorem za pomocą:
+We wszystkich sprawach związanych z przetwarzaniem danych osobowych możesz kontaktować się z Administratorem za pomocą poczty elektronicznej – pod adresem: ${FIRMA.email}.
 
-1. poczty elektronicznej – pod adresem: ${FIRMA.email},
-2. poczty tradycyjnej – pod adresem: ${ADRES}.
-
-Administrator nie wyznaczył Inspektora Ochrony Danych. Wszystkie sprawy dotyczące danych osobowych obsługiwane są pod adresami wskazanymi powyżej.
+Administrator nie wyznaczył Inspektora Ochrony Danych. Wszystkie sprawy dotyczące danych osobowych obsługiwane są pod adresem wskazanym powyżej.
 
 ## Środki ochrony danych osobowych
 

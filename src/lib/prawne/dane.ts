@@ -32,8 +32,7 @@ export const ADRES = `${FIRMA.ulica}, ${FIRMA.kodMiasto}`;
  */
 export const OZNACZENIE_PRZEDSIEBIORCY =
   `${FIRMA.imieNazwisko}, prowadzący działalność gospodarczą pod firmą: ` +
-  `${FIRMA.nazwa} (adres stałego miejsca wykonywania działalności gospodarczej: ` +
-  `${ADRES}), wpisany do Centralnej Ewidencji i Informacji o Działalności ` +
+  `${FIRMA.nazwa}, wpisany do Centralnej Ewidencji i Informacji o Działalności ` +
   `Gospodarczej prowadzonej przez ministra właściwego ds. gospodarki, ` +
   `posiadający NIP: ${FIRMA.nip}, numer REGON: ${FIRMA.regon}`;
 

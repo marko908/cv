@@ -19,7 +19,6 @@
  */
 
 import {
-  ADRES,
   APLIKACJA,
   DATA_OBOWIAZYWANIA,
   FIRMA,
@@ -36,9 +35,7 @@ export const REGULAMIN = `
 2. Aplikacja służy do tworzenia i redagowania dokumentów aplikacyjnych (CV) oraz do dopasowywania treści CV do konkretnego ogłoszenia o pracę z wykorzystaniem systemów sztucznej inteligencji. Aplikacja jest przeznaczona zarówno dla konsumentów, jak i dla przedsiębiorców.
 3. Regulamin jest regulaminem, o którym mowa w art. 8 ustawy z dnia 18 lipca 2002 r. o świadczeniu usług drogą elektroniczną (dalej: „Ustawa o świadczeniu usług drogą elektroniczną").
 4. Dostawcą usług jest ${OZNACZENIE_PRZEDSIEBIORCY} (dalej: „Usługodawca").
-5. Kontakt z Usługodawcą jest możliwy za pomocą:
-   1) poczty elektronicznej – pod adresem: ${FIRMA.email},
-   2) poczty tradycyjnej – pod adresem: ${ADRES}.
+5. Kontakt z Usługodawcą jest możliwy za pomocą poczty elektronicznej – pod adresem: ${FIRMA.email}.
 6. Zgodnie z przepisami Rozporządzenia Parlamentu Europejskiego i Rady (UE) 2022/2065 z dnia 19 października 2022 r. w sprawie jednolitego rynku usług cyfrowych oraz zmiany dyrektywy 2000/31/WE (akt o usługach cyfrowych) (dalej: „DSA"), Usługodawca wyznaczył punkt kontaktowy służący do bezpośredniej komunikacji z organami państw członkowskich UE, Komisją Europejską, Radą ds. Usług Cyfrowych oraz Użytkownikami Aplikacji w sprawach objętych regulacją DSA. Punkt kontaktowy jest dostępny pod adresem: ${FIRMA.email}. Językiem komunikacji w ramach punktu kontaktowego jest język polski oraz język angielski.
 7. Przed rozpoczęciem korzystania z Aplikacji Użytkownik zobowiązany jest zapoznać się z Regulaminem oraz [Polityką prywatności](${SCIEZKI.politykaPrywatnosci}).
 
@@ -235,9 +232,7 @@ export const REGULAMIN = `
    3) informację na temat wykorzystania zautomatyzowanych środków podczas podejmowania decyzji,
    4) wskazanie podstawy prawnej lub umownej, na której opiera się decyzja, wraz z wyjaśnieniem powodów,
    5) jasne i przyjazne informacje na temat przysługujących możliwości odwołania się od decyzji.
-10. Usługobiorca, którego treść została usunięta, oraz Zgłaszający, któremu Usługodawca odmówił usunięcia zgłoszonej treści, mogą złożyć odwołanie od decyzji Usługodawcy w terminie 6 miesięcy od dnia jej otrzymania:
-   1) za pomocą poczty elektronicznej – na adres: ${FIRMA.email},
-   2) na piśmie – na adres: ${ADRES}.
+10. Usługobiorca, którego treść została usunięta, oraz Zgłaszający, któremu Usługodawca odmówił usunięcia zgłoszonej treści, mogą złożyć odwołanie od decyzji Usługodawcy w terminie 6 miesięcy od dnia jej otrzymania za pomocą poczty elektronicznej – na adres: ${FIRMA.email}.
 11. Odwołanie powinno zawierać imię i nazwisko lub nazwę odwołującego się, jego dane kontaktowe oraz szczegółowe uzasadnienie, dlaczego decyzja Usługodawcy jest w ocenie odwołującego się błędna.
 12. Usługodawca niezwłocznie potwierdza otrzymanie odwołania. Odwołania są rozpatrywane w terminie 14 dni od dnia ich otrzymania, przez upoważnioną osobę – czynności te nie są dokonywane w sposób zautomatyzowany, bez udziału człowieka. O decyzji Usługodawca zawiadamia odwołującego się za pomocą poczty elektronicznej.
 13. Usługodawca nie stosuje zautomatyzowanych narzędzi moderowania Treści Usługobiorcy. Weryfikacja treści następuje wyłącznie w następstwie zgłoszenia albo nakazu organu.
