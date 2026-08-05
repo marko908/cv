@@ -10,14 +10,14 @@
  * żeby oznaczenie przedsiębiorcy w stopce było IDENTYCZNE z tym w regulaminie
  * i polityce prywatności.
  *
- * ⚠️ DO DODANIA RAZEM Z BANEREM COOKIES: przycisk „Ustawienia cookies"
- * otwierający panel zgód. Polityka prywatności (sekcja „Pliki cookies", ust. 5)
- * obiecuje, że taki odnośnik jest stale dostępny w stopce — dopóki banera nie
- * ma, nie ma też tego przycisku i obie rzeczy muszą trafić na produkcję razem.
- * Szczegóły: `dokumenty-prawne/specyfikacja-baner-cookies.md`.
+ * „Ustawienia cookies" stoi w tym samym rzędzie co dokumenty, bo Polityka
+ * prywatności (sekcja „Pliki cookies", ust. 5) obiecuje stały dostęp do panelu
+ * zgód właśnie ze stopki. To przycisk, nie odnośnik — otwiera panel na miejscu,
+ * bez zmiany trasy.
  */
 
 import Link from "next/link";
+import { PrzyciskUstawienCookies } from "@/components/cookies/przycisk-ustawien-cookies";
 import { APLIKACJA, FIRMA, SCIEZKI } from "@/lib/prawne/dane";
 
 /*
@@ -60,6 +60,7 @@ export function Stopka() {
               {etykieta}
             </Link>
           ))}
+          <PrzyciskUstawienCookies className="text-left hover:text-foreground hover:underline sm:text-right" />
         </nav>
       </div>
     </footer>

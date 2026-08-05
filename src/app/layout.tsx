@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Figtree, Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
+import { DostawcaZgodCookies } from "@/components/cookies/kontekst-zgod";
 import { StoreHydration } from "@/components/store-hydration";
 
 // Figtree — najbliższy dostępny odpowiednik kroju Circular/SpotifyMix.
@@ -44,7 +45,14 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <StoreHydration />
-        {children}
+        {/*
+          Zgody cookies obejmują CAŁĄ aplikację, więc dostawca stoi w korzeniu.
+          `children` przekazujemy jako prop z komponentu serwerowego — drzewo
+          stron zostaje serwerowe, klientem staje się wyłącznie sam mechanizm
+          zgód. Skrypty narzędzi analitycznych i marketingowych ładuje ten
+          dostawca i tylko po zgodzie właściwej kategorii.
+        */}
+        <DostawcaZgodCookies>{children}</DostawcaZgodCookies>
       </body>
     </html>
   );

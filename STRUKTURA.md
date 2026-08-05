@@ -516,13 +516,76 @@ prawnika + 22 odstępstwa od wzoru z uzasadnieniem + blokery przed publikacją.
 **Blokery odnotowane w `WDROZENIE.md`** (nie są zrobione): skrzynka
 marko@aplikando.pl musi działać (jest punktem kontaktowym DSA) · tier Gemini API
 musi być PŁATNY, bo darmowy trenuje na danych, a dokumenty stwierdzają, że nie ·
-umowy powierzenia z dostawcami (art. 28 RODO) · polityka opisuje GA4/Meta
-Pixel/Clarity, których jeszcze nie ma — publikować razem z banerem cookies.
+umowy powierzenia z dostawcami (art. 28 RODO).
+
+## Zgody na cookies i narzędzia analityczne (od 2026-08-05)
+
+Własny mechanizm zgód na shadcn/radix — **żadnej zewnętrznej platformy CMP**
+(Cookiebot/Osano). Podstawa prawna: art. 398 ustawy z 12 lipca 2024 r. – Prawo
+komunikacji elektronicznej (zastąpił art. 173 Prawa telekomunikacyjnego).
+Pełne wymagania: `dokumenty-prawne/specyfikacja-baner-cookies.md`.
+
+**`src/lib/prawne/cookies-rejestr.ts` = JEDNO ŹRÓDŁO listy narzędzi.** Zasila
+JEDNOCZEŚNIE tabelę w Polityce prywatności (`TABELA_COOKIES_MD` jest wstawiane
+w treść dokumentu) i panel zgód w banerze. Specyfikacja kazała trzymać oba
+miejsca w zgodzie ręcznie — tu nie ma czego rozjeżdżać, bo miejsce jest jedno.
+Rozjazd baner↔polityka to pierwsza rzecz, którą przy kontroli znajduje organ.
+
+**`src/lib/cookies/zgody.ts`** — odczyt/zapis cookie `aplikando_zgody_cookies`
+(`SameSite=Lax`, `Secure` na HTTPS, 12 miesięcy; treść: wersja, kategorie, data
+ISO) + kasowanie plików narzędzi. **`WERSJA_ZGODY` PODNOSI SIĘ przy każdej
+zmianie listy narzędzi** — bez tego nowe narzędzie ładowałoby się u osób, które
+zgodziły się na węższy zestaw, czyli bez zgody. Niezgodna wersja = `null` =
+„pytaj", nigdy „zakładaj zgodę".
+
+**`src/lib/cookies/tryb-zgody-google.ts`** — Consent Mode v2. `default` ze
+WSZYSTKIMI sygnałami `denied` idzie do `dataLayer` przy starcie aplikacji (to
+same wpisy do tablicy, zero żądań i plików), `update` po zgodzie. Lista sygnałów
+w jednej stałej, żeby `default` i `update` nie rozjechały się co do zakresu.
+
+**`src/components/cookies/`**: `kontekst-zgod.tsx` (`DostawcaZgodCookies` +
+`useZgodyCookies`; stoi w `app/layout.tsx`, `children` idzie propem, więc drzewo
+stron zostaje serwerowe) · `baner-cookies.tsx` (pasek dolny, pierwsza wizyta) ·
+`panel-cookies.tsx` (dialog „Dostosuj"/„Ustawienia cookies") ·
+`skrypty-narzedzi.tsx` (warunkowe ładowanie) ·
+`przycisk-ustawien-cookies.tsx` (odnośnik w stopce).
+
+**ŻADEN SKRYPT NIE ŁADUJE SIĘ PRZED ZGODĄ — to nie jest wstrzymanie zdarzeń,
+tylko brak pobrania skryptu.** Ładowanie „na wszelki wypadek" i wysyłanie
+zdarzeń dopiero po zgodzie jest naruszeniem, bo sam skrypt zakłada już pliki.
+Dlatego `skrypty-narzedzi.tsx` wstawia `<script>` ręcznie w efekcie, a nie przez
+`next/script` (ten trzyma własny rejestr wczytanych skryptów i nie gwarantuje,
+że warunkowe odmontowanie cokolwiek cofnie). Świadomie BEZ paczek
+`@vercel/analytics` / `@vercel/speed-insights` — sprowadzają się do wstawienia
+tych samych dwóch skryptów `/_vercel/...`, a jedna droga wstawiania = jedno
+miejsce do audytu. Identyfikatory z env (`NEXT_PUBLIC_GA_ID`,
+`NEXT_PUBLIC_META_PIXEL_ID`, `NEXT_PUBLIC_CLARITY_ID`); brak identyfikatora =
+narzędzie się nie ładuje, bez błędu.
+
+**Wycofanie zgody działa NAPRAWDĘ:** kasuje pliki narzędzia (`_ga`, `_ga_*`,
+`_gid`, `_gat*`, `_clck`, `_clsk`, `_fbp`, `_fbc`) i przeładowuje stronę.
+Odmontowanie `<script>` nie wyładowuje kodu działającego już w karcie. Pliki
+kasujemy na wszystkich wariantach domeny (host, `.host`, domena rejestrowalna) —
+GA zakłada `_ga` na `.aplikando.pl`, więc kasowanie z samego hosta zostawiłoby
+go nietkniętym. Sprzątanie leci przy KAŻDYM wejściu dla kategorii bez zgody, nie
+tylko w chwili kliknięcia — narzędzie mogło zdążyć zapisać plik między
+kliknięciem a przeładowaniem, a zgoda mogła też wygasnąć.
+
+**Brak migotania:** cookie czytamy w efekcie po hydracji i do tego czasu
+(`gotowe === false`) baner NIE jest renderowany. Baner pojawia się dopiero, gdy
+WIEMY, że zapisanej zgody nie ma. Odwrotny układ (render od razu, chowanie po
+odczycie) dawałby błysk u każdego, kto już zdecydował.
+
+**Bez dark patternów** (wytyczne EROD, decyzje UODO): zgody domyślnie
+odznaczone, „Odrzuć wszystkie" obok „Akceptuję wszystkie" — ten sam rozmiar,
+rząd i jedno kliknięcie, baner BEZ krzyżyka (zamknięcie nie może uchodzić za
+zgodę). Odmowa niczego nie ogranicza.
 
 **Trasy** (`src/app/`): `/` landing · `/rejestracja` · `/logowanie` ·
 `/reset-hasla` (wszystkie trzy = `StronaAuth`) · `/regulamin` ·
-`/polityka-prywatnosci` · `/regulamin-newslettera` (grupa `(prawne)`, wspólny
-layout z `SiteHeader` + `Stopka`) · `/app` Start (onboarding/hub) · `/app/kreator`
+`/polityka-prywatnosci` (grupa `(prawne)`, wspólny
+layout z `SiteHeader` + `Stopka`; `/regulamin-newslettera` jest NIEpublikowana —
+treść czeka w `lib/prawne/`, patrz komentarz w `stopka.tsx`) · `/app` Start (onboarding/hub) · `/app/kreator`
 lista „Moje CV" (+ Dodaj nowe; import CV tylko w edytorze) · `/app/kreator/edytor` edytor ·
 `/app/dopasowania` historia · `/app/dopasowania/[id]` szczegóły (score-breakdown,
 compare, changes, findings, paywall) · `/app/ustawienia`. API: `/api/dopasuj`
@@ -558,6 +621,9 @@ API: `runtime nodejs`, `maxDuration 60`.
 - **Schemat bazy / RLS / RPC** → `supabase/migrations/` (nowa migracja, nigdy edycja starej) + odświeżenie `src/lib/supabase/typy-bazy.ts`; opis i konfiguracja panelu w `supabase/README.md`
 - **Ustawienia logowania (kod na maila, Google, SMTP, redirecty)** → panel Supabase, NIE migracja — lista kroków w `supabase/README.md`
 - **Dane firmy w dokumentach prawnych i stopce** → `src/lib/prawne/dane.ts` (jedno źródło); treść dokumentów → `src/lib/prawne/{regulamin,polityka-prywatnosci,regulamin-newslettera}.ts`; co jeszcze zostało do wdrożenia → `dokumenty-prawne/WDROZENIE.md`
+- **Lista narzędzi cookies (tabela w polityce ORAZ panel zgód)** → `src/lib/prawne/cookies-rejestr.ts` — jedno źródło, plus PODNIESIENIE `WERSJA_ZGODY` w `src/lib/cookies/zgody.ts`
+- **Dodanie/zamiana narzędzia analitycznego lub marketingowego** → wpis w rejestrze + hook ładujący w `src/components/cookies/skrypty-narzedzi.tsx` + identyfikator w env; nigdy import skryptu poza tym plikiem
+- **Treść banera, przyciski, kategorie** → `src/components/cookies/{baner-cookies,panel-cookies}.tsx`
 
 ## Konwencje i pułapki
 
