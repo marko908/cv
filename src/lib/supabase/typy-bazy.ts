@@ -3,14 +3,8 @@
  *
  * PLIK GENEROWANY — nie edytuj ręcznie. Po każdej migracji odśwież go
  * z aktualnego stanu bazy (Supabase MCP `generate_typescript_types` albo
- * `npx supabase gen types typescript --project-id urjpluqutufsgkzysazq`).
- *
- * ⚠️ Blok `zgoda` / `rodzaj_zgody` (2026-08-05) jest dopisany RĘCZNIE, bo tunel
- * do Supabase w tamtej sesji nie miał uprawnień do zastosowania migracji
- * (`supabase/migrations/20260805103000_zgody.sql` istnieje, ale NIE została
- * jeszcze zastosowana do bazy). Zastosuj ją, a potem odśwież ten plik
- * normalnym poleceniem z akapitu wyżej — nadpisze ten ręczny wpis identyczną
- * treścią, więc regenerowanie jest bezpieczne.
+ * `npx supabase gen types typescript --linked`, z katalogu cv-copilot/,
+ * po wcześniejszym `npx supabase link --project-ref urjpluqutufsgkzysazq`).
  *
  * Uwaga: `tresc`, `cv_bazowe`, `cv_dopasowane` i `ai_meta` mają tu typ `Json`,
  * bo baza zna tylko JSONB. Prawdziwym kontraktem tych kolumn jest `TailoredCv`
@@ -27,8 +21,35 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.5"
+  }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -355,6 +376,44 @@ export type Database = {
           },
         ]
       }
+      zgoda: {
+        Row: {
+          id: string
+          kontekst: string
+          rodzaj: Database["public"]["Enums"]["rodzaj_zgody"]
+          udzielono_o: string
+          user_id: string | null
+          utworzono: string
+          wersja_dokumentow: string
+        }
+        Insert: {
+          id?: string
+          kontekst: string
+          rodzaj: Database["public"]["Enums"]["rodzaj_zgody"]
+          udzielono_o?: string
+          user_id?: string | null
+          utworzono?: string
+          wersja_dokumentow: string
+        }
+        Update: {
+          id?: string
+          kontekst?: string
+          rodzaj?: Database["public"]["Enums"]["rodzaj_zgody"]
+          udzielono_o?: string
+          user_id?: string | null
+          utworzono?: string
+          wersja_dokumentow?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "zgoda_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profil"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       zuzycie_ai: {
         Row: {
           dopasowanie_id: string | null
@@ -402,44 +461,6 @@ export type Database = {
           },
           {
             foreignKeyName: "zuzycie_ai_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profil"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      zgoda: {
-        Row: {
-          id: string
-          kontekst: string
-          rodzaj: Database["public"]["Enums"]["rodzaj_zgody"]
-          udzielono_o: string
-          user_id: string | null
-          utworzono: string
-          wersja_dokumentow: string
-        }
-        Insert: {
-          id?: string
-          kontekst: string
-          rodzaj: Database["public"]["Enums"]["rodzaj_zgody"]
-          udzielono_o?: string
-          user_id?: string | null
-          utworzono?: string
-          wersja_dokumentow: string
-        }
-        Update: {
-          id?: string
-          kontekst?: string
-          rodzaj?: Database["public"]["Enums"]["rodzaj_zgody"]
-          udzielono_o?: string
-          user_id?: string | null
-          utworzono?: string
-          wersja_dokumentow?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "zgoda_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profil"
@@ -602,7 +623,27 @@ export type Enums<
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       okres_rozliczeniowy: ["miesiac", "rok"],

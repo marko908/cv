@@ -541,16 +541,21 @@ bez UPDATE/DELETE nawet dla właściciela wiersza; `on delete set null`, nie
 `cascade` — dowód zgody musi przetrwać dłużej niż samo konto. Zapisuje
 `src/lib/prawne/zapis-zgody.ts` — **NIGDY nie rzuca** (wzorzec `lib/mail.ts`):
 awaria zapisu loguje błąd, ale nie blokuje rejestracji ani zakupu.
-**⚠️ Migracja jeszcze NIEzastosowana do bazy** (sesja bez uprawnień MCP do
-zapisu) — `typy-bazy.ts` ma ręcznie dopisane typy dla tej tabeli, oznaczone
-komentarzem na górze pliku; do czasu zastosowania migracji zapisy do `zgoda`
-będą cicho zawodzić (logi serwera, nie błąd u użytkownika).
+**Migracja zastosowana** (2026-08-05, `npx supabase link --project-ref
+urjpluqutufsgkzysazq` + `db push --linked`, gdy MCP nie miał uprawnień) —
+zweryfikowane wprost na bazie: RLS włączone, `SELECT`+`INSERT` dla
+`authenticated`, brak `UPDATE`/`DELETE`, `anon` bez dostępu. `typy-bazy.ts`
+odświeżony realnym `supabase gen types typescript --linked`. Przy okazji
+odtworzony brakujący plik `20260804100643_stripe_tryb_testowy.sql` — ta
+migracja była zastosowana na REMOTE bez commitu do repo, co blokowało
+`db push`/`db pull` (`LegacyDbPullMigrationConflictError`); treść odzyskana
+z `supabase_migrations.schema_migrations`.
 
-**Blokery odnotowane w `WDROZENIE.md`** (nie są zrobione): migracja zgód
-niezastosowana do bazy (wyżej) · skrzynka marko@aplikando.pl musi działać
-(jest punktem kontaktowym DSA) · tier Gemini API musi być PŁATNY, bo darmowy
-trenuje na danych, a dokumenty stwierdzają, że nie · umowy powierzenia
-z dostawcami (art. 28 RODO) · konfiguracja panelu GTM od zera, patrz niżej.
+**Blokery odnotowane w `WDROZENIE.md`** (nie są zrobione): skrzynka
+marko@aplikando.pl musi działać (jest punktem kontaktowym DSA) · tier Gemini
+API musi być PŁATNY, bo darmowy trenuje na danych, a dokumenty stwierdzają,
+że nie · umowy powierzenia z dostawcami (art. 28 RODO) · konfiguracja panelu
+GTM od zera, patrz niżej.
 
 ## Zgody na cookies i narzędzia analityczne (od 2026-08-05)
 

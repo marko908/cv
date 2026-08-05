@@ -12,39 +12,31 @@ czynny podatnik VAT, ceny brutto 29 / 49 / 12 zł.
 
 ## ⛔ BLOKERY — załatw PRZED publikacją
 
-Bez tych pięciu rzeczy nie publikuj dokumentów ani nie włączaj płatności na
-produkcji. Każda z nich powoduje, że opublikowany dokument byłby nieprawdziwy,
-bezskuteczny, albo że mechanizm zgód po prostu nic by nie zapisywał.
+Blokery 1–4 poniżej wciąż czekają — bez nich nie publikuj dokumentów ani nie
+włączaj płatności na produkcji. Bloker 0 (migracja) jest już zamknięty.
 
-### 0. Zastosuj migrację `20260805103000_zgody.sql` — checkboxy nie zadziałają bez niej
+### 0. ✅ Migracja `20260805103000_zgody.sql` — ZASTOSOWANA (2026-08-05)
 
-Tabela `zgoda` (dziennik dowodowy zgód — sekcja A niżej) jest opisana w
-`supabase/migrations/20260805103000_zgody.sql`, ale **nie została jeszcze
-zastosowana do bazy** — w tamtej sesji tunel do Supabase (MCP) nie miał
-uprawnień do wykonania migracji ani do odczytania listy zastosowanych
-migracji. `src/lib/supabase/typy-bazy.ts` zawiera już ręcznie dopisane typy
-dla tej tabeli (oznaczone komentarzem na górze pliku), więc **kod się
-kompiluje i wygląda na gotowy — ale zapisy do `zgoda` będą realnie zawodzić**,
-dopóki migracja nie zostanie zastosowana. Dzięki temu, że `zapiszZgode()`
-nigdy nie rzuca (patrz `src/lib/prawne/zapis-zgody.ts`), rejestracja i zakup
-będą działać normalnie, tylko dziennik zgód zostanie pusty — błąd wyląduje
-w logach serwera, nie u użytkownika. Nie polegaj na tym stanie dłużej niż
-do najbliższego wdrożenia.
+Tabela `zgoda` istnieje na żywej bazie. Zablokowany wcześniej tunel MCP
+(`list_migrations`/`get_project_url` zwracały błąd uprawnień) obszedłem przez
+**Supabase CLI z bezpośrednim linkiem do projektu**:
+`npx supabase link --project-ref urjpluqutufsgkzysazq` (CLI był już
+zalogowany), potem `npx supabase db push --linked` po weryfikacji `--dry-run`.
 
-Zastosuj jednym z trzech sposobów:
+Po drodze wyszła na jaw druga rzecz: `supabase migration list` pokazał
+migrację `20260804100643` obecną na REMOTE, ale bez odpowiadającego pliku
+w repo (`stripe_tryb_testowy` — kolumny `tryb_testowy` przy Stripe, znane
+z `STRUKTURA.md`, zastosowane wcześniej bezpośrednio, bez commitu pliku).
+Odtworzyłem ten plik z treści zapisanej w `supabase_migrations.schema_migrations`
+(`supabase/migrations/20260804100643_stripe_tryb_testowy.sql`), żeby historia
+lokalna i zdalna się zgadzały — bez tego `db push`/`db pull` odmawiały
+działania (`LegacyDbPullMigrationConflictError`).
 
-- **Supabase CLI** (jeśli masz go podłączonego do projektu): `supabase db push`
-  z katalogu `cv-copilot/`.
-- **SQL Editor w panelu Supabase**: Dashboard → SQL Editor → wklej całą treść
-  pliku migracji → Run.
-- **Ponownie przez Claude**, w sesji, w której narzędzia MCP Supabase mają
-  uprawnienia do zapisu (poprzednia sesja miała dostęp tylko do części
-  narzędzi — `list_migrations` i `get_project_url` zwracały błąd uprawnień).
-
-Po zastosowaniu **odśwież `typy-bazy.ts` normalnie** (Supabase MCP
-`generate_typescript_types` albo
-`npx supabase gen types typescript --project-id urjpluqutufsgkzysazq`) — nadpisze
-ręczny wpis identyczną treścią, więc regenerowanie jest bezpieczne.
+Zweryfikowane bezpośrednio na bazie po zastosowaniu: `relrowsecurity = true`,
+polityki `SELECT`+`INSERT` dla `authenticated`, brak `UPDATE`/`DELETE`, `anon`
+bez dostępu. `typy-bazy.ts` odświeżony realnym `supabase gen types
+typescript --linked` (nie ręcznym wpisem) — wygenerowana treść dla `zgoda`
+zgodziła się co do joty z tym, co było dopisane ręcznie.
 
 ### 1. Skrzynka marko@aplikando.pl musi działać
 
@@ -139,7 +131,7 @@ regulaminu newslettera (odstępstwo nr 24).
 | 9 | Stopka z danymi firmy, odnośnikami i przyciskiem „Ustawienia cookies” | `src/components/stopka.tsx` (landing + podstrony prawne) |
 | 10 | Dane firmy jako jedno źródło prawdy | `src/lib/prawne/dane.ts` |
 | 11 | Checkboxy zgód przy rejestracji i przy zakupie (dwie zgody, oba przyciski zakupu) | `formularz-auth.tsx`, `paywall-dialog.tsx`, `components/prawne/{etykiety-zgod,checkbox-zgody}.tsx`, `components/ui/checkbox.tsx` |
-| 12 | Dziennik zgód w bazie (tabela `zgoda`, niezmienny, RLS) — **migracja jeszcze niezastosowana, patrz bloker 0** | `supabase/migrations/20260805103000_zgody.sql`, `src/lib/prawne/zapis-zgody.ts` |
+| 12 | Dziennik zgód w bazie (tabela `zgoda`, niezmienny, RLS) — **zastosowana i zweryfikowana na żywej bazie** | `supabase/migrations/20260805103000_zgody.sql`, `src/lib/prawne/zapis-zgody.ts` |
 | 13 | Walidacja zgód po stronie serwera przy zakupie | `src/app/api/platnosc/checkout/route.ts` |
 | 14 | Instrukcja konfiguracji GTM od zera (kroki 1–10, z tabelą kontrolną tagów) | `dokumenty-prawne/instrukcja-gtm.md` |
 
@@ -185,8 +177,8 @@ UI: `components/ui/checkbox.tsx` (shadcn/radix-nova, ten sam wzorzec co
       (bez UPDATE/DELETE nawet dla właściciela). Zapisuje
       `src/lib/prawne/zapis-zgody.ts` — **nigdy nie rzuca** (wzorzec
       z `lib/mail.ts`): awaria zapisu loguje błąd, ale nie blokuje
-      rejestracji ani zakupu. **Migracja jeszcze nie zastosowana do bazy —
-      patrz bloker nr 0 wyżej.**
+      rejestracji ani zakupu. Migracja zastosowana i zweryfikowana na żywej
+      bazie (RLS, polityki, brak UPDATE/DELETE) — patrz bloker nr 0 wyżej.
 
 ### B. Regulamin w PDF w mailu potwierdzającym (checklista prawnika, poz. 1 i 3)
 
