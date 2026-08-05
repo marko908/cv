@@ -12,8 +12,8 @@ czynny podatnik VAT, ceny brutto 29 / 49 / 12 zł.
 
 ## ⛔ BLOKERY — załatw PRZED publikacją
 
-Blokery 1–4 poniżej wciąż czekają — bez nich nie publikuj dokumentów ani nie
-włączaj płatności na produkcji. Bloker 0 (migracja) jest już zamknięty.
+Blokery 1, 3 i 4 poniżej wciąż czekają — bez nich nie publikuj dokumentów.
+Bloker 0 (migracja) i bloker 2 (tier Gemini) są już zamknięte.
 
 ### 0. ✅ Migracja `20260805103000_zgody.sql` — ZASTOSOWANA (2026-08-05)
 
@@ -48,21 +48,20 @@ dla użytkowników. Do tej skrzynki trafiają też reklamacje (termin 14 dni),
 
 Sprawdź też, czy `MAIL_OD` i `MAIL_ZGLOSZENIA` w env wskazują na tę domenę.
 
-### 2. Zweryfikuj tier Google Gemini API — to realne ryzyko RODO
+### 2. ✅ Tier Google Gemini API — POTWIERDZONY (2026-08-05, Tier 1)
 
 Regulamin § 11 ust. 6 i Polityka prywatności stwierdzają, że dane wprowadzone
-do Aplikacji **nie są wykorzystywane do trenowania modeli AI**.
+do Aplikacji **nie są wykorzystywane do trenowania modeli AI**. To jest
+prawda tylko dla płatnego tieru Gemini API (Tier 1+, wymaga podpiętego
+rozliczania) — Marko potwierdził, że projekt powiązany z
+`GOOGLE_GENERATIVE_AI_API_KEY` jest na Tier 1. Zdanie w obu dokumentach
+zostaje bez zmian.
 
-To jest prawda **tylko dla płatnego tieru Gemini API**. Na darmowym tierze
-(klucz z AI Studio) Google zastrzega sobie prawo wykorzystania promptów
-i odpowiedzi do ulepszania produktów, a treść CV to komplet danych osobowych
-kandydata — imię, nazwisko, kontakt, historia zatrudnienia.
-
-**Co zrobić:** wejdź w Google Cloud / AI Studio, sprawdź, czy projekt powiązany
-z `GOOGLE_GENERATIVE_AI_API_KEY` ma włączone rozliczanie i działa na płatnym
-tierze. Jeżeli nie — włącz je przed publikacją albo usuń to zdanie z obu
-dokumentów (co jednak oznaczałoby, że musisz jawnie napisać, że dane idą
-do trenowania — a to zabije produkt).
+Do weryfikacji przy okazji (nie blokuje publikacji): w
+[Google AI Studio → API keys](https://aistudio.google.com/apikey) tier jest
+widoczny przy kluczu; upewnij się, że klucz **na produkcji** (Vercel →
+Production env) to ten sam projekt co przetestowany, a nie osobny klucz
+deweloperski założony bez rozliczania.
 
 ### 3. Podpisz umowy powierzenia z dostawcami (art. 28 RODO)
 
