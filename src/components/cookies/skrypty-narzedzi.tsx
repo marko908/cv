@@ -1,34 +1,48 @@
 "use client";
 
 /**
- * Ładowanie skryptów narzędzi analitycznych i marketingowych — DOPIERO PO ZGODZIE.
+ * Ładowanie narzędzi zewnętrznych — DOPIERO PO ZGODZIE.
  *
  * NAJWAŻNIEJSZA ZASADA TEGO PLIKU (wymóg nr 4 ze specyfikacji banera): dopóki
- * zgody nie ma, skrypt nie może się w ogóle pobrać. Nie wystarczy załadować go
- * „na wszelki wypadek" i wstrzymać wysyłkę zdarzeń — sam skrypt zakłada już
- * pliki w urządzeniu, więc byłoby to naruszenie art. 398 Prawa komunikacji
- * elektronicznej. Dlatego każdy `<script>` powstaje tutaj, w efekcie, pod
- * warunkiem zgody właściwej kategorii.
+ * zgody nie ma, do zewnętrznego dostawcy nie leci ŻADNE żądanie. Nie wystarczy
+ * załadować skrypt „na wszelki wypadek" i wstrzymać wysyłkę zdarzeń — sam skrypt
+ * zakłada pliki w urządzeniu, więc byłoby to naruszenie art. 398 Prawa
+ * komunikacji elektronicznej.
  *
- * DLACZEGO RĘCZNIE, A NIE PRZEZ `next/script`: `next/script` trzyma własny
- * rejestr wczytanych skryptów i nie gwarantuje, że warunkowe odmontowanie
- * czegokolwiek cofnie. Tutaj potrzebujemy pełnej kontroli nad tym, KIEDY
- * element trafia do dokumentu, bo od tego zależy zgodność z prawem.
+ * DWIE DROGI, BO NARZĘDZIA SĄ DWOJAKIE (decyzja Marka 2026-08-04: tagi w GTM):
+ *
+ *   1. **Kontener Google Tag Manager** — GA4, Microsoft Clarity i Meta Pixel są
+ *      tagami w GTM, nie skryptami w tym repo. Ładujemy jeden kontener, a które
+ *      tagi w nim wystrzelą, rozstrzyga Consent Mode v2
+ *      (`lib/cookies/tryb-zgody-google.ts`) plus „Dodatkowe sprawdzenia zgody"
+ *      ustawione na każdym tagu w panelu GTM.
+ *   2. **Vercel Analytics / Speed Insights** — zostają tutaj, bo to nie są tagi:
+ *      skrypty serwowane są pierwszostronnie z `/_vercel/...`, więc ich wczytanie
+ *      nie przekazuje niczego Google'owi. Wpychanie ich do GTM oznaczałoby, że
+ *      pierwszostronne żądanie zamieniamy na trzeciostronne — dokładnie odwrotnie
+ *      niż chcemy.
+ *
+ * KIEDY ŁADUJEMY KONTENER GTM: dopiero gdy użytkownik zgodzi się na CO NAJMNIEJ
+ * JEDNĄ kategorię opcjonalną. Kto odrzuci wszystko, nie wyśle do Google ani
+ * jednego żądania — także po sam plik `gtm.js`.
+ *
+ * Wariant alternatywny (kontener zawsze, tagi wstrzymane przez Consent Mode)
+ * jest standardem rynkowym i daje modelowanie konwersji w GA4 dla osób, które
+ * odmówiły. Kosztuje jednak jedno żądanie do Google przy każdej wizycie, także
+ * odmawiającej — czyli przekazanie adresu IP bez zgody. Przy aplikacji, do
+ * której ludzie wklejają swoje CV, wybraliśmy wariant ostrożniejszy. Zmiana
+ * sprowadza się do przekazania `true` zamiast `jakakolwiekZgoda` niżej.
  *
  * Brak identyfikatora w env = narzędzie po prostu się nie ładuje, bez błędu.
- * Identyfikatory są publiczne z natury (widać je w kodzie strony u każdego,
- * kto takie narzędzie ma), dlatego `NEXT_PUBLIC_`.
+ * Identyfikatory są publiczne z natury (widać je w kodzie strony u każdego, kto
+ * takie narzędzie ma), dlatego `NEXT_PUBLIC_`.
  */
 
-import { useEffect, useRef } from "react";
-import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 
-import { wyslijDoDataLayer, type FbqFunkcja } from "@/lib/cookies/tryb-zgody-google";
-import type { WyborKategorii } from "@/lib/cookies/zgody";
+import { KATEGORIE_OPCJONALNE, type WyborKategorii } from "@/lib/cookies/zgody";
 
-const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
-const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
-const CLARITY_ID = process.env.NEXT_PUBLIC_CLARITY_ID;
+const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
 
 /** Znacznik pozwalający rozpoznać nasze skrypty w DOM (także przy weryfikacji). */
 const ATRYBUT = "data-narzedzie-cookies";
@@ -51,8 +65,6 @@ function wstawSkrypt(klucz: string, src: string, przedWstawieniem?: () => void) 
   document.head.appendChild(skrypt);
 }
 
-/* ---------------------------------------------------------------- analityka */
-
 /**
  * Vercel Analytics i Speed Insights.
  *
@@ -73,105 +85,42 @@ function useVercelAnalytics(wlaczone: boolean) {
 }
 
 /**
- * Google Analytics 4.
+ * Kontener Google Tag Manager.
  *
- * `gtag('js')` i `gtag('config')` lądują w `dataLayer` PRZED wstawieniem
- * gtag.js — tak działa oryginalny snippet Google'a i tak samo działa tryb zgody:
- * kolejka jest odtwarzana po wczytaniu skryptu, więc `consent default (denied)`
- * ustawione przy starcie aplikacji wyprzedza konfigurację strumienia.
+ * Zdarzenie `gtm.js` musi trafić do `dataLayer` PRZED wstawieniem skryptu — tak
+ * działa oryginalny snippet Google'a. Sygnały `consent default (denied)` stoją
+ * w kolejce jeszcze wcześniej (ustawia je `DostawcaZgodCookies` przy starcie),
+ * więc kontener startuje z gotową polityką zgód, a nie dostaje jej po fakcie.
+ *
+ * Odsłon przy nawigacji NIE zgłaszamy stąd. W aplikacji z routingiem po stronie
+ * klienta robi to wbudowany wyzwalacz GTM „Zmiana historii" (History Change),
+ * który reaguje na `pushState` App Routera. Ręczne dorzucanie zdarzenia dawałoby
+ * podwójne odsłony.
  */
-function useGoogleAnalytics(wlaczone: boolean) {
+function useKontenerGtm(zaladuj: boolean) {
   useEffect(() => {
-    if (!wlaczone || !GA_ID) return;
+    if (!zaladuj || !GTM_ID) return;
 
     wstawSkrypt(
-      "google-analytics",
-      `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`,
+      "google-tag-manager",
+      `https://www.googletagmanager.com/gtm.js?id=${GTM_ID}`,
       () => {
-        wyslijDoDataLayer("js", new Date());
-        wyslijDoDataLayer("config", GA_ID);
+        (window.dataLayer ??= []).push({
+          "gtm.start": Date.now(),
+          event: "gtm.js",
+        });
       },
     );
-  }, [wlaczone]);
-}
-
-/** Microsoft Clarity — stub kolejkujący + tag. */
-function useClarity(wlaczone: boolean) {
-  useEffect(() => {
-    if (!wlaczone || !CLARITY_ID) return;
-
-    wstawSkrypt("clarity", `https://www.clarity.ms/tag/${CLARITY_ID}`, () => {
-      if (window.clarity) return;
-      const kolejka: unknown[] = [];
-      const stub = ((...argumenty: unknown[]) => {
-        kolejka.push(argumenty);
-      }) as NonNullable<Window["clarity"]>;
-      stub.q = kolejka;
-      window.clarity = stub;
-    });
-  }, [wlaczone]);
-}
-
-/* -------------------------------------------------------------- marketing */
-
-/** Meta Pixel — stub `fbq` (kolejkuje do czasu wczytania fbevents.js) + init. */
-function useMetaPixel(wlaczone: boolean) {
-  useEffect(() => {
-    if (!wlaczone || !META_PIXEL_ID) return;
-
-    wstawSkrypt(
-      "meta-pixel",
-      "https://connect.facebook.net/en_US/fbevents.js",
-      () => {
-        if (!window.fbq) {
-          const fbq = ((...argumenty: unknown[]) => {
-            if (fbq.callMethod) fbq.callMethod(...argumenty);
-            else fbq.queue?.push(argumenty);
-          }) as FbqFunkcja;
-          fbq.push = fbq;
-          fbq.loaded = true;
-          fbq.version = "2.0";
-          fbq.queue = [];
-          window.fbq = fbq;
-          window._fbq ??= fbq;
-        }
-
-        // Meta ma własny mechanizm zgody, niezależny od Consent Mode Google'a.
-        window.fbq?.("consent", "grant");
-        window.fbq?.("init", META_PIXEL_ID);
-        window.fbq?.("track", "PageView");
-      },
-    );
-  }, [wlaczone]);
-}
-
-/**
- * Odsłony przy nawigacji wewnątrz aplikacji — TYLKO dla Meta Pixel.
- *
- * GA4 liczy je sam (pomiar zaawansowany reaguje na zmiany History API), Clarity
- * też — dorzucenie im ręcznego zdarzenia dałoby podwójne odsłony. Meta Pixel
- * jako jedyny wysyła `PageView` wyłącznie przy pełnym załadowaniu dokumentu,
- * więc w aplikacji z routingiem po stronie klienta widziałby jedno wejście
- * na całą sesję.
- */
-function useOdslonyPrzyNawigacji(wlaczone: boolean) {
-  const sciezka = usePathname();
-  const pierwszaSciezka = useRef(sciezka);
-
-  useEffect(() => {
-    if (!wlaczone || !META_PIXEL_ID) return;
-    // Wejście na stronę zgłasza już `init` — bez tego pierwsza odsłona byłaby podwójna.
-    if (sciezka === pierwszaSciezka.current) return;
-    window.fbq?.("track", "PageView");
-  }, [wlaczone, sciezka]);
+  }, [zaladuj]);
 }
 
 export function SkryptyNarzedzi({ kategorie }: { kategorie: WyborKategorii }) {
+  // Kontener obsługuje tagi z OBU kategorii opcjonalnych, więc wystarczy zgoda
+  // na którąkolwiek. Co konkretnie wystrzeli, rozstrzyga Consent Mode.
+  const jakakolwiekZgoda = KATEGORIE_OPCJONALNE.some((k) => kategorie[k]);
+
   useVercelAnalytics(kategorie.analityczne);
-  useGoogleAnalytics(kategorie.analityczne);
-  useClarity(kategorie.analityczne);
-  useMetaPixel(kategorie.marketingowe);
-  useOdslonyPrzyNawigacji(kategorie.marketingowe);
+  useKontenerGtm(jakakolwiekZgoda);
 
   return null;
 }

@@ -1,14 +1,23 @@
 /**
- * Google Consent Mode v2 — sygnały zgody dla narzędzi Google i Meta.
+ * Google Consent Mode v2 — sygnały zgody dla tagów w kontenerze GTM.
  *
  * Sam mechanizm to WYŁĄCZNIE wpisy do `window.dataLayer` — nie pobiera żadnego
  * skryptu i nie zakłada żadnego pliku, więc wolno go zainicjalizować przed
  * jakąkolwiek zgodą. O to zresztą chodzi: `default` ze wszystkimi sygnałami
- * `denied` musi stać w kolejce ZANIM załaduje się gtag.js, inaczej pierwsze
- * milisekundy działania GA odbywają się bez ustawionej polityki zgód.
+ * `denied` musi stać w kolejce ZANIM załaduje się kontener GTM, inaczej pierwsze
+ * milisekundy jego działania odbywają się bez ustawionej polityki zgód.
  *
- * Kolejność przy zgodzie: `default (denied)` → `update (granted)` → dopiero
- * potem skrypt narzędzia (`components/cookies/skrypty-narzedzi.tsx`).
+ * Kolejność: `default (denied)` → `update` → dopiero potem kontener
+ * (`components/cookies/skrypty-narzedzi.tsx`).
+ *
+ * ⚠️ CONSENT MODE NIE WYSTARCZA SAM Z SIEBIE. Jest to protokół Google — GA4 go
+ * respektuje, ale **Meta Pixel i Microsoft Clarity nie**. Ustawienie
+ * `ad_storage: denied` NIE powstrzyma tagu Meta Pixel; odpali się i założy
+ * `_fbp`. Dlatego w panelu GTM każdy tag spoza ekosystemu Google musi mieć
+ * ustawione „Dodatkowe sprawdzenia zgody" (Additional Consent Checks):
+ * `ad_storage` dla Meta Pixel, `analytics_storage` dla Clarity. Wtedy GTM
+ * w ogóle go nie uruchamia. To najczęściej pomijany krok w takiej konfiguracji
+ * — pełna lista ustawień w `dokumenty-prawne/specyfikacja-baner-cookies.md`.
  */
 
 import type { WyborKategorii } from "./zgody";
@@ -16,21 +25,8 @@ import type { WyborKategorii } from "./zgody";
 declare global {
   interface Window {
     dataLayer?: unknown[];
-    /** Meta Pixel — stub kolejkujący zdarzenia do czasu wczytania fbevents.js. */
-    fbq?: FbqFunkcja;
-    _fbq?: FbqFunkcja;
-    /** Microsoft Clarity — stub kolejkujący wywołania. */
-    clarity?: ((...args: unknown[]) => void) & { q?: unknown[] };
   }
 }
-
-export type FbqFunkcja = ((...args: unknown[]) => void) & {
-  callMethod?: (...args: unknown[]) => void;
-  queue?: unknown[];
-  push?: unknown;
-  loaded?: boolean;
-  version?: string;
-};
 
 type StanSygnalu = "granted" | "denied";
 
@@ -52,8 +48,22 @@ const SYGNALY = [
 
 type Sygnal = (typeof SYGNALY)[number];
 
-function gtag(...argumenty: unknown[]) {
-  (window.dataLayer ??= []).push(argumenty);
+/**
+ * Kanoniczna postać `gtag` z dokumentacji Google — do `dataLayer` trafia obiekt
+ * `arguments`, a NIE tablica z parametru rest.
+ *
+ * Wygląda to na różnicę bez znaczenia (oba są array-like), ale to jedno
+ * z miejsc, w których Consent Mode potrafi po cichu nie zadziałać, a błąd jest
+ * niewidoczny w kodzie i w typach. Trzymamy się dosłownie snippetu Google'a,
+ * bo koszt jest zerowy, a diagnozowanie „dlaczego zgody nie docierają do tagów"
+ * kosztuje godziny. Weryfikacja: Tag Assistant, zakładka Consent.
+ */
+function gtag(...argumenty: unknown[]): void;
+function gtag() {
+  // Patrz komentarz nad funkcją: `dataLayer.push(arguments)` to dosłowna
+  // postać ze snippetu Google'a, celowo zamiast tablicy z parametru rest.
+  // eslint-disable-next-line prefer-rest-params
+  (window.dataLayer ??= []).push(arguments);
 }
 
 function zbudujSygnaly(
@@ -103,10 +113,4 @@ export function zaktualizujZgodyGoogle(kategorie: WyborKategorii) {
       }
     }),
   );
-}
-
-/** Wpis do `dataLayer` — używane przez konfigurację GA4. */
-export function wyslijDoDataLayer(...argumenty: unknown[]) {
-  if (typeof window === "undefined") return;
-  gtag(...argumenty);
 }

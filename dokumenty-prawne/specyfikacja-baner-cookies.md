@@ -1,7 +1,7 @@
-# Baner cookies — specyfikacja i prompt wdrożeniowy
+# Zgody na pliki cookies — jak to działa i co jeszcze skonfigurować
 
 Podstawa: instrukcja prawnika „3 Jak informować o plikach cookies zgodnie
-z prawem?" oraz sekcja „Pliki cookies" w opublikowanej Polityce prywatności
+z prawem?" oraz sekcja „Pliki cookies" w Polityce prywatności
 (`src/lib/prawne/polityka-prywatnosci.ts`).
 
 > **Uwaga o stanie prawnym.** Instrukcja prawnika powołuje się na „prawo
@@ -10,6 +10,9 @@ z prawem?" oraz sekcja „Pliki cookies" w opublikowanej Polityce prywatności
 > (obowiązuje od 10 listopada 2024 r.). Treść obowiązku jest ta sama: zgoda przed
 > instalacją, wyjątek dla plików niezbędnych. Zmieniła się tylko podstawa prawna —
 > i tak jest zacytowana w Polityce prywatności.
+
+**Stan: mechanizm jest zaimplementowany w kodzie. Do zrobienia został panel
+GTM** (sekcja 5) i weryfikacja (sekcja 6).
 
 ---
 
@@ -23,27 +26,25 @@ Z instrukcji prawnika, punkt po punkcie:
 | 2 | Baner nie może nadmiernie utrudniać korzystania ze strony | nie zasłania całego ekranu, strona pozostaje czytelna |
 | 3 | **Zgody domyślnie odznaczone** | przełączniki „analityczne" i „marketingowe" startują wyłączone |
 | 4 | **Żadne pliki poza niezbędnymi nie instalują się przed zgodą** | w DevTools → Application → Cookies po wejściu i przed kliknięciem widać wyłącznie cookies niezbędne |
-| 5 | Możliwość zmiany decyzji **w każdej chwili** | stały odnośnik „Ustawienia cookies" w stopce |
-| 6 | Informacja o każdym pliku: **nazwa, dostawca, funkcja, zakres danych, okres działania** | panel szczegółów odwzorowuje tabelę z Polityki prywatności |
+| 5 | Możliwość zmiany decyzji **w każdej chwili** | stały przycisk „Ustawienia cookies" w stopce |
+| 6 | Informacja o każdym pliku: **nazwa, dostawca, funkcja, zakres danych, okres działania** | panel szczegółów i tabela w polityce są generowane z tego samego rejestru |
 | 7 | Link do Polityki prywatności w banerze | jest |
-| 8 | Odmowa równie łatwa jak zgoda | przycisk „Odrzuć wszystkie" na tym samym poziomie co „Akceptuję wszystkie" |
+| 8 | Odmowa równie łatwa jak zgoda | „Odrzuć wszystkie" na tym samym poziomie co „Akceptuję wszystkie" |
 
 > Punkt 8 nie jest w instrukcji prawnika wprost, ale wynika z wytycznych EROD
 > i z decyzji UODO: „Akceptuję" jako duży zielony przycisk obok schowanego pod
 > dwoma kliknięciami „Odrzuć" to wzorzec, który organy uznają za wymuszanie zgody.
-> Instrukcja dopuszcza optymalizację pod akceptację (przycisk „akceptuję wszystkie
-> i przechodzę do serwisu") — ale przy zachowaniu równorzędnej odmowy.
 
 **Punkt 4 jest najważniejszy i najczęściej łamany.** Nie wystarczy pokazać baner —
-skrypty GA4, Meta Pixel i Clarity nie mogą się w ogóle załadować, dopóki zgody nie
-ma. Ładowanie ich „na wszelki wypadek" i wysyłanie zdarzeń dopiero po zgodzie to
-naruszenie: sam skrypt ustawia już pliki.
+skrypt nie może się w ogóle pobrać, dopóki zgody nie ma. Ładowanie „na wszelki
+wypadek" i wysyłanie zdarzeń dopiero po zgodzie to naruszenie: sam skrypt zakłada
+już pliki.
 
 ---
 
 ## 2. Kategorie zgód
 
-Muszą być dokładnie te trzy — tak jak w tabeli w Polityce prywatności:
+Dokładnie te trzy — tak jak w tabeli w Polityce prywatności:
 
 | Kategoria | Można wyłączyć? | Co obejmuje |
 |---|---|---|
@@ -52,128 +53,151 @@ Muszą być dokładnie te trzy — tak jak w tabeli w Polityce prywatności:
 | **Marketingowe** | tak, domyślnie WYŁĄCZONE | Meta Pixel |
 
 **Vercel Analytics w kategorii analitycznej** — mimo że Vercel deklaruje działanie
-bez cookies i bez danych osobowych. Jeśli chcesz go zwolnić ze zgody, potrzebna
-jest osobna analiza; do tego czasu bezpieczniej trzymać go za zgodą, a Polityka
-prywatności właśnie tak go opisuje.
+bez cookies i bez danych osobowych. Zwolnienie go ze zgody wymagałoby osobnej
+analizy; do tego czasu trzymamy go za zgodą, a Polityka prywatności właśnie tak
+go opisuje.
 
 ---
 
-## 3. Wymagania techniczne po stronie kodu
+## 3. Architektura — dwie drogi ładowania
 
-- **Zapis wyboru** w cookie `aplikando_zgody_cookies` (nie w localStorage — musi
-  być czytelny także dla ewentualnego kodu serwerowego), `SameSite=Lax`,
-  `Secure`, `max-age` 12 miesięcy. Zawartość: wersja zgody, wybrane kategorie,
-  znacznik czasu ISO.
-- **Wersjonowanie zgody.** Stała `WERSJA_ZGODY`. Podniesienie jej (np. po dodaniu
-  nowego narzędzia) unieważnia zapisane zgody i pokazuje baner ponownie —
-  bez tego dodanie Clarity oznaczałoby przetwarzanie bez zgody.
-- **Brak migotania.** Baner nie może błysnąć u kogoś, kto już zdecydował. Odczyt
-  cookie przed pierwszym malowaniem albo render warunkowy po stronie serwera.
-- **Google Consent Mode v2** dla GA4 i Meta Pixel: `default` ze wszystkimi
-  sygnałami `denied` przed skryptem GA, `update` po zgodzie.
-- **Wycofanie zgody musi realnie działać** — nie tylko przestać wysyłać zdarzenia,
-  ale usunąć pliki ustawione przez dane narzędzie (`_ga`, `_ga_*`, `_fbp`, `_clck`,
-  `_clsk`) i przeładować stronę.
-- **Odnośnik w stopce.** `src/components/stopka.tsx` ma w tym miejscu komentarz
-  `⚠️ DO DODANIA RAZEM Z BANEREM COOKIES` — przycisk trafia dokładnie tam.
-  Polityka prywatności obiecuje, że odnośnik nazywa się **„Ustawienia cookies"**.
-- **Dostępność:** panel to dialog z pułapką fokusu, zamykany Esc, przełączniki
-  obsługiwane klawiaturą, kontrast zgodny z resztą UI.
+Narzędzia startują dwiema drogami i trzeba wiedzieć, czego szukać gdzie:
+
+| Narzędzie | Skąd startuje | Czym jest bramkowane |
+|---|---|---|
+| Vercel Analytics / Speed Insights | kod (`skrypty-narzedzi.tsx`) | warunek w Reakcie — kategoria „analityczne" |
+| Google Analytics 4 | **tag w GTM** | Consent Mode (`analytics_storage`) |
+| Microsoft Clarity | **tag w GTM** | Dodatkowe sprawdzenia zgody (`analytics_storage`) |
+| Meta Pixel | **tag w GTM** | Dodatkowe sprawdzenia zgody (`ad_storage`) |
+
+**Dlaczego Vercel nie idzie do GTM:** jego skrypty są serwowane pierwszostronnie
+z `/_vercel/...`. Przeniesienie ich do GTM zamieniłoby żądanie pierwszostronne
+na trzeciostronne do Google — dokładnie odwrotnie, niż chcemy.
+
+**Kiedy ładuje się kontener GTM:** dopiero gdy użytkownik zgodzi się na **co
+najmniej jedną** kategorię opcjonalną. Kto odrzuci wszystko, nie wyśle do Google
+ani jednego żądania — także po sam plik `gtm.js`.
+
+> **Świadomie odrzucony wariant:** kontener ładowany zawsze, z tagami
+> wstrzymanymi przez Consent Mode. To standard rynkowy i daje modelowanie
+> konwersji w GA4 dla osób, które odmówiły — ale kosztuje jedno żądanie do
+> Google przy każdej wizycie, także odmawiającej, czyli przekazanie adresu IP
+> bez zgody. Przy aplikacji, do której ludzie wklejają swoje CV, wybrano wariant
+> ostrożniejszy. Zmiana = przekazanie `true` zamiast `jakakolwiekZgoda`
+> w `SkryptyNarzedzi`.
+
+### ⚠️ Consent Mode nie wystarcza sam z siebie
+
+Consent Mode to protokół **Google**. GA4 go respektuje. **Meta Pixel i Microsoft
+Clarity nie.** Ustawienie `ad_storage: denied` nie powstrzyma tagu Meta Pixel —
+odpali się i założy `_fbp`.
+
+Dlatego każdy tag spoza ekosystemu Google **musi** mieć w GTM ustawione
+„Dodatkowe sprawdzenia zgody". To najczęściej pomijany krok w takiej
+konfiguracji i najłatwiejszy sposób na naruszenie mimo poprawnego banera.
+
+### ⚠️ Tagi żyją poza repo — największe ryzyko tej konstrukcji
+
+Od wpięcia narzędzi w GTM **dodanie tagu przestało być commitem**. Ktoś dodaje
+tag w panelu w dwie minuty i w tej samej sekundzie:
+
+- Polityka prywatności staje się nieprawdziwa (opisuje węższy zestaw narzędzi),
+- nowe pliki lądują u osób, które zgodziły się na poprzedni zestaw,
+- `WERSJA_ZGODY` nie została podniesiona, więc nikt nie zostanie zapytany ponownie.
+
+Technicznie nie da się tego wymusić z kodu. Obowiązuje zasada, **w tej
+kolejności**:
+
+1. wpis w `src/lib/prawne/cookies-rejestr.ts`,
+2. podniesienie `WERSJA_ZGODY` w `src/lib/cookies/zgody.ts`,
+3. **dopiero potem** publikacja wersji kontenera w GTM.
+
+Uprawnienie do publikowania kontenera powinna mieć jedna osoba, z włączonym
+powiadomieniem o publikacji wersji.
 
 ---
 
-## 4. Zgodność z UI (nienaruszalna)
+## 4. Co jest w kodzie
+
+| Plik | Rola |
+|---|---|
+| `src/lib/prawne/cookies-rejestr.ts` | **jedno źródło prawdy** o narzędziach; zasila tabelę w polityce (`TABELA_COOKIES_MD`) i panel zgód |
+| `src/lib/cookies/zgody.ts` | odczyt/zapis cookie `aplikando_zgody_cookies`, `WERSJA_ZGODY`, kasowanie plików po wycofaniu zgody |
+| `src/lib/cookies/tryb-zgody-google.ts` | Consent Mode v2 — `default (denied)` i `update`, same wpisy do `dataLayer` |
+| `src/components/cookies/kontekst-zgod.tsx` | stan zgód, montaż banera i panelu, sprzątanie plików przy każdym wejściu |
+| `src/components/cookies/baner-cookies.tsx` | baner pierwszej wizyty |
+| `src/components/cookies/panel-cookies.tsx` | panel szczegółowy z przełącznikami |
+| `src/components/cookies/przycisk-ustawien-cookies.tsx` | „Ustawienia cookies" w stopce |
+| `src/components/cookies/skrypty-narzedzi.tsx` | ładuje Vercel Analytics (kod) i kontener GTM (po zgodzie) |
+
+Cookie zgód: `aplikando_zgody_cookies`, `SameSite=Lax`, `Secure` na HTTPS,
+12 miesięcy, zawiera wersję zgody, wybrane kategorie i znacznik czasu ISO.
+
+Zmienna środowiskowa: **`NEXT_PUBLIC_GTM_ID`** (`GTM-XXXXXXX`). Brak
+identyfikatora = kontener po prostu się nie ładuje, bez błędu. Wcześniejsze
+`NEXT_PUBLIC_GA_ID`, `NEXT_PUBLIC_META_PIXEL_ID` i `NEXT_PUBLIC_CLARITY_ID` są
+już niepotrzebne — te identyfikatory wpisuje się teraz w tagach w GTM.
+
+---
+
+## 5. DO ZROBIENIA: konfiguracja panelu GTM
+
+- [ ] Załóż kontener typu **Web** dla `aplikando.pl`. Skopiuj identyfikator
+      `GTM-XXXXXXX` do `NEXT_PUBLIC_GTM_ID` w env (Vercel: Preview + Production).
+- [ ] **Nie wklejaj snippetu GTM do `layout.tsx`.** Kontener ładuje
+      `skrypty-narzedzi.tsx`, warunkowo. Wklejony snippet ładowałby go zawsze,
+      również przy odmowie zgody — czyli obszedłby cały mechanizm.
+- [ ] Admin → Ustawienia kontenera → włącz **Zgody użytkowników**
+      (*Consent Overview*). Bez tego nie zobaczysz kolumny zgód przy tagach.
+- [ ] **Tag GA4** (Google Tag): identyfikator strumienia, wyzwalacz
+      *Initialization – All Pages*. Wbudowane sprawdzenie zgody respektuje
+      `analytics_storage` automatycznie; dla jawności ustaw dodatkowo
+      *Additional Consent Checks* → `analytics_storage`.
+- [ ] **Tag Microsoft Clarity**: *Additional Consent Checks* → **`analytics_storage`**.
+      Bez tego odpali się mimo odmowy.
+- [ ] **Tag Meta Pixel**: *Additional Consent Checks* → **`ad_storage`**.
+      Bez tego odpali się mimo odmowy.
+- [ ] **Odsłony w aplikacji jednostronicowej**: dodaj wyzwalacz *History Change*
+      dla tagu Meta Pixel (zdarzenie `PageView`). GA4 i Clarity liczą odsłony
+      same przy zmianie History API — dorzucenie im wyzwalacza dałoby podwójne
+      odsłony. Kod nie zgłasza odsłon, robi to wyłącznie GTM.
+- [ ] Jeżeli włączysz **Conversion Linker** (Google Ads): dopisz plik `_gcl_au`
+      do wpisu Google Analytics w `cookies-rejestr.ts` i podnieś `WERSJA_ZGODY`.
+- [ ] Opublikuj wersję kontenera.
+
+---
+
+## 6. DO ZROBIENIA: weryfikacja
+
+Na świeżym profilu przeglądarki, na wdrożeniu preview:
+
+- [ ] **Przed kliknięciem czegokolwiek**: DevTools → Application → Cookies
+      pokazuje wyłącznie cookies niezbędne. Zakładka Network **nie zawiera**
+      żądania do `googletagmanager.com`. Zrzut ekranu.
+- [ ] **Po „Odrzuć wszystkie"**: nadal zero żądań do `googletagmanager.com`,
+      zero `_ga`, `_fbp`, `_clck`.
+- [ ] **Po „Akceptuję wszystkie"**: kontener się ładuje, pojawiają się `_ga`,
+      `_ga_*`, `_fbp`, `_clck`, `_clsk`. Zrzut ekranu.
+- [ ] **Wybór mieszany** (analityczne TAK, marketingowe NIE) — najważniejszy
+      test, bo tu działają sprawdzenia zgody w GTM: `_ga` jest, `_fbp` **nie ma**.
+- [ ] **Tag Assistant**, zakładka *Consent*: przed zgodą wszystkie sygnały
+      `denied`, po zgodzie odpowiednie `granted`. Ten test weryfikuje przy okazji,
+      że `dataLayer.push(arguments)` w `tryb-zgody-google.ts` jest odczytywany
+      poprawnie — to miejsce, w którym Consent Mode potrafi po cichu nie zadziałać.
+- [ ] **Wycofanie zgody**: pliki znikają, strona się przeładowuje.
+- [ ] **Brak migotania**: przy drugim wejściu baner nie błyska.
+- [ ] **Szerokość 375 px**: baner nie zasłania treści, panel przewija się
+      poprawnie (wysokości w `dvh`, nie `vh`).
+
+---
+
+## 7. Zgodność z UI (nienaruszalna)
 
 Styl Spotify, dark-only. Tła `#121212 / #181818 / #1f1f1f`, jedyny akcent zieleń
 `#1ed760` (wyłącznie funkcjonalnie), przyciski pill `rounded-full` uppercase,
-ciężkie cienie, bez szarych ramek, font Figtree. Używać tokenów z `globals.css`
-(`bg-card`, `text-muted-foreground`, `bg-primary`), a nie kolorów wpisanych
-na sztywno. Komponenty z `components/ui/` (shadcn/radix), nie nowe zależności.
+ciężkie cienie, bez szarych ramek, font Figtree. Tokeny z `globals.css`
+(`bg-card`, `text-muted-foreground`, `bg-primary`), nie kolory na sztywno.
+Komponenty z `components/ui/`, bez nowych zależności.
 
-Na telefonie: baner jako pasek dolny, wysokości w `dvh` (nie `vh`), panel
-szczegółów jako `flex-col` z przewijanym wyłącznie środkiem — patrz sekcja
-„Konwencje i pułapki" w `STRUKTURA.md`.
-
----
-
-## 5. Prompt do wklejenia w osobnym agencie
-
-Skopiuj wszystko poniżej linii.
-
----
-
-Pracujesz w repo `cv-copilot` (Next.js 16 App Router, React 19, Tailwind v4,
-shadcn/ui, dark-only). Przeczytaj najpierw `STRUKTURA.md` i `AGENTS.md` — to nie
-jest Next.js, który znasz, więc przed pisaniem kodu Next zajrzyj do
-`node_modules/next/dist/docs/`. Pracuj na branchu `dev`, nie uruchamiaj
-localhosta — commituj na `dev` i weryfikuj na preview Vercela.
-
-**Zadanie:** zaimplementuj mechanizm zgód na pliki cookies zgodny z opublikowaną
-Polityką prywatności.
-
-**Źródła prawdy, których MUSISZ się trzymać (przeczytaj je przed startem):**
-
-1. `dokumenty-prawne/specyfikacja-baner-cookies.md` — pełne wymagania prawne
-   i techniczne (ten plik).
-2. `src/lib/prawne/polityka-prywatnosci.ts`, sekcja „Pliki cookies" — tabela
-   narzędzi. **Nazwy plików, dostawcy, kategorie i okresy działania w banerze
-   MUSZĄ być identyczne z tą tabelą.** Rozjazd między banerem a polityką to
-   dokładnie ten błąd, który organ nadzorczy znajduje pierwszy. Jeśli musisz coś
-   zmienić — zmień OBA miejsca w tym samym commicie.
-3. `src/components/stopka.tsx` — miejsce na przycisk „Ustawienia cookies",
-   oznaczone komentarzem.
-
-**Zakres:**
-
-- Trzy kategorie: niezbędne (zawsze aktywne), analityczne, marketingowe.
-  Analityczne i marketingowe **domyślnie wyłączone**.
-- Baner przy pierwszej wizycie: krótki opis, link do Polityki prywatności,
-  trzy równorzędne akcje — „Akceptuję wszystkie", „Odrzuć wszystkie",
-  „Dostosuj". Przycisk odmowy tak samo widoczny jak akceptacji.
-- Panel „Dostosuj" / „Ustawienia cookies": przełączniki kategorii + rozwijana
-  lista narzędzi z nazwą pliku, dostawcą, funkcją, zakresem danych i okresem
-  działania (dane z tabeli w polityce).
-- Zapis w cookie `aplikando_zgody_cookies` (SameSite=Lax, Secure, 12 miesięcy),
-  z polem wersji. Stała `WERSJA_ZGODY` — jej podniesienie unieważnia stare zgody.
-- **Żaden skrypt analityczny ani marketingowy nie może się załadować przed
-  zgodą.** Ładowanie warunkowe po stronie klienta, nie samo wstrzymanie zdarzeń.
-- Google Consent Mode v2: domyślnie wszystkie sygnały `denied`, `update`
-  po zgodzie.
-- Wycofanie zgody usuwa pliki danego narzędzia (`_ga`, `_ga_*`, `_fbp`, `_clck`,
-  `_clsk`) i przeładowuje stronę.
-- Przycisk „Ustawienia cookies" w stopce — stale dostępny, otwiera panel.
-  Usuń przy okazji komentarz `⚠️ DO DODANIA RAZEM Z BANEREM COOKIES`.
-- Skrypty narzędzi (Vercel Analytics/Speed Insights, GA4, Meta Pixel, Microsoft
-  Clarity) ładowane dopiero po zgodzie właściwej kategorii. Identyfikatory
-  (`NEXT_PUBLIC_GA_ID`, `NEXT_PUBLIC_META_PIXEL_ID`, `NEXT_PUBLIC_CLARITY_ID`)
-  z env; brak identyfikatora = narzędzie po prostu się nie ładuje, bez błędu.
-
-**Czego NIE robić:**
-
-- Nie dodawać zewnętrznych bibliotek CMP (Cookiebot, Osano itp.) — własny
-  komponent na shadcn/radix.
-- Nie ruszać UI poza stopką i nowymi komponentami. Styl Spotify dark-only jest
-  nienaruszalny: tła `#121212/#181818/#1f1f1f`, akcent `#1ed760` wyłącznie
-  funkcjonalnie, przyciski pill `rounded-full` uppercase, font Figtree, tokeny
-  z `globals.css` zamiast kolorów na sztywno.
-- Nie zmieniać treści dokumentów prawnych bez wyraźnej potrzeby; jeśli zmiana
-  jest konieczna — zgłoś ją i zmień polityka + baner razem.
-- Nie stosować dark patternów: brak wstępnie zaznaczonych zgód, brak
-  „Odrzuć" ukrytego pod dodatkowymi kliknięciami, brak zamykania banera
-  krzyżykiem traktowanego jako zgoda.
-
-**Po wdrożeniu zweryfikuj i pokaż dowód:**
-
-1. Wyczyść `.next` (`Remove-Item .next -Recurse -Force`) — w tym Next dodanie
-   trasy/komponentu bez czyszczenia daje 404 mimo obecnego pliku.
-2. `npx tsc --noEmit` i `npm run build` — czysto.
-3. W przeglądarce, na świeżym profilu: po wejściu i PRZED kliknięciem czegokolwiek
-   w DevTools → Application → Cookies widać **wyłącznie** cookies niezbędne.
-   Zrób zrzut ekranu.
-4. Po „Akceptuję wszystkie" pojawiają się `_ga`, `_fbp`, `_clck`. Po wycofaniu
-   zgody znikają. Zrzut ekranu obu stanów.
-5. Sprawdź na szerokości 375 px, że baner nie zasłania treści i że panel przewija
-   się poprawnie (wysokości w `dvh`, nie `vh`).
-6. Zaktualizuj `STRUKTURA.md` w tym samym commicie — to obowiązek w tym repo.
-
-Commit po polsku, zakończony `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`.
+Na telefonie: baner jako pasek dolny, wysokości w `dvh`, panel jako `flex-col`
+z przewijanym wyłącznie środkiem — patrz „Konwencje i pułapki" w `STRUKTURA.md`.

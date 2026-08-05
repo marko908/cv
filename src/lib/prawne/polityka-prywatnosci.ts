@@ -180,7 +180,7 @@ Odbiorcami danych osobowych są następujące podmioty zewnętrzne współpracuj
 | Vercel Inc. (USA) | hosting i udostępnianie Aplikacji, analityka ruchu | wszystkie dane przetwarzane w Aplikacji, dane z logów serwera |
 | Supabase Inc. (USA; instancja bazy danych zlokalizowana we Frankfurcie nad Menem, Niemcy) | baza danych, uwierzytelnianie, przechowywanie plików | dane Konta, treść CV, historia Dopasowań, zdjęcia |
 | Stripe Payments Europe, Limited (Irlandia) oraz Stripe, Inc. (USA) | obsługa płatności i subskrypcji | adres e-mail, identyfikatory klienta i subskrypcji, dane transakcji |
-| Google Ireland Limited oraz Google LLC (USA) | modele sztucznej inteligencji (Gemini API), analityka (Google Analytics 4) | treść CV i treść ogłoszenia przekazywane w celu wykonania Dopasowania; dane o korzystaniu z Aplikacji |
+| Google Ireland Limited oraz Google LLC (USA) | modele sztucznej inteligencji (Gemini API), zarządzanie tagami (Google Tag Manager), analityka (Google Analytics 4) | treść CV i treść ogłoszenia przekazywane w celu wykonania Dopasowania; dane o korzystaniu z Aplikacji |
 | Resend, Inc. (USA) | wysyłka wiadomości e-mail (kody aktywacyjne, powiadomienia) | adres e-mail, treść wiadomości |
 | Meta Platforms Ireland Limited (Irlandia) | działania marketingowe i pomiar ich skuteczności (Meta Pixel) | dane o korzystaniu z Aplikacji – wyłącznie po wyrażeniu zgody |
 | Microsoft Ireland Operations Limited oraz Microsoft Corporation (USA) | analiza sposobu korzystania z Aplikacji (Microsoft Clarity) | dane o korzystaniu z Aplikacji – wyłącznie po wyrażeniu zgody |
@@ -234,8 +234,9 @@ W związku z przetwarzaniem danych osobowych przysługują Ci następujące upra
 
 ${TABELA_COOKIES_MD}
 
-7. **Treść Twojego CV, treść ogłoszeń o pracę oraz wyniki Dopasowań nie są przekazywane do żadnego z narzędzi analitycznych ani marketingowych** wymienionych w tabeli powyżej.
-8. Za pośrednictwem większości powszechnie używanych przeglądarek możesz sprawdzić, czy na Twoim urządzeniu końcowym zostały zainstalowane pliki cookies, jak również usunąć zainstalowane pliki cookies oraz zablokować instalowanie ich w przyszłości przez Aplikację. Wyłączenie lub ograniczenie obsługi niezbędnych plików cookies może jednak spowodować poważne trudności w korzystaniu z Aplikacji, w szczególności brak możliwości zalogowania się na Konto.
+7. Narzędzia analityczne i marketingowe wymienione w tabeli powyżej są uruchamiane za pośrednictwem **Google Tag Manager** – usługi Google Ireland Limited służącej do zarządzania kodami pomiarowymi. Sam Google Tag Manager nie zapisuje żadnych plików w Twoim urządzeniu; decyduje jedynie o tym, które z narzędzi zostaje uruchomione. **Administrator nie pobiera Google Tag Managera, dopóki nie wyrazisz zgody na co najmniej jedną kategorię opcjonalną** – jeżeli odmówisz wszystkich zgód, do serwerów Google nie zostanie wysłane żadne zapytanie. Wyjątkiem są narzędzia Vercel Analytics i Speed Insights, uruchamiane bezpośrednio przez Aplikację, bez pośrednictwa Google Tag Managera.
+8. **Treść Twojego CV, treść ogłoszeń o pracę oraz wyniki Dopasowań nie są przekazywane do żadnego z narzędzi analitycznych ani marketingowych** wymienionych w tabeli powyżej ani do Google Tag Managera.
+9. Za pośrednictwem większości powszechnie używanych przeglądarek możesz sprawdzić, czy na Twoim urządzeniu końcowym zostały zainstalowane pliki cookies, jak również usunąć zainstalowane pliki cookies oraz zablokować instalowanie ich w przyszłości przez Aplikację. Wyłączenie lub ograniczenie obsługi niezbędnych plików cookies może jednak spowodować poważne trudności w korzystaniu z Aplikacji, w szczególności brak możliwości zalogowania się na Konto.
 
 ## Postanowienia końcowe
 

@@ -82,6 +82,18 @@ export function DostawcaZgodCookies({
     ustawDomyslneZgodyGoogle();
 
     const zapis = odczytajZgody();
+    /*
+     * Odczyt ciasteczka to sięgnięcie do stanu SPOZA Reacta, którego na serwerze
+     * nie da się poznać — stąd setState w efekcie. Reguła
+     * `react-hooks/set-state-in-effect` słusznie tego pilnuje, ale wariant bez
+     * niej (`useSyncExternalStore` z `getServerSnapshot`) wymaga wyniesienia
+     * całego magazynu zgód poza React: cache'owanej migawki, zestawu słuchaczy
+     * i powiadamiania z `zapiszZgody`. Efekt biegnie tu raz, po hydracji,
+     * i ustawia dwa stany naraz (React je zbatchuje), więc kaskada renderów
+     * jest jedna i pomijalna. Wyniesienie magazynu zostaje jako możliwe
+     * uporządkowanie, nie jako warunek poprawności.
+     */
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setZgody(zapis);
     setGotowe(true);
     if (zapis) zaktualizujZgodyGoogle(zapis.kategorie);

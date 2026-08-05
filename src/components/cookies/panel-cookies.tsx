@@ -15,7 +15,7 @@
  * bez paska adresu, więc przyciski zapisu chowałyby się pod nim.
  */
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ChevronDownIcon } from "lucide-react";
 import { Collapsible as CollapsiblePrimitive } from "radix-ui";
 
@@ -155,19 +155,80 @@ function SekcjaKategorii({
   );
 }
 
-export function PanelCookies() {
-  const { panelOtwarty, zamknijPanel, zapisz, zgody } = useZgodyCookies();
-  const [wybor, setWybor] = useState<WyborKategorii>(ODRZUC_WSZYSTKO);
-
-  // Przy każdym otwarciu panel pokazuje AKTUALNIE zapisany stan, a gdy zgody
-  // jeszcze nie ma — wszystko wyłączone. Zgoda nigdy nie jest wstępnie
-  // zaznaczona (wymóg nr 3 ze specyfikacji).
-  useEffect(() => {
-    if (panelOtwarty) setWybor(zgody?.kategorie ?? ODRZUC_WSZYSTKO);
-  }, [panelOtwarty, zgody]);
+/**
+ * Wnętrze panelu — osobny komponent, bo TU mieszka stan przełączników.
+ *
+ * Radix odmontowuje zawartość zamkniętego okna, więc przy każdym otwarciu ten
+ * komponent montuje się od nowa i `useState` startuje od `poczatkowy`. Dzięki
+ * temu panel zawsze pokazuje AKTUALNIE zapisany wybór, bez efektu
+ * synchronizującego stan (`useEffect` + `setState` przy otwarciu to kaskada
+ * renderów, którą wytyka `react-hooks/set-state-in-effect`).
+ */
+function TrescPanelu({
+  poczatkowy,
+  zapisz,
+}: {
+  poczatkowy: WyborKategorii;
+  zapisz: (wybor: WyborKategorii) => void;
+}) {
+  const [wybor, setWybor] = useState<WyborKategorii>(poczatkowy);
 
   const przelacz = (kategoria: KategoriaOpcjonalna) => (wartosc: boolean) =>
     setWybor((poprzedni) => ({ ...poprzedni, [kategoria]: wartosc }));
+
+  return (
+    <>
+      <DialogHeader className="shrink-0 p-4 pr-12 text-left">
+        <DialogTitle>Ustawienia plików cookies</DialogTitle>
+        <DialogDescription>
+          Zdecyduj, na co się zgadzasz. Odmowa niczego nie ogranicza — Aplikacja
+          działa tak samo.
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 pb-4">
+        {KATEGORIE.map((opis) => {
+          const opcjonalna = opis.kategoria !== "niezbędne";
+          const klucz = opis.kategoria as KategoriaOpcjonalna;
+
+          return (
+            <SekcjaKategorii
+              key={opis.kategoria}
+              opis={opis}
+              wlaczona={opcjonalna ? wybor[klucz] : true}
+              naZmiane={opcjonalna ? przelacz(klucz) : undefined}
+            />
+          );
+        })}
+      </div>
+
+      <div className="flex shrink-0 flex-col gap-2 border-t border-border bg-muted/50 p-4 sm:flex-row sm:justify-end">
+        <Button
+          size="lg"
+          variant="secondary"
+          className="btn-label"
+          onClick={() => zapisz(ODRZUC_WSZYSTKO)}
+        >
+          Odrzuć wszystkie
+        </Button>
+        <Button
+          size="lg"
+          variant="secondary"
+          className="btn-label"
+          onClick={() => zapisz(PRZYJMIJ_WSZYSTKO)}
+        >
+          Akceptuję wszystkie
+        </Button>
+        <Button size="lg" className="btn-label" onClick={() => zapisz(wybor)}>
+          Zapisz wybór
+        </Button>
+      </div>
+    </>
+  );
+}
+
+export function PanelCookies() {
+  const { panelOtwarty, zamknijPanel, zapisz, zgody } = useZgodyCookies();
 
   return (
     <Dialog
@@ -177,51 +238,14 @@ export function PanelCookies() {
       }}
     >
       <DialogContent className="flex max-h-[90dvh] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
-        <DialogHeader className="shrink-0 p-4 pr-12 text-left">
-          <DialogTitle>Ustawienia plików cookies</DialogTitle>
-          <DialogDescription>
-            Zdecyduj, na co się zgadzasz. Odmowa niczego nie ogranicza — Aplikacja
-            działa tak samo.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 pb-4">
-          {KATEGORIE.map((opis) => {
-            const opcjonalna = opis.kategoria !== "niezbędne";
-            const klucz = opis.kategoria as KategoriaOpcjonalna;
-
-            return (
-              <SekcjaKategorii
-                key={opis.kategoria}
-                opis={opis}
-                wlaczona={opcjonalna ? wybor[klucz] : true}
-                naZmiane={opcjonalna ? przelacz(klucz) : undefined}
-              />
-            );
-          })}
-        </div>
-
-        <div className="flex shrink-0 flex-col gap-2 border-t border-border bg-muted/50 p-4 sm:flex-row sm:justify-end">
-          <Button
-            size="lg"
-            variant="secondary"
-            className="btn-label"
-            onClick={() => zapisz(ODRZUC_WSZYSTKO)}
-          >
-            Odrzuć wszystkie
-          </Button>
-          <Button
-            size="lg"
-            variant="secondary"
-            className="btn-label"
-            onClick={() => zapisz(PRZYJMIJ_WSZYSTKO)}
-          >
-            Akceptuję wszystkie
-          </Button>
-          <Button size="lg" className="btn-label" onClick={() => zapisz(wybor)}>
-            Zapisz wybór
-          </Button>
-        </div>
+        {/*
+          Zgoda nigdy nie jest wstępnie zaznaczona (wymóg nr 3 ze specyfikacji):
+          bez zapisanego wyboru przełączniki startują z ODRZUC_WSZYSTKO.
+        */}
+        <TrescPanelu
+          poczatkowy={zgody?.kategorie ?? ODRZUC_WSZYSTKO}
+          zapisz={zapisz}
+        />
       </DialogContent>
     </Dialog>
   );

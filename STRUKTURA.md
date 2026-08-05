@@ -516,20 +516,45 @@ prawnika + 22 odstępstwa od wzoru z uzasadnieniem + blokery przed publikacją.
 **Blokery odnotowane w `WDROZENIE.md`** (nie są zrobione): skrzynka
 marko@aplikando.pl musi działać (jest punktem kontaktowym DSA) · tier Gemini API
 musi być PŁATNY, bo darmowy trenuje na danych, a dokumenty stwierdzają, że nie ·
-umowy powierzenia z dostawcami (art. 28 RODO).
+umowy powierzenia z dostawcami (art. 28 RODO) · konfiguracja panelu GTM, patrz
+niżej.
 
 ## Zgody na cookies i narzędzia analityczne (od 2026-08-05)
 
 Własny mechanizm zgód na shadcn/radix — **żadnej zewnętrznej platformy CMP**
 (Cookiebot/Osano). Podstawa prawna: art. 398 ustawy z 12 lipca 2024 r. – Prawo
 komunikacji elektronicznej (zastąpił art. 173 Prawa telekomunikacyjnego).
-Pełne wymagania: `dokumenty-prawne/specyfikacja-baner-cookies.md`.
+Pełne wymagania i checklista konfiguracji panelu GTM:
+`dokumenty-prawne/specyfikacja-baner-cookies.md`.
 
 **`src/lib/prawne/cookies-rejestr.ts` = JEDNO ŹRÓDŁO listy narzędzi.** Zasila
 JEDNOCZEŚNIE tabelę w Polityce prywatności (`TABELA_COOKIES_MD` jest wstawiane
-w treść dokumentu) i panel zgód w banerze. Specyfikacja kazała trzymać oba
-miejsca w zgodzie ręcznie — tu nie ma czego rozjeżdżać, bo miejsce jest jedno.
-Rozjazd baner↔polityka to pierwsza rzecz, którą przy kontroli znajduje organ.
+w treść dokumentu) i panel zgód w banerze — nie ma czego rozjeżdżać, bo miejsce
+jest jedno. Każdy wpis niesie `przez: "gtm" | "kod" | null`, czyli skąd
+narzędzie realnie startuje (pole dokumentacyjne, nie steruje ładowaniem) —
+patrz niżej, dlaczego to rozróżnienie jest ważne.
+
+**NARZĘDZIA IDĄ DWIEMA DROGAMI (decyzja Marka 2026-08-04: tagi w Google Tag
+Managerze, nie pojedyncze skrypty w kodzie).** Vercel Analytics/Speed Insights
+zostają ładowane z kodu — ich skrypty są pierwszostronne (`/_vercel/...`),
+przeniesienie do GTM zamieniłoby żądanie pierwszostronne na trzeciostronne do
+Google. GA4, Microsoft Clarity i Meta Pixel są tagami w kontenerze GTM
+(`NEXT_PUBLIC_GTM_ID`) — kodu dla nich w repo NIE MA, identyfikatory (GA ID,
+Pixel ID, Clarity ID) wpisuje się w tagach w panelu GTM, nie w env.
+
+**⚠️ TAGI ŻYJĄ POZA REPO — `cookies-rejestr.ts` przestał być technicznie
+wymuszalnym źródłem prawdy.** Dodanie tagu w GTM to teraz dwie minuty w panelu,
+nie commit. Zastępuje go zasada organizacyjna, w tej kolejności: wpis w
+rejestrze → podniesienie `WERSJA_ZGODY` → dopiero potem publikacja wersji
+kontenera. Bez tego nowy tag ładowałby się u ludzi, którzy zgodzili się na
+węższy zestaw — czyli bez zgody. Uprawnienie do publikowania kontenera powinno
+mieć jedna osoba.
+
+**⚠️ CONSENT MODE SAM NIE WYSTARCZA.** To protokół Google — GA4 go respektuje,
+**Meta Pixel i Microsoft Clarity nie**. `ad_storage: denied` NIE powstrzymuje
+Meta Pixela; odpali się i założy `_fbp`. Oba muszą mieć w panelu GTM ustawione
+„Dodatkowe sprawdzenia zgody" (`ad_storage` dla Meta, `analytics_storage` dla
+Clarity) — bez tego działają mimo odmowy, a poprawny baner tego nie wyłapie.
 
 **`src/lib/cookies/zgody.ts`** — odczyt/zapis cookie `aplikando_zgody_cookies`
 (`SameSite=Lax`, `Secure` na HTTPS, 12 miesięcy; treść: wersja, kategorie, data
@@ -542,12 +567,21 @@ zgodziły się na węższy zestaw, czyli bez zgody. Niezgodna wersja = `null` =
 WSZYSTKIMI sygnałami `denied` idzie do `dataLayer` przy starcie aplikacji (to
 same wpisy do tablicy, zero żądań i plików), `update` po zgodzie. Lista sygnałów
 w jednej stałej, żeby `default` i `update` nie rozjechały się co do zakresu.
+`gtag()` pcha dosłownie `arguments` (nie tablicę z rest) — kanoniczna postać ze
+snippetu Google'a; to jedno z miejsc, gdzie zgoda potrafi po cichu nie dotrzeć
+do tagów, więc nie ryzykujemy odstępstwem mimo że oba są array-like
+(`eslint-disable-next-line prefer-rest-params` z uzasadnieniem w kodzie).
 
 **`src/components/cookies/`**: `kontekst-zgod.tsx` (`DostawcaZgodCookies` +
 `useZgodyCookies`; stoi w `app/layout.tsx`, `children` idzie propem, więc drzewo
 stron zostaje serwerowe) · `baner-cookies.tsx` (pasek dolny, pierwsza wizyta) ·
-`panel-cookies.tsx` (dialog „Dostosuj"/„Ustawienia cookies") ·
-`skrypty-narzedzi.tsx` (warunkowe ładowanie) ·
+`panel-cookies.tsx` (dialog „Dostosuj"/„Ustawienia cookies"; stan przełączników
+mieszka w `TrescPanelu`, osobnym komponencie montowanym od nowa przy każdym
+otwarciu — Radix odmontowuje zawartość zamkniętego dialogu, więc `useState`
+zawsze startuje od aktualnie zapisanej zgody, bez efektu synchronizującego,
+którego i tak wytknęłoby `react-hooks/set-state-in-effect`) ·
+`skrypty-narzedzi.tsx` (Vercel Analytics warunkowo z kodu, kontener GTM
+warunkowo po zgodzie na którąkolwiek kategorię opcjonalną) ·
 `przycisk-ustawien-cookies.tsx` (odnośnik w stopce).
 
 **ŻADEN SKRYPT NIE ŁADUJE SIĘ PRZED ZGODĄ — to nie jest wstrzymanie zdarzeń,
@@ -555,12 +589,11 @@ tylko brak pobrania skryptu.** Ładowanie „na wszelki wypadek" i wysyłanie
 zdarzeń dopiero po zgodzie jest naruszeniem, bo sam skrypt zakłada już pliki.
 Dlatego `skrypty-narzedzi.tsx` wstawia `<script>` ręcznie w efekcie, a nie przez
 `next/script` (ten trzyma własny rejestr wczytanych skryptów i nie gwarantuje,
-że warunkowe odmontowanie cokolwiek cofnie). Świadomie BEZ paczek
+że warunkowe odmontowanie cokolwiek cofnie). Vercel świadomie BEZ paczek
 `@vercel/analytics` / `@vercel/speed-insights` — sprowadzają się do wstawienia
 tych samych dwóch skryptów `/_vercel/...`, a jedna droga wstawiania = jedno
-miejsce do audytu. Identyfikatory z env (`NEXT_PUBLIC_GA_ID`,
-`NEXT_PUBLIC_META_PIXEL_ID`, `NEXT_PUBLIC_CLARITY_ID`); brak identyfikatora =
-narzędzie się nie ładuje, bez błędu.
+miejsce do audytu. **Nie wklejać snippetu GTM ręcznie do `layout.tsx`** — to
+ominęłoby cały mechanizm zgód, ładując kontener zawsze, również przy odmowie.
 
 **Wycofanie zgody działa NAPRAWDĘ:** kasuje pliki narzędzia (`_ga`, `_ga_*`,
 `_gid`, `_gat*`, `_clck`, `_clsk`, `_fbp`, `_fbc`) i przeładowuje stronę.

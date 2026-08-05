@@ -67,18 +67,23 @@ danych do państwa trzeciego" i Załącznika nr 2 do umowy powierzenia.
 ### 4. Zsynchronizuj politykę z narzędziami analitycznymi
 
 Polityka prywatności **opisuje Google Analytics 4, Meta Pixel i Microsoft
-Clarity**, których jeszcze nie ma w kodzie (`package.json` nie zawiera nawet
-`@vercel/analytics` — istnieje tylko gałąź `vercel/install-vercel-web-analytics-nq7u2q`).
+Clarity**. Mechanizm zgód jest już gotowy (sekcja C), ale same narzędzia zaczną
+działać dopiero po skonfigurowaniu kontenera GTM i ustawieniu
+`NEXT_PUBLIC_GTM_ID`.
 
 Masz dwie drogi, obie poprawne:
 
-- **A (zalecana):** wdróż baner cookies razem z narzędziami, potem opublikuj
-  politykę. Wszystko wchodzi jednym zrzutem i jest spójne.
+- **A (zalecana):** dokończ konfigurację GTM, potem opublikuj politykę.
+  Wszystko wchodzi jednym zrzutem i jest spójne.
 - **B:** opublikuj politykę teraz, ale **usuń z tabeli cookies i z tabeli
-  odbiorców wiersze narzędzi, których nie ma**, i dopisz je przy wdrażaniu.
+  odbiorców wiersze narzędzi, których ostatecznie nie wdrożysz**.
 
-Czego **nie** wolno: opublikować polityki opisującej GA4 i wdrożyć GA4 tydzień
-później bez banera. To przetwarzanie bez zgody.
+Bez `NEXT_PUBLIC_GTM_ID` kontener się nie ładuje i żadne z tych trzech narzędzi
+nie działa — czyli polityka opisuje wtedy więcej, niż realnie się dzieje.
+
+Czego **nie** wolno: opublikować polityki opisującej GA4, a potem wpiąć tag GA4
+w GTM bez ustawienia mu sprawdzenia zgody. To przetwarzanie bez zgody — i baner,
+nawet poprawny, tego nie wyłapie.
 
 **Ta sama zasada zadziałała już dwa razy przy pisaniu dokumentów** i warto ją
 zapamiętać: dokument opisujący funkcję, której nie ma w kodzie, jest wadliwy
@@ -98,9 +103,10 @@ regulaminu newslettera (odstępstwo nr 24).
 | 4 | Załącznik nr 1 — umowa powierzenia (B2B) + lista podwykonawców | `dokumenty-prawne/zalacznik-1-umowa-powierzenia.md` |
 | 5 | Wzory 4 zgód (checkboxy) | `dokumenty-prawne/wzory-zgod.md` |
 | 6 | Wzory 3 wiadomości o zmianie | `dokumenty-prawne/wzory-wiadomosci-o-zmianie.md` |
-| 7 | Specyfikacja banera cookies + prompt dla agenta | `dokumenty-prawne/specyfikacja-baner-cookies.md` |
-| 8 | Stopka z danymi firmy i odnośnikami do regulaminu i polityki | `src/components/stopka.tsx` (landing + podstrony prawne) |
-| 9 | Dane firmy jako jedno źródło prawdy | `src/lib/prawne/dane.ts` |
+| 7 | Specyfikacja zgód cookies: wymagania prawne, architektura, konfiguracja GTM, weryfikacja | `dokumenty-prawne/specyfikacja-baner-cookies.md` |
+| 8 | Mechanizm zgód cookies w kodzie (baner, panel, Consent Mode v2, kasowanie plików, rejestr narzędzi) | `src/lib/cookies/`, `src/components/cookies/`, `src/lib/prawne/cookies-rejestr.ts` |
+| 9 | Stopka z danymi firmy, odnośnikami i przyciskiem „Ustawienia cookies” | `src/components/stopka.tsx` (landing + podstrony prawne) |
+| 10 | Dane firmy jako jedno źródło prawdy | `src/lib/prawne/dane.ts` |
 
 **Poprawione przy okazji:** stopka landingu głosiła *„Twoje dane nie opuszczają
 przeglądarki, dopóki nie użyjesz funkcji AI"*. Po przejściu na Supabase
@@ -143,12 +149,33 @@ linkami.
       nr 2 i jaki jest tego skutek (art. 15 ust. 1 ustawy o prawach konsumenta —
       potwierdzenie na trwałym nośniku domyka utratę prawa odstąpienia).
 
-### C. Baner cookies
+### C. Baner cookies — KOD GOTOWY, zostaje panel GTM
 
-- [ ] Wdrożenie wg `specyfikacja-baner-cookies.md`. Gotowy prompt do wklejenia
-      w osobnym agencie jest na końcu tego pliku, w sekcji 5.
-- [ ] Po wdrożeniu: usuń komentarz `⚠️ DO DODANIA RAZEM Z BANEREM COOKIES`
-      ze `src/components/stopka.tsx` i dodaj przycisk „Ustawienia cookies".
+Mechanizm zgód jest zaimplementowany: baner, panel szczegółowy, przycisk
+„Ustawienia cookies” w stopce, Consent Mode v2, kasowanie plików przy wycofaniu
+zgody i rejestr narzędzi wspólny dla panelu i tabeli w polityce. Pełny opis:
+`specyfikacja-baner-cookies.md`.
+
+Narzędzia idą **dwiema drogami** (decyzja Marka 2026-08-04: tagi w GTM):
+Vercel Analytics z kodu, a GA4, Clarity i Meta Pixel jako tagi w kontenerze
+Google Tag Managera. Kontener ładuje się dopiero po zgodzie na co najmniej
+jedną kategorię opcjonalną — kto odrzuci wszystko, nie wyśle do Google ani
+jednego żądania.
+
+Zostało:
+
+- [ ] **Konfiguracja panelu GTM** — lista kroków w `specyfikacja-baner-cookies.md`,
+      sekcja 5. Krytyczne: **Meta Pixel i Clarity nie respektują Consent Mode**,
+      więc każdy z nich musi mieć w GTM ustawione „Dodatkowe sprawdzenia zgody”
+      (`ad_storage` dla Meta, `analytics_storage` dla Clarity). Bez tego odpalą
+      się mimo odmowy — poprawny baner tego nie uratuje.
+- [ ] `NEXT_PUBLIC_GTM_ID` w env na Vercelu (Preview + Production).
+- [ ] **Weryfikacja** — sekcja 6 specyfikacji. Najważniejszy test to wybór
+      mieszany: analityczne TAK, marketingowe NIE → `_ga` jest, `_fbp` nie ma.
+- [ ] **Zasada organizacyjna:** nowy tag w GTM = wpis w `cookies-rejestr.ts`
+      + podniesienie `WERSJA_ZGODY` + dopiero potem publikacja kontenera.
+      Od wpięcia GTM dodanie narzędzia przestało być commitem, więc kod już
+      tego nie wymusi — patrz odstępstwo nr 25.
 
 ### D. Newsletter — ODŁOŻONY (decyzja Marka 2026-08-04)
 
@@ -243,6 +270,7 @@ listę** — to są miejsca, w których warto się upewnić.
 | 22 | Umowa powierzenia: dodano Załącznik nr 2 z listą podwykonawców | Wzór miał ogólną zgodę na podpowierzenie bez listy. Każdy klient B2B i tak o nią zapyta. |
 | 23 | **Usunięto rejestrację przez konto Google** z regulaminu (§ 4) i z polityki (cel nr 1) | Logowania Google **nie ma w kodzie** — zero wywołań `signInWithOAuth` w całym `src/`. Provider jest skonfigurowany po stronie Supabase (`supabase/README.md`, krok 3), ale w UI nie ma przycisku, więc nikt nie może się tak zarejestrować. Po dodaniu przycisku: przywróć ustęp o rejestracji przez Google w § 4, dopisz do polityki (cel nr 1) imię, nazwisko i zdjęcie profilowe z konta Google, oraz przywróć „uwierzytelnianie kontem Google" przy Google w tabeli odbiorców. |
 | 24 | **Cofnięto publikację regulaminu newslettera** i usunięto moduł newslettera z polityki | Newslettera nie ma i nie jest teraz planowany (decyzja Marka 2026-08-04). Szczegóły i instrukcja przywrócenia — sekcja D powyżej. |
+| 25 | Narzędzia analityczne i marketingowe wpięte przez **Google Tag Manager**, a nie ładowane pojedynczo z kodu | Decyzja Marka 2026-08-04. Konsekwencje: (a) GTM dopisany do odbiorców w polityce i do sekcji „Pliki cookies” (ust. 7), (b) Consent Mode sam nie wystarcza — Meta Pixel i Clarity wymagają „Dodatkowych sprawdzeń zgody” w panelu GTM, (c) **tagi żyją poza repo**, więc `cookies-rejestr.ts` przestał być technicznie wymuszalnym źródłem prawdy i zastępuje go zasada organizacyjna. Vercel Analytics świadomie ZOSTAJE w kodzie — jego skrypty są pierwszostronne (`/_vercel/...`), a przeniesienie do GTM zamieniłoby żądanie pierwszostronne na trzeciostronne do Google. |
 
 ---
 
