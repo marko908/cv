@@ -60,10 +60,6 @@ export function StronaAuth({ ekranPoczatkowy }: { ekranPoczatkowy: EkranAuth }) 
           }}
         />
       </div>
-
-      <p className="mt-6 max-w-sm text-center text-xs text-muted-foreground">
-        Zakładając konto, akceptujesz regulamin i politykę prywatności Aplikando.
-      </p>
     </main>
   );
 }
