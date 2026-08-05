@@ -11,6 +11,17 @@ import { klientPrzegladarka } from "@/lib/supabase/klient-przegladarka";
 import { zapiszZgode } from "@/lib/prawne/zapis-zgody";
 
 /**
+ * Mail powitalny z Regulaminem w PDF — fire-and-forget. Autoryzacja trasy
+ * idzie przez sesję (cookies dołączane automatycznie przy żądaniu
+ * same-origin), nie przez nic, co wysyłamy w body. Rejestracja NIE czeka na
+ * wynik i NIE pokazuje błędu, gdyby wysyłka się nie powiodła — konto już
+ * istnieje, a awaria maila to nie porażka użytkownika.
+ */
+function wyslijMailPowitalny() {
+  fetch("/api/konto/powitanie", { method: "POST" }).catch(() => {});
+}
+
+/**
  * FORMULARZ KONTA — jeden komponent na wszystkie ekrany: rejestrację,
  * przepisanie kodu z maila, logowanie i odzyskiwanie hasła.
  *
@@ -191,6 +202,7 @@ export function FormularzAuth({
         kontekst: "rejestracja",
         udzielonoO: znacznik,
       });
+      wyslijMailPowitalny();
       return onSukces?.();
     }
 
@@ -220,6 +232,7 @@ export function FormularzAuth({
         kontekst: "rejestracja",
         udzielonoO: znacznikZgodyRejestracji ?? undefined,
       });
+      wyslijMailPowitalny();
     }
     onSukces?.();
   }

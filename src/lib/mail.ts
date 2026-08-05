@@ -46,6 +46,12 @@ export type WynikWysylki =
   | { ok: true; id: string | null }
   | { ok: false; blad: string };
 
+export interface ZalacznikMaila {
+  nazwaPliku: string;
+  /** Resend przyjmuje surowe bajty — Buffer z `renderToBuffer` (react-pdf) pasuje wprost. */
+  tresc: Buffer;
+}
+
 export interface Mail {
   adresat: string | string[];
   temat: string;
@@ -54,6 +60,8 @@ export interface Mail {
   text?: string;
   /** Adres do odpowiedzi, gdy inny niż nadawca (np. mail zgłaszającego). */
   odpowiedzDo?: string;
+  /** Np. Regulamin w PDF przy potwierdzeniu konta/zamówienia. */
+  zalaczniki?: ZalacznikMaila[];
 }
 
 /**
@@ -73,6 +81,10 @@ export async function wyslijMail(mail: Mail): Promise<WynikWysylki> {
       html: mail.html,
       text: mail.text,
       replyTo: mail.odpowiedzDo,
+      attachments: mail.zalaczniki?.map((z) => ({
+        filename: z.nazwaPliku,
+        content: z.tresc,
+      })),
     });
 
     // Resend zwraca błąd W ODPOWIEDZI, nie przez wyjątek — samo `await` bez

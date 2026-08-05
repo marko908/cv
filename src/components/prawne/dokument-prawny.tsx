@@ -2,97 +2,33 @@
  * Renderer dokumentów prawnych (regulamin, polityka prywatności, regulamin
  * newslettera) z lekkiej składni tekstowej do JSX.
  *
- * DLACZEGO NIE MARKDOWN Z BIBLIOTEKI: dokumenty prawne mają NUMERACJĘ, która
- * jest częścią ich treści — cały regulamin odsyła do „§ 1 ust. 5 pkt 1".
- * Automatyczne listy (`<ol>`) numerowałyby pozycje same, więc wstawienie
- * jednego ustępu po cichu przesunęłoby wszystkie odesłania w dokumencie.
- * Tutaj numer jest DOSŁOWNIE tym, co stoi w źródle — nigdy nie rozjedzie się
- * z odesłaniami.
- *
- * Obsługiwana składnia (pełen opis w `lib/prawne/regulamin.ts`):
- *   #, ##, ###   nagłówki
- *   „1. tekst"   ustęp (poziom 0)
- *   „   1) …"    punkt (3 spacje wcięcia, poziom 1)
- *   „      a) …" litera (6 spacji wcięcia, poziom 2)
- *   „| a | b |"  wiersz tabeli; pierwszy z serii to nagłówek
- *   **pogrubienie**, [etykieta](/sciezka)
+ * Parsowanie (`parsujDokument`, `rozbijInline`) mieszka w
+ * `lib/prawne/parsuj-dokument.ts` — współdzielone z rendererem PDF
+ * (`regulamin-pdf.tsx`), który dołączamy do maili potwierdzających. Ten plik
+ * odpowiada wyłącznie za HTML/JSX.
  */
 
 import Link from "next/link";
 import type { ReactNode } from "react";
+import {
+  parsujDokument,
+  rozbijInline,
+  type FragmentInline,
+} from "@/lib/prawne/parsuj-dokument";
 
-type Blok =
-  | { typ: "naglowek"; poziom: 1 | 2 | 3; tekst: string }
-  | { typ: "akapit"; tekst: string }
-  | { typ: "pozycja"; poziom: 0 | 1 | 2; znacznik: string; tekst: string }
-  | { typ: "tabela"; wiersze: string[][] };
-
-const NAGLOWEK = /^(#{1,3})\s+(.*)$/;
-const WIERSZ_TABELI = /^\|(.+)\|\s*$/;
-/** „1." albo „12)" albo „a)" — poziom wynika z wcięcia, nie z rodzaju znacznika. */
-const POZYCJA = /^(\s*)(\d+\.|\d+\)|[a-ząćęłńóśźż]\))\s+(.*)$/;
-
-function parsuj(zrodlo: string): Blok[] {
-  const bloki: Blok[] = [];
-
-  for (const linia of zrodlo.split("\n")) {
-    if (!linia.trim()) continue;
-
-    const naglowek = NAGLOWEK.exec(linia);
-    if (naglowek) {
-      bloki.push({
-        typ: "naglowek",
-        poziom: naglowek[1].length as 1 | 2 | 3,
-        tekst: naglowek[2].trim(),
-      });
-      continue;
-    }
-
-    const wiersz = WIERSZ_TABELI.exec(linia);
-    if (wiersz) {
-      const komorki = wiersz[1].split("|").map((k) => k.trim());
-      const ostatni = bloki[bloki.length - 1];
-      // Kolejne wiersze dokleja się do tabeli otwartej bezpośrednio wyżej —
-      // pusta linia między wierszami rozbiłaby tabelę na dwie.
-      if (ostatni?.typ === "tabela") ostatni.wiersze.push(komorki);
-      else bloki.push({ typ: "tabela", wiersze: [komorki] });
-      continue;
-    }
-
-    const pozycja = POZYCJA.exec(linia);
-    if (pozycja) {
-      const wciecie = pozycja[1].length;
-      bloki.push({
-        typ: "pozycja",
-        poziom: Math.min(2, Math.floor(wciecie / 3)) as 0 | 1 | 2,
-        znacznik: pozycja[2],
-        tekst: pozycja[3].trim(),
-      });
-      continue;
-    }
-
-    bloki.push({ typ: "akapit", tekst: linia.trim() });
-  }
-
-  return bloki;
-}
-
-const INLINE = /(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))/g;
-
-/** Pogrubienia i linki. Linki wewnętrzne idą przez `next/link`. */
+/** Pogrubienia i linki jako JSX. Linki wewnętrzne idą przez `next/link`. */
 function inline(tekst: string): ReactNode[] {
-  return tekst.split(INLINE).filter(Boolean).map((fragment, i) => {
-    if (fragment.startsWith("**") && fragment.endsWith("**")) {
+  return rozbijInline(tekst).map((fragment: FragmentInline, i) => {
+    if (fragment.typ === "pogrubienie") {
       return (
         <strong key={i} className="font-semibold text-foreground">
-          {fragment.slice(2, -2)}
+          {fragment.tresc}
         </strong>
       );
     }
 
-    const link = /^\[([^\]]+)\]\(([^)]+)\)$/.exec(fragment);
-    if (link) {
-      const [, etykieta, adres] = link;
+    if (fragment.typ === "link") {
+      const { etykieta, adres } = fragment;
       const klasa =
         "text-primary underline underline-offset-4 hover:no-underline";
       return adres.startsWith("/") || adres.startsWith("#") ? (
@@ -112,7 +48,7 @@ function inline(tekst: string): ReactNode[] {
       );
     }
 
-    return <span key={i}>{fragment}</span>;
+    return <span key={i}>{fragment.tresc}</span>;
   });
 }
 
@@ -121,7 +57,7 @@ const WCIECIE = ["", "pl-6 sm:pl-8", "pl-12 sm:pl-16"] as const;
 const SZEROKOSC_MARKERA = ["w-9", "w-8", "w-7"] as const;
 
 export function DokumentPrawny({ zrodlo }: { zrodlo: string }) {
-  const bloki = parsuj(zrodlo);
+  const bloki = parsujDokument(zrodlo);
 
   return (
     <article className="text-[15px] leading-relaxed text-muted-foreground">

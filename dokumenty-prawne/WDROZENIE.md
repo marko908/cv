@@ -12,8 +12,8 @@ czynny podatnik VAT, ceny brutto 29 / 49 / 12 zł.
 
 ## ⛔ BLOKERY — załatw PRZED publikacją
 
-Blokery 1, 3 i 4 poniżej wciąż czekają — bez nich nie publikuj dokumentów.
-Bloker 0 (migracja) i bloker 2 (tier Gemini) są już zamknięte.
+Blokery 3 i 4 poniżej wciąż czekają — bez nich nie publikuj dokumentów.
+Blokery 0, 1 i 2 są już zamknięte.
 
 ### 0. ✅ Migracja `20260805103000_zgody.sql` — ZASTOSOWANA (2026-08-05)
 
@@ -38,15 +38,12 @@ bez dostępu. `typy-bazy.ts` odświeżony realnym `supabase gen types
 typescript --linked` (nie ręcznym wpisem) — wygenerowana treść dla `zgoda`
 zgodziła się co do joty z tym, co było dopisane ręcznie.
 
-### 1. Skrzynka marko@aplikando.pl musi działać
+### 1. ✅ Skrzynka marko@aplikando.pl — AKTYWNA (2026-08-05, potwierdzone przez Marka)
 
-Ten adres stoi w regulaminie, w polityce prywatności
-**i jako punkt kontaktowy DSA**. Adres, na który nikt nie odbiera, to nie
-formalność: art. 11 DSA wymaga punktu kontaktowego dla organów, a art. 12 —
-dla użytkowników. Do tej skrzynki trafiają też reklamacje (termin 14 dni),
-żądania RODO (termin 1 miesiąca) i zgłoszenia treści niedozwolonych.
-
-Sprawdź też, czy `MAIL_OD` i `MAIL_ZGLOSZENIA` w env wskazują na tę domenę.
+Ten adres stoi w regulaminie, w polityce prywatności i jako punkt kontaktowy
+DSA. Zostaje do sprawdzenia (nie blokuje): czy `MAIL_OD` i `MAIL_ZGLOSZENIA`
+w env na Vercelu (Production) wskazują na tę samą domenę, a nie na testowy
+`onboarding@resend.dev` z `lib/mail.ts`.
 
 ### 2. ✅ Tier Google Gemini API — POTWIERDZONY (2026-08-05, Tier 1)
 
@@ -133,6 +130,9 @@ regulaminu newslettera (odstępstwo nr 24).
 | 12 | Dziennik zgód w bazie (tabela `zgoda`, niezmienny, RLS) — **zastosowana i zweryfikowana na żywej bazie** | `supabase/migrations/20260805103000_zgody.sql`, `src/lib/prawne/zapis-zgody.ts` |
 | 13 | Walidacja zgód po stronie serwera przy zakupie | `src/app/api/platnosc/checkout/route.ts` |
 | 14 | Instrukcja konfiguracji GTM od zera (kroki 1–10, z tabelą kontrolną tagów) | `dokumenty-prawne/instrukcja-gtm.md` |
+| 15 | PDF Regulaminu (parser współdzielony ze stroną WWW) + załączniki w mailu | `components/prawne/regulamin-pdf.tsx`, `lib/prawne/parsuj-dokument.ts`, `lib/mail.ts` |
+| 16 | Mail przy utworzeniu konta (Regulamin w PDF) | `src/app/api/konto/powitanie/route.ts` + wywołanie w `formularz-auth.tsx` |
+| 17 | Mail przy zakupie (Regulamin w PDF + jawna zgoda nr 2, dwa różne paragrafy dla Odblokowania Jednorazowego i Subskrypcji) | `src/app/api/platnosc/webhook/route.ts` |
 
 **Poprawione przy okazji:** stopka landingu głosiła *„Twoje dane nie opuszczają
 przeglądarki, dopóki nie użyjesz funkcji AI"*. Po przejściu na Supabase
@@ -179,15 +179,36 @@ UI: `components/ui/checkbox.tsx` (shadcn/radix-nova, ten sam wzorzec co
       rejestracji ani zakupu. Migracja zastosowana i zweryfikowana na żywej
       bazie (RLS, polityki, brak UPDATE/DELETE) — patrz bloker nr 0 wyżej.
 
-### B. Regulamin w PDF w mailu potwierdzającym (checklista prawnika, poz. 1 i 3)
+### B. Regulamin w PDF w mailu potwierdzającym — ZROBIONE (checklista prawnika, poz. 1 i 3)
 
-- [ ] Generowanie PDF z treści w `src/lib/prawne/*.ts` (w repo jest już
-      `@react-pdf/renderer` — ten sam mechanizm co eksport CV).
-- [ ] Załącznik do maila potwierdzającego **utworzenie konta** oraz
-      **zawarcie umowy odpłatnej** (`src/lib/mail.ts`).
-- [ ] W potwierdzeniu zamówienia napisz wprost, że użytkownik udzielił zgody
-      nr 2 i jaki jest tego skutek (art. 15 ust. 1 ustawy o prawach konsumenta —
-      potwierdzenie na trwałym nośniku domyka utratę prawa odstąpienia).
+- [x] **Generowanie PDF** — `components/prawne/regulamin-pdf.tsx` (react-pdf,
+      `renderToBuffer`), konsumuje TEN SAM parser co strona WWW
+      (`lib/prawne/parsuj-dokument.ts`, wydzielony z `dokument-prawny.tsx`) —
+      zmiana treści Regulaminu automatycznie trafia do obu miejsc. Font Lato
+      z dysku (`path.join(process.cwd(), "public/fonts", …)`, nie
+      `/fonts/...` jak w `cv-pdf.tsx` — to działa tylko w przeglądarce).
+      Zweryfikowane wizualnie: 15 stron, poprawne polskie znaki, numeracja,
+      pogrubienia, linki, paginacja.
+- [x] **Załączniki w mailu** — `lib/mail.ts` (`Mail.zalaczniki`, Resend
+      `attachments`).
+- [x] **Mail przy utworzeniu konta** — `/api/konto/powitanie` (autoryzacja
+      sesją, nie treścią żądania), wołane fire-and-forget z
+      `formularz-auth.tsx` zaraz po zapisaniu zgody, w OBU ścieżkach
+      rejestracji (sesja od razu / po potwierdzeniu kodu z maila).
+- [x] **Mail przy zawarciu umowy odpłatnej** — `/api/platnosc/webhook`,
+      po udanym upsercie `zakup` (Odblokowanie Jednorazowe) i wyłącznie na
+      `customer.subscription.created` (Subskrypcja — nie na `updated`/`deleted`,
+      żeby nie wysyłać przy każdym odnowieniu).
+- [x] **Zgoda nr 2 wprost w treści**, z DWOMA różnymi paragrafami zależnie od
+      produktu — to rozróżnienie jest prawnie istotne, nie kosmetyczne:
+      Odblokowanie Jednorazowe cytuje art. 38 ust. 1 pkt 1 (prawo odstąpienia
+      przepada po pełnym wykonaniu usługi, Regulamin § 8 ust. 6), Subskrypcja
+      cytuje art. 35 (14 dni zostaje, zwrot proporcjonalny, Regulamin § 8
+      ust. 7) — wysłanie klientowi subskrypcji informacji, że *nie* ma już
+      prawa odstąpienia, byłoby nieprawdziwe i szkodziłoby jemu, nie firmie.
+- [ ] **Nie testowane end-to-end na żywym mailu** (rejestracja + realna
+      płatność testowa w Stripe sandbox) — PDF zweryfikowany osobno,
+      wysyłkę (Resend, adresat, wygląd HTML) sprawdź przy pierwszej okazji.
 
 ### C. Baner cookies — KOD GOTOWY, zostaje panel GTM
 
@@ -352,7 +373,7 @@ Odwzorowanie pliku „4 Checklista wdrożenia - dokumenty SaaS".
 | 1 | Uzupełnienie wzoru regulaminu | ✅ |
 | 1 | Regulamin na dedykowanej podstronie | ✅ `/regulamin` |
 | 1 | Aktywne linki do regulaminu w treści zgód | ✅ sekcja A |
-| 1 | Regulamin w PDF w mailu potwierdzającym | ⬜ sekcja B |
+| 1 | Regulamin w PDF w mailu potwierdzającym | ✅ sekcja B (niepotwierdzone end-to-end na żywym mailu) |
 | 2 | Umowa powierzenia — uzupełnienie wzoru | ✅ + Załącznik nr 2 |
 | 3 | Regulamin newslettera — uzupełnienie | ✅ treść gotowa, publikacja odłożona |
 | 3 | Regulamin newslettera na podstronie | ⏸ odłożone — newslettera nie ma |

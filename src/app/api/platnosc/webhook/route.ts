@@ -3,6 +3,10 @@ import type Stripe from "stripe";
 import { klientAdmin } from "@/lib/supabase/klient-admin";
 import type { Json } from "@/lib/supabase/typy-bazy";
 import { czyStripeDostepny, planZCeny, statusZeStripe, stripe } from "@/lib/stripe";
+import { czyMailDostepny, wyslijMail } from "@/lib/mail";
+import { regulaminPdfBuffer } from "@/components/prawne/regulamin-pdf";
+import { APLIKACJA } from "@/lib/prawne/dane";
+import { CENA_JEDNORAZOWA, OKRESY, PLANY } from "@/lib/subscription";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -98,6 +102,61 @@ export async function POST(request: Request) {
 
 type Admin = ReturnType<typeof klientAdmin>;
 
+/**
+ * Mail potwierdzający zakup, z Regulaminem w PDF — checklista prawnika
+ * (poz. 1) oraz art. 15 ust. 1 Ustawy o prawach konsumenta: potwierdzenie na
+ * trwałym nośniku jest tym, co domyka skutek zgody na natychmiastowe
+ * świadczenie usługi (Regulamin § 8 ust. 5–7). Dlatego treść wprost cytuje
+ * TĘ zgodę, a nie tylko fakt zakupu — i to inaczej dla Odblokowania
+ * Jednorazowego (prawo odstąpienia przepada od razu, art. 38 ust. 1 pkt 1)
+ * i dla Subskrypcji (14 dni zostaje, rozliczenie proporcjonalne, art. 35).
+ *
+ * NIGDY nie rzuca. Webhook już nadał dostęp (upsert `zakup`/`subskrypcja`
+ * poprzedza to wywołanie) — awaria maila nie ma prawa cofnąć tego przez
+ * wywrócenie całej obsługi zdarzenia.
+ */
+async function wyslijMailPotwierdzeniaZakupu(params: {
+  admin: Admin;
+  userId: string;
+  tytul: string;
+  opisUslugi: string;
+  paragrafZgody: string;
+}) {
+  const { admin, userId, tytul, opisUslugi, paragrafZgody } = params;
+  if (!czyMailDostepny()) return;
+
+  try {
+    const { data: profil } = await admin
+      .from("profil")
+      .select("email")
+      .eq("id", userId)
+      .maybeSingle();
+    if (!profil?.email) return;
+
+    const pdf = await regulaminPdfBuffer();
+    const linkAplikacji = `${APLIKACJA.adresWww}/app`;
+
+    const wynik = await wyslijMail({
+      adresat: profil.email,
+      temat: `${APLIKACJA.nazwa} — potwierdzenie zamówienia: ${tytul}`,
+      html: `
+        <p>Cześć!</p>
+        <p>Potwierdzamy: <strong>${opisUslugi}</strong>.</p>
+        <p>${paragrafZgody} Aktualną treść Regulaminu znajdziesz też
+        w załączniku do tej wiadomości (PDF).</p>
+        <p>Przejdź do aplikacji: <a href="${linkAplikacji}">${linkAplikacji}</a></p>
+        <p>Pozdrawiamy,<br>${APLIKACJA.nazwa}</p>
+      `,
+      text: `Cześć!\n\nPotwierdzamy: ${opisUslugi}.\n\n${paragrafZgody} Aktualną treść Regulaminu znajdziesz też w załączniku do tej wiadomości (PDF).\n\nPrzejdź do aplikacji: ${linkAplikacji}\n\nPozdrawiamy,\n${APLIKACJA.nazwa}`,
+      zalaczniki: [{ nazwaPliku: "Regulamin-Aplikando.pdf", tresc: pdf }],
+    });
+
+    if (!wynik.ok) console.error("[webhook] mail potwierdzenia nieudany:", wynik.blad);
+  } catch (e) {
+    console.error("[webhook] nie wysłano maila potwierdzenia:", e);
+  }
+}
+
 async function obsluz(zdarzenie: Stripe.Event, admin: Admin) {
   switch (zdarzenie.type) {
     case "checkout.session.completed": {
@@ -130,6 +189,20 @@ async function obsluz(zdarzenie: Stripe.Event, admin: Admin) {
         { onConflict: "stripe_payment_intent_id" }
       );
       if (error) throw new Error(error.message);
+
+      await wyslijMailPotwierdzeniaZakupu({
+        admin,
+        userId,
+        tytul: `odblokowanie dopasowania (${CENA_JEDNORAZOWA} zł)`,
+        opisUslugi: `Odblokowałeś/-aś pełny wynik jednego Dopasowania za ${CENA_JEDNORAZOWA} zł`,
+        paragrafZgody:
+          "Przy zakupie potwierdziłeś/-aś zapoznanie się z Regulaminem i Polityką " +
+          "prywatności oraz wyraziłeś/-aś zgodę na rozpoczęcie świadczenia usługi " +
+          "cyfrowej przed upływem terminu na odstąpienie od umowy. Zgodnie z art. 38 " +
+          "ust. 1 pkt 1 ustawy o prawach konsumenta oznacza to, że po pełnym " +
+          "wykonaniu usługi (czyli udostępnieniu pełnego wyniku Dopasowania) prawo " +
+          "odstąpienia od tej umowy Ci nie przysługuje.",
+      });
       break;
     }
 
@@ -176,6 +249,26 @@ async function obsluz(zdarzenie: Stripe.Event, admin: Admin) {
         { onConflict: "stripe_subscription_id" }
       );
       if (error) throw new Error(error.message);
+
+      // Tylko przy ZAŁOŻENIU subskrypcji — `updated` przychodzi też przy
+      // odnowieniu i zmianie planu, `deleted` przy anulowaniu; żadne z nich
+      // nie jest „potwierdzeniem zamówienia".
+      if (zdarzenie.type === "customer.subscription.created") {
+        await wyslijMailPotwierdzeniaZakupu({
+          admin,
+          userId,
+          tytul: `Subskrypcja ${PLANY[plan].nazwa} (${OKRESY[okres].etykieta.toLowerCase()})`,
+          opisUslugi: `Aktywowaliśmy Twoją subskrypcję ${PLANY[plan].nazwa} (${OKRESY[okres].etykieta.toLowerCase()}) — ${PLANY[plan].limit} dopasowań miesięcznie`,
+          paragrafZgody:
+            "Przy zakupie potwierdziłeś/-aś zapoznanie się z Regulaminem i Polityką " +
+            "prywatności oraz wyraziłeś/-aś zgodę na rozpoczęcie świadczenia usługi " +
+            "cyfrowej przed upływem terminu na odstąpienie od umowy. Mimo to, jeśli " +
+            "jesteś Konsumentem albo Przedsiębiorcą na prawach Konsumenta, masz prawo " +
+            "odstąpić od tej umowy bez podania przyczyny w terminie 14 dni od jej " +
+            "zawarcia — jeżeli w tym czasie korzystałeś/-aś z usługi, zwrócimy Ci " +
+            "opłatę pomniejszoną proporcjonalnie do zakresu spełnionego świadczenia.",
+        });
+      }
       break;
     }
 
