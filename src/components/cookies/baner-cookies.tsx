@@ -51,10 +51,16 @@ export function BanerCookies() {
           .
         </p>
 
+        {/*
+          Przyciski dopasowują się do treści (`px-6`), a nie do sztywnej
+          szerokości. `buttonVariants` ustawia `whitespace-nowrap`, więc przy
+          `w-40` napis „Akceptuję wszystkie" (172 px w wersalikach z trackingiem
+          1,4 px) wychodził poza pigułkę i był ucinany.
+        */}
         <div className="flex flex-col gap-2 sm:flex-row lg:shrink-0">
           <Button
             size="lg"
-            className="btn-label sm:w-40"
+            className="btn-label px-6"
             onClick={() => zapisz(PRZYJMIJ_WSZYSTKO)}
           >
             Akceptuję wszystkie
@@ -62,7 +68,7 @@ export function BanerCookies() {
           <Button
             size="lg"
             variant="secondary"
-            className="btn-label sm:w-40"
+            className="btn-label px-6"
             onClick={() => zapisz(ODRZUC_WSZYSTKO)}
           >
             Odrzuć wszystkie
@@ -70,7 +76,7 @@ export function BanerCookies() {
           <Button
             size="lg"
             variant="secondary"
-            className="btn-label sm:w-32"
+            className="btn-label px-6"
             onClick={otworzPanel}
           >
             Dostosuj
