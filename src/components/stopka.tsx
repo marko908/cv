@@ -39,9 +39,6 @@ export function Stopka() {
           <p className="font-semibold text-foreground">{APLIKACJA.nazwa}</p>
           <p className="mt-1">{FIRMA.nazwa}</p>
           <p>
-            {FIRMA.ulica}, {FIRMA.kodMiasto}
-          </p>
-          <p>
             NIP {FIRMA.nip} · REGON {FIRMA.regon}
           </p>
           <p className="mt-1">
