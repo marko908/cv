@@ -18,8 +18,8 @@ czynny podatnik VAT, ceny brutto 29 / 49 / 12 zł.
 
 ## ⛔ BLOKERY — załatw PRZED publikacją
 
-Otwarte: **4** (synchronizacja polityki z GTM) i **5** (logowanie Google
-w kodzie). Zamknięte: 0, 0b, 0c, 1, 2, 3.
+Otwarty jest już tylko **5** (logowanie Google w kodzie).
+Zamknięte: 0, 0b, 0c, 1, 2, 3, 4.
 
 ### 0b. ✅ Migracja `20260807120000_zgoda_marketing.sql` — ZASTOSOWANA (2026-08-07)
 
@@ -116,15 +116,17 @@ liczy się to, co umiesz pokazać.
 **Pełna lista z dokładnymi ścieżkami klikania, podziałem na role (powierzenie
 vs współadministrowanie) i dwiema wykrytymi lukami: `dokumenty-prawne/dpa-lista.md`.**
 
-Skrót: 8 podmiotów przetwarzających (Vercel, Supabase, Google Cloud/Gemini,
-Resend, GA4, GTM, Microsoft Clarity, biuro rachunkowe) + 2 relacje innego typu
-(Stripe — odrębny administrator, Meta — współadministrowanie).
+Skrót: 10 podmiotów przetwarzających (Vercel, Supabase, Google Cloud/Gemini,
+Resend, GA4, GTM, Microsoft Clarity, Fakturownia, Striptu, biuro rachunkowe)
++ 2 relacje innego typu (Stripe — odrębny administrator, Meta —
+współadministrowanie).
 
-⚠️ Dwie rzeczy wyszły przy składaniu tej listy (2026-08-07), obie opisane
-w `dpa-lista.md`: **Fakturownia i Striptu nie występują w żadnym dokumencie
-prawnym**, choć dostają dane każdego płacącego klienta; **Załącznik nr 2 wciąż
-przypisuje Google „uwierzytelnianie kontem Google"**, którego nie ma w kodzie
-(usunięte z regulaminu i polityki jako odstępstwo nr 23).
+Dwie luki wykryte przy składaniu tej listy zostały **domknięte tego samego dnia**:
+Fakturownia i Striptu dopisane do tabeli odbiorców w polityce i do Załącznika
+nr 2 (dostają dane każdego płacącego klienta, a nie było ich nigdzie);
+uwierzytelnianie kontem Google przywrócone spójnie we wszystkich trzech
+dokumentach — z zastrzeżeniem z blokera nr 5, że funkcji nie ma jeszcze
+w kodzie.
 
 Zachowaj PDF-y w jednym miejscu. Przy kontroli UODO to pierwsza rzecz, o którą
 zapytają. Przy okazji sprawdź na `dataprivacyframework.gov`, którzy dostawcy mają
@@ -161,7 +163,40 @@ Do zrobienia:
 w `dpa-lista.md` sekcja D. Dokument opisujący nieistniejącą funkcję jest wadliwy
 tak samo jak dokument pomijający istniejącą.
 
-### 4. Zsynchronizuj politykę z narzędziami analitycznymi
+### 4. ✅ Narzędzia analityczne — ZWERYFIKOWANE NA PRODUKCJI (2026-08-07)
+
+Kontener `GTM-5VGWSSPG` działa, wszystkie trzy narzędzia opisane w polityce
+realnie istnieją i **respektują zgodę zgodnie z wyborem użytkownika**.
+Sprawdzone na żywo na `cv-eight-black-32.vercel.app`, trzy scenariusze:
+
+| Wybór użytkownika | `_ga` | `_clck` | `_fbp` | Werdykt |
+|---|---|---|---|---|
+| przed decyzją (baner widoczny) | — | — | — | zero skryptów, zero ciasteczek, `consent default` = wszystko `denied` ✅ |
+| analityczne TAK, marketingowe NIE | ✅ | ✅ | **—** | Meta NIE odpalił mimo załadowanego kontenera ✅ |
+| wszystko TAK | ✅ | ✅ | ✅ | Meta Pixel `PageView` wysłany ✅ |
+| analityczne NIE, marketingowe TAK | **—** | **—** | ✅ | Clarity NIE odpalił, GA4 bez ciasteczka ✅ |
+
+To dowodzi rzeczy, której sam kod zagwarantować nie mógł: **„Dodatkowe
+sprawdzenia zgody" są realnie ustawione na obu tagach, które nie respektują
+Consent Mode z siebie** — Meta na `ad_storage`, Clarity na `analytics_storage`.
+Gdyby ich nie było, `_fbp` pojawiłby się w teście drugim, a `_clck`
+w czwartym.
+
+**GA4 przy odmowie analityki nie zakłada `_ga`** — wysyła trafienie
+bezciasteczkowe z `gcs=G110` (sygnały obecne, `ad_storage` przyznany,
+`analytics_storage` odmówiony). To jest poprawne zachowanie Consent Mode,
+a nie obejście: nic nie jest zapisywane w urządzeniu, więc art. 398 Prawa
+komunikacji elektronicznej nie jest naruszony.
+
+`NEXT_PUBLIC_GTM_ID` jest ustawione **tylko na Production** (potwierdzone przez
+Marka) — dev deployment jest dodatkowo za Vercel Deployment Protection, więc
+ruch testowy nie ma jak trafić do GA4 ani Meta.
+
+Zostaje jedno: **zasada organizacyjna** — nowy tag w GTM = wpis
+w `cookies-rejestr.ts` + podniesienie `WERSJA_ZGODY` + dopiero potem publikacja
+kontenera. Kod tego nie wymusi, bo tagi żyją poza repo (odstępstwo nr 25).
+
+### 4a. Materiał źródłowy — co robić przy zmianie narzędzi
 
 Polityka prywatności **opisuje Google Analytics 4, Meta Pixel i Microsoft
 Clarity**. Mechanizm zgód jest już gotowy (sekcja C), ale same narzędzia zaczną
@@ -294,7 +329,11 @@ UI: `components/ui/checkbox.tsx` (shadcn/radix-nova, ten sam wzorzec co
       płatność testowa w Stripe sandbox) — PDF zweryfikowany osobno,
       wysyłkę (Resend, adresat, wygląd HTML) sprawdź przy pierwszej okazji.
 
-### C. Baner cookies — KOD GOTOWY, zostaje panel GTM
+### C. Baner cookies — ZROBIONE I ZWERYFIKOWANE NA PRODUKCJI (2026-08-07)
+
+> Wyniki testu trzech scenariuszy zgody: bloker nr 4 wyżej. Wszystkie checkboxy
+> z listy niżej są odhaczone — zostawiam ją, bo opisuje, CO było do zrobienia
+> i czym to sprawdzić przy następnej zmianie w kontenerze.
 
 Mechanizm zgód jest zaimplementowany: baner, panel szczegółowy, przycisk
 „Ustawienia cookies” w stopce, Consent Mode v2, kasowanie plików przy wycofaniu
@@ -307,24 +346,24 @@ Google Tag Managera. Kontener ładuje się dopiero po zgodzie na co najmniej
 jedną kategorię opcjonalną — kto odrzuci wszystko, nie wyśle do Google ani
 jednego żądania.
 
-**Nie masz jeszcze konta GTM ani żadnego tagu (stan na 2026-08-05).** Pełna
+**Kontener `GTM-5VGWSSPG` z trzema tagami działa (stan na 2026-08-07).** Pełna
 instrukcja od zera, krok po kroku, z dokładnymi ścieżkami klikania:
 **`dokumenty-prawne/instrukcja-gtm.md`**. Skrót tego, co tam jest:
 
-- [ ] Konto + kontener Web w GTM, identyfikator `GTM-XXXXXXX`.
-- [ ] `NEXT_PUBLIC_GTM_ID` w env na Vercelu — **TYLKO Production, nie
+- [x] Konto + kontener Web w GTM, identyfikator `GTM-XXXXXXX`.
+- [x] `NEXT_PUBLIC_GTM_ID` w env na Vercelu — **TYLKO Production, nie
       Preview** (instrukcja, krok 0): inaczej każde kliknięcie w test na
       preview leci do tych samych danych GA4/Meta co ruch prawdziwych
       użytkowników, ten sam problem co bez `tryb_testowy` przy Stripe.
-- [ ] Tag GA4 (typ „Google Tag” — respektuje Consent Mode automatycznie,
+- [x] Tag GA4 (typ „Google Tag” — respektuje Consent Mode automatycznie,
       bez ręcznych ustawień zgody).
-- [ ] Tag Microsoft Clarity — **⚠️ Additional Consent Checks →
+- [x] Tag Microsoft Clarity — **⚠️ Additional Consent Checks →
       `analytics_storage`**, bo Clarity NIE respektuje Consent Mode samo
       z siebie.
-- [ ] Tag Meta Pixel — **⚠️ Additional Consent Checks → `ad_storage`**
+- [x] Tag Meta Pixel — **⚠️ Additional Consent Checks → `ad_storage`**
       (ten sam powód), plus wyzwalacz History Change dla `PageView` przy
       nawigacji w aplikacji jednostronicowej.
-- [ ] **Weryfikacja w trybie Preview/Debug GTM PRZED publikacją** —
+- [x] **Weryfikacja GTM PRZED publikacją** —
       instrukcja, krok 8; pełna checklista też w `specyfikacja-baner-cookies.md`,
       sekcja 6. Najważniejszy test to wybór mieszany: analityczne TAK,
       marketingowe NIE → `_ga` jest, `_fbp` nie ma.
