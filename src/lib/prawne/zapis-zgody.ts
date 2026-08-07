@@ -46,6 +46,41 @@ export async function zapiszZgode(params: {
 }
 
 /**
+ * Czy użytkownik ma w dzienniku zgodę na Regulamin i Politykę?
+ *
+ * To jest nasz jedyny wiarygodny sygnał „ten człowiek przeszedł już przez
+ * bramkę zgody". Potrzebny przy logowaniu przez Google: OAuth tworzy konto
+ * bez naszego formularza, więc nowy użytkownik, który kliknął „Kontynuuj
+ * z Google" na ekranie LOGOWANIA, ma konto, a checkboxa nigdy nie widział.
+ *
+ * Nie da się tego zastąpić datą utworzenia konta ani `last_sign_in_at`:
+ * pierwsze jest nieprecyzyjne (ile sekund to „nowe konto"?), a drugie
+ * aktualizuje się przy każdym logowaniu. Brak wiersza w dzienniku to fakt,
+ * nie heurystyka.
+ *
+ * Przy błędzie odczytu zwracamy `true` — czyli „nie zawracaj mu głowy".
+ * Odwrotny domyślny wybór przy awarii sieci wysyłałby zalogowanego użytkownika
+ * na ekran zgód w kółko, mimo że zgodę dawno udzielił.
+ */
+export async function maZgodeRegulaminowa(
+  klient: SupabaseClient<Database>,
+  userId: string
+): Promise<boolean> {
+  const { data, error } = await klient
+    .from("zgoda")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("rodzaj", "regulamin_polityka")
+    .limit(1);
+
+  if (error) {
+    console.error("[zgoda] nie udało się sprawdzić zgody regulaminowej", error);
+    return true;
+  }
+  return (data?.length ?? 0) > 0;
+}
+
+/**
  * Zgoda marketingowa — STAN + HISTORIA, dwa różne zapisy o dwóch różnych rolach.
  *
  * `profil.zgoda_marketing` to stan bieżący: jedyne pole, którego pyta się kod

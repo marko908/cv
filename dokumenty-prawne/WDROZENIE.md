@@ -18,8 +18,8 @@ czynny podatnik VAT, ceny brutto 29 / 49 / 12 zł.
 
 ## ⛔ BLOKERY — załatw PRZED publikacją
 
-Otwarty jest już tylko **5** (logowanie Google w kodzie).
-Zamknięte: 0, 0b, 0c, 1, 2, 3, 4.
+Otwarty jest już tylko **5** — i to wyłącznie po stronie paneli (Google Cloud
+Console + Supabase). Kod jest gotowy. Zamknięte: 0, 0b, 0c, 1, 2, 3, 4.
 
 ### 0b. ✅ Migracja `20260807120000_zgoda_marketing.sql` — ZASTOSOWANA (2026-08-07)
 
@@ -133,35 +133,63 @@ zapytają. Przy okazji sprawdź na `dataprivacyframework.gov`, którzy dostawcy 
 **aktywną** certyfikację DPF — od tego zależy poprawność sekcji „Przekazywanie
 danych do państwa trzeciego" i Załącznika nr 2 do umowy powierzenia.
 
-### 5. ⛔ Logowanie kontem Google MUSI wejść do kodu przed publikacją
+### 5. ⏳ Logowanie kontem Google — KOD GOTOWY, zostaje panel (2026-08-07)
 
-Na prośbę Marka (2026-08-07) opis rejestracji przez Google **wrócił** do
-Regulaminu (§ 4 ust. 19), do Polityki (cel nr 1 + tabela odbiorców) i do
-Załącznika nr 2 — bo funkcja ma być włączona jeszcze przed startem. Odstępstwo
-nr 23 zostało tym samym cofnięte.
+Opis rejestracji przez Google wrócił do Regulaminu (§ 4 ust. 19), Polityki
+(cel nr 1 + tabela odbiorców) i Załącznika nr 2, a **kod został napisany tego
+samego dnia**, więc dokumenty nie wyprzedzają już aplikacji. Odstępstwo nr 23
+cofnięte.
 
-**Dziś tej funkcji w kodzie NIE MA.** Provider jest skonfigurowany po stronie
-Supabase (`supabase/README.md`, krok 3), ale w całym `src/` nie ma ani jednego
-wywołania `signInWithOAuth` i nie ma przycisku w UI. Dopóki tak jest, trzy
-opublikowane dokumenty opisują tryb rejestracji, którego nikt nie może użyć.
+⚠️ **Sprostowanie:** wcześniejsza wersja tego dokumentu twierdziła, że provider
+Google jest skonfigurowany po stronie Supabase. **Nie był** — zrzut panelu
+z 2026-08-07 pokazuje wyłączony przełącznik „Enable Sign in with Google" oraz
+puste Client ID i Client Secret. `supabase/README.md` opisywał to poprawnie,
+jako krok DO wykonania.
 
-Do zrobienia:
+Zrobione w kodzie:
 
-- [ ] Przycisk „Kontynuuj z Google" w `formularz-auth.tsx` (ekrany
-      `rejestracja` i `logowanie`) + `signInWithOAuth({ provider: "google" })`.
-- [ ] Trasa powrotna z OAuth — dlatego pełne trasy `/rejestracja` i `/logowanie`
-      muszą istnieć obok modalu (już istnieją, patrz komentarz w formularzu).
-- [ ] **Zgoda na Regulamin przy tej ścieżce.** Checkbox z formularza nie
-      pokazuje się przy logowaniu OAuth, a § 4 ust. 19 mówi wprost, że
-      Usługobiorca składa oświadczenie z ust. 2 pkt 3 — musi więc być gdzie je
-      zaznaczyć PRZED przekierowaniem do Google, plus wpis w dzienniku `zgoda`
-      po powrocie.
-- [ ] Zdjęcie profilowe i imię z Google trafiają do `profil` — albo dopisz to
-      do modelu danych, albo usuń z dokumentów, jeżeli ich nie zapisujesz.
+- [x] Przycisk „Kontynuuj z Google" na ekranach `rejestracja` i `logowanie`
+      (`formularz-auth.tsx`), logo jako wklejony SVG — nie pobieramy obrazka
+      z serwerów Google, bo byłoby to żądanie do Google przy każdym wejściu,
+      także od osoby, która odmówiła wszystkich zgód.
+- [x] Trasa `/auth/callback` — wymiana kodu na sesję po stronie serwera
+      (`exchangeCodeForSession`). Musi być trasą, nie stroną: Server Components
+      nie mogą zapisywać ciasteczek.
+- [x] **Zgoda na Regulamin, dwiema bramkami.** Na ekranie rejestracji przycisk
+      Google jest `disabled` bez checkboxa, a znacznik czasu zaznaczenia
+      przenosi przez przekierowanie `sessionStorage` (`lib/prawne/zgody-oauth.ts`)
+      — stan Reacta nie przeżywa podróży na obcą domenę, a dziennik ma nosić
+      chwilę aktu woli, nie chwilę powrotu.
+- [x] **Druga bramka: `/dokoncz-rejestracje`.** Łapie przypadek, którego
+      pierwsza złapać nie może — nowy użytkownik klika „Kontynuuj z Google" na
+      ekranie LOGOWANIA, Google zakłada mu konto, a checkboxa nikt nie
+      pokazał. Callback sprawdza dziennik zgód i przy braku wpisu odsyła tutaj;
+      sama strona sprawdza to jeszcze raz po stronie serwera, żeby nie dało się
+      jej ominąć wpisaniem adresu docelowego w pasku.
+- [x] Wyjście dla kogoś, kto zgody nie chce udzielić: usunięcie konta jednym
+      kliknięciem z tego ekranu. Konto istnieje, zanim nasz kod cokolwiek
+      zobaczy — nie da się „nie założyć konta bez zgody", da się tylko nie
+      wpuścić do aplikacji i dać drogę wyjścia.
+- [x] Mail powitalny z Regulaminem w PDF również na tej ścieżce.
 
-**Alternatywa, jeżeli funkcja się opóźni:** wycofaj cztery punkty wymienione
-w `dpa-lista.md` sekcja D. Dokument opisujący nieistniejącą funkcję jest wadliwy
-tak samo jak dokument pomijający istniejącą.
+**Do zrobienia PRZEZ CIEBIE w panelach** (kod bez tego nie zadziała) —
+szczegółowa instrukcja: `supabase/README.md`, sekcja „Logowanie Google".
+
+- [ ] Google Cloud Console: ekran zgody OAuth + Client ID (typ „Aplikacja
+      internetowa"), Authorized redirect URI =
+      `https://urjpluqutufsgkzysazq.supabase.co/auth/v1/callback`.
+- [ ] Supabase → Authentication → Providers → Google: wkleić Client ID
+      i Secret, **włączyć przełącznik**, Save.
+- [ ] Supabase → Authentication → URL Configuration: Site URL = adres
+      produkcyjny, Redirect URLs muszą obejmować `/auth/callback`.
+
+**Otwarte pytanie do rozstrzygnięcia:** Regulamin i Polityka mówią, że
+otrzymujemy z Google **imię, nazwisko i zdjęcie profilowe**. Supabase trzyma je
+w `auth.users.raw_user_meta_data`, ale nasza tabela `profil` ich nie kopiuje
+i nigdzie ich nie używamy. To jest prawdziwe (dane realnie do nas trafiają),
+więc dokumenty nie kłamią — ale jeżeli nie zamierzasz ich do niczego używać,
+uczciwiej byłoby zawęzić zakres w Google Cloud do samego adresu e-mail
+i skreślić resztę z dokumentów.
 
 ### 4. ✅ Narzędzia analityczne — ZWERYFIKOWANE NA PRODUKCJI (2026-08-07)
 

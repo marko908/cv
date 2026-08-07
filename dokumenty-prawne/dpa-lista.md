@@ -105,11 +105,23 @@ więc opisy wróciły:
 - [x] Polityka, tabela odbiorców — „uwierzytelnianie kontem Google" przy Google.
 - [x] Załącznik nr 2 — wiersz Google już to zawierał, teraz jest spójny z resztą.
 
-⛔ **DOPÓKI PRZYCISK „Kontynuuj z Google" NIE ISTNIEJE W KODZIE, dokumenty
-opisują tryb rejestracji, którego nie ma.** Provider jest skonfigurowany
-w Supabase (`supabase/README.md`, krok 3), ale w `src/` nie ma ani jednego
-wywołania `signInWithOAuth`. To musi wejść **przed publikacją dokumentów** —
-albo trzeba te cztery punkty wycofać. Bloker nr 5 w `WDROZENIE.md`.
+- [x] **Kod napisany tego samego dnia** — przycisk „Kontynuuj z Google",
+      trasa `/auth/callback`, bramka zgody `/dokoncz-rejestracje`. Dokumenty
+      nie wyprzedzają już aplikacji.
+
+⏳ **Zostaje konfiguracja paneli.** Wbrew wcześniejszemu zapisowi w tym pliku
+provider Google **nie był** skonfigurowany w Supabase — zrzut z 2026-08-07
+pokazuje wyłączony przełącznik i puste Client ID/Secret. Kroki: Google Cloud
+Console (ekran zgody + Client ID) i Supabase (wklejenie danych + włączenie).
+Instrukcja: `supabase/README.md`, sekcja „Logowanie Google"; bloker nr 5
+w `WDROZENIE.md`.
+
+⚠️ **Zakres danych do rozstrzygnięcia.** Dokumenty mówią, że dostajemy z Google
+imię, nazwisko i zdjęcie profilowe. To prawda (Supabase zapisuje je
+w `auth.users.raw_user_meta_data`), ale nasza tabela `profil` ich nie kopiuje
+i nigdzie ich nie używamy. Jeżeli nie zamierzasz ich używać, uczciwiej zawęzić
+zakres w Google Cloud do samego adresu e-mail i skreślić resztę z dokumentów —
+minimalizacja danych, art. 5 ust. 1 lit. c RODO.
 
 ---
 

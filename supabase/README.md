@@ -69,16 +69,69 @@ Tego nie da się zrobić migracją SQL:
 2. **Authentication → Email Templates → Confirm signup**: podmienić
    `{{ .ConfirmationURL }}` na `{{ .Token }}`, żeby mail niósł **6-cyfrowy kod**
    zamiast linku. Weryfikacja w kodzie: `supabase.auth.verifyOtp({ email, token, type: 'signup' })`.
-3. **Authentication → Providers → Google**: Client ID + Secret z Google Cloud
-   Console. W GCP jako Authorized redirect URI wpisać
-   `https://urjpluqutufsgkzysazq.supabase.co/auth/v1/callback`.
+3. **Authentication → Providers → Google** — patrz osobna sekcja niżej.
+   ⚠️ Stan na 2026-08-07: **NIEWŁĄCZONE**, Client ID i Secret puste.
 4. **Authentication → URL Configuration**: Site URL = adres produkcyjny,
    Redirect URLs = `http://localhost:3000/**` + domena z Vercela.
+   **Musi obejmować `/auth/callback`** — to tam wraca użytkownik po logowaniu
+   Google i tam wymieniamy kod na sesję.
 5. **Custom SMTP (Resend)** — **konieczne przed produkcją**. Wbudowany mailer
    Supabase ma limit rzędu kilku maili na godzinę i wysyła tylko do członków
    zespołu; bez własnego SMTP rejestracja przestanie działać przy pierwszym
    ruchu. Domenę trzeba zweryfikować w Resend (SPF/DKIM), inaczej kody
    aktywacyjne będą lądować w spamie.
+6. **Authentication → Policies → Minimum password length: 8** — ✅ ustawione
+   (potwierdzone przez Marka 2026-08-07). Musi zgadzać się ze stałą `MIN_HASLO`
+   w `src/components/auth/formularz-auth.tsx`. Gdyby serwer miał niższy próg,
+   walidacja kliencka byłaby dekoracją; gdyby wyższy, użytkownik dostawałby
+   angielski komunikat Supabase zamiast naszego (`poPolsku()` tłumaczy „password
+   should be at least", ale wstawia w nim NASZĄ liczbę — przy rozjeździe
+   podałby błędną).
+
+## Logowanie Google — konfiguracja krok po kroku
+
+Kod jest gotowy (`/auth/callback`, przycisk w `formularz-auth.tsx`, bramka
+zgody `/dokoncz-rejestracje`), ale **bez tych kroków przycisk zwróci błąd**.
+
+**Uwaga na dwa różne adresy powrotne — to najczęstsza pomyłka w tym procesie:**
+
+- w **Google Cloud Console** rejestruje się callback SUPABASE:
+  `https://urjpluqutufsgkzysazq.supabase.co/auth/v1/callback`
+  (bo to Supabase rozmawia z Google, nie nasza aplikacja),
+- w **Supabase → URL Configuration** dopisuje się adres NASZEJ aplikacji
+  zakończony `/auth/callback` (bo tam Supabase odsyła użytkownika z kodem).
+
+### A. Google Cloud Console
+
+1. [console.cloud.google.com](https://console.cloud.google.com) → wybierz
+   projekt (najlepiej ten sam, w którym masz Gemini API) albo załóż nowy.
+2. **APIs & Services → OAuth consent screen**: typ **External**, nazwa
+   aplikacji „Aplikando", e-mail wsparcia `marko@aplikando.pl`, domena
+   `aplikando.pl`, odnośniki do polityki prywatności (`/polityka-prywatnosci`)
+   i regulaminu (`/regulamin`). Zakresy: wystarczą `email`, `profile`,
+   `openid` — **nie proś o więcej, niż opisują dokumenty**.
+3. **Credentials → Create Credentials → OAuth client ID**, typ
+   **Web application**.
+4. **Authorized redirect URIs** → dodaj dokładnie:
+   `https://urjpluqutufsgkzysazq.supabase.co/auth/v1/callback`
+5. Skopiuj **Client ID** i **Client Secret**.
+
+### B. Supabase
+
+6. **Authentication → Providers → Google**: wklej Client ID i Client Secret,
+   **włącz przełącznik „Enable Sign in with Google"**, Save.
+7. **Authentication → URL Configuration**: Site URL = adres produkcyjny;
+   w Redirect URLs dopisz adres produkcyjny z `/auth/callback` (wzorzec
+   `https://…/**` też to obejmie).
+
+### C. Sprawdzenie
+
+8. Wejdź na `/rejestracja`, zaznacz zgodę na Regulamin, kliknij „Kontynuuj
+   z Google". Po powrocie powinieneś wylądować w aplikacji, a w tabeli `zgoda`
+   ma pojawić się wiersz `regulamin_polityka` z kontekstem `rejestracja`.
+9. Test drugiej bramki: usuń wiersze z `zgoda` dla swojego konta i zaloguj się
+   Google z ekranu `/logowanie`. Powinieneś trafić na `/dokoncz-rejestracje`,
+   a nie do aplikacji.
 
 ## Środowiska (od 2026-08-02)
 

@@ -12,6 +12,36 @@ import {
 } from "@/components/prawne/etykiety-zgod";
 import { klientPrzegladarka } from "@/lib/supabase/klient-przegladarka";
 import { ustawZgodeMarketingowa, zapiszZgode } from "@/lib/prawne/zapis-zgody";
+import { zapamietajZgodyPrzedOauth } from "@/lib/prawne/zgody-oauth";
+
+/**
+ * Logo Google w przycisku — wklejone jako SVG, nie pobierane z serwerów Google.
+ * Zewnętrzny obrazek na ekranie logowania oznaczałby żądanie do Google przy
+ * każdym wejściu na stronę, także od osoby, która odmówiła wszystkich zgód
+ * na cookies. Cztery ścieżki to tańsza cena niż wyjątek w polityce prywatności.
+ */
+function LogoGoogle() {
+  return (
+    <svg viewBox="0 0 48 48" className="size-4" aria-hidden focusable="false">
+      <path
+        fill="#4285F4"
+        d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"
+      />
+      <path
+        fill="#34A853"
+        d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.88l7.35-5.7z"
+      />
+      <path
+        fill="#EA4335"
+        d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"
+      />
+    </svg>
+  );
+}
 
 /**
  * Mail powitalny z Regulaminem w PDF — fire-and-forget. Autoryzacja trasy
@@ -195,10 +225,17 @@ function poPolsku(komunikat: string): string {
 
 export function FormularzAuth({
   ekranPoczatkowy = "rejestracja",
+  bladPoczatkowy = "",
   onSukces,
   onEkran,
 }: {
   ekranPoczatkowy?: EkranAuth;
+  /**
+   * Błąd do pokazania od razu po zamontowaniu — dziś używa go wyłącznie powrót
+   * z nieudanego logowania Google (`/logowanie?blad=google`). Komunikat musi
+   * przyjść z zewnątrz, bo powstał w trasie serwerowej, a nie w formularzu.
+   */
+  bladPoczatkowy?: string;
   /** Wołane po zalogowaniu/aktywacji. W modalu domyka okno i wznawia akcję. */
   onSukces?: () => void;
   /** Zgłasza aktualny ekran, żeby oprawa (tytuł, opis) nadążała za formularzem. */
@@ -213,7 +250,7 @@ export function FormularzAuth({
   const [powtorzHaslo, setPowtorzHaslo] = useState("");
   const [kod, setKod] = useState("");
   const [zajete, setZajete] = useState(false);
-  const [blad, setBlad] = useState("");
+  const [blad, setBlad] = useState(bladPoczatkowy);
   const [info, setInfo] = useState("");
   const [odliczanie, setOdliczanie] = useState(0);
 
@@ -363,6 +400,62 @@ export function FormularzAuth({
     setZnacznikZgodyRejestracji(znacznik);
     setOdliczanie(ODSTEP_S);
     setEkran("kod-rejestracji");
+  }
+
+  /**
+   * LOGOWANIE / REJESTRACJA KONTEM GOOGLE.
+   *
+   * Google nie rozróżnia jednego od drugiego — ten sam przepływ zakłada konto
+   * albo loguje do istniejącego. Dlatego zgodę zbieramy PRZED przekierowaniem
+   * (na ekranie rejestracji gatuje przycisk), a po powrocie `/auth/callback`
+   * i tak sprawdza dziennik w bazie i w razie czego odsyła na
+   * `/dokoncz-rejestracje`. Dwie bramki, bo żadna z osobna nie wystarcza:
+   * pierwsza nie zadziała przy wejściu z ekranu logowania, druga nie zna
+   * chwili, w której użytkownik realnie kliknął checkbox.
+   *
+   * `wroc` niesiemy w adresie powrotnym, żeby po zalogowaniu wrócić tam, skąd
+   * użytkownik przyszedł. Waliduje go trasa callbacku, nie my — parametr
+   * przeżyje podróż przez Google i wraca jako dana z zewnątrz.
+   */
+  async function zalogujGoogle() {
+    // Czytamy `ekran` wprost, nie przez `rejestracja` — ta stała jest
+    // deklarowana dopiero przy renderze ostatniego ekranu i w innych gałęziach
+    // bywa przesłonięta lokalną zmienną o tej samej nazwie.
+    const zRejestracji = ekran === "rejestracja";
+
+    if (zRejestracji && !zgodaRegulamin) {
+      setBlad("Zaznacz zgodę na Regulamin i Politykę prywatności.");
+      return;
+    }
+
+    // Znacznik czasu i zgoda marketingowa muszą przeżyć przekierowanie —
+    // stan Reacta nie przeżyje, a dziennik ma nosić chwilę zaznaczenia, nie
+    // chwilę powrotu z Google (dzieli je ekran wyboru konta).
+    if (zRejestracji) {
+      zapamietajZgodyPrzedOauth({
+        znacznik: new Date().toISOString(),
+        marketing: zgodaMarketing,
+      });
+    }
+
+    zacznij();
+
+    const wroc = new URLSearchParams(window.location.search).get("wroc");
+    const powrot = new URL("/auth/callback", window.location.origin);
+    if (wroc) powrot.searchParams.set("wroc", wroc);
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: powrot.toString() },
+    });
+
+    // Sukces oznacza, że przeglądarka właśnie odchodzi do Google — `setZajete`
+    // zostawiamy włączone, żeby przycisk nie zamigał „gotowy" na ułamek sekundy
+    // przed zniknięciem strony.
+    if (error) {
+      setZajete(false);
+      setBlad(poPolsku(error.message));
+    }
   }
 
   async function potwierdzKod(e: React.FormEvent) {
@@ -695,6 +788,28 @@ export function FormularzAuth({
         rejestracja ? "Zakładam konto…" : "Loguję…",
         rejestracja && !zgodaRegulamin
       )}
+
+      <div className="flex items-center gap-3">
+        <span className="h-px flex-1 bg-border" />
+        <span className="text-xs text-muted-foreground">albo</span>
+        <span className="h-px flex-1 bg-border" />
+      </div>
+
+      {/* Na ekranie REJESTRACJI wyłączony bez zgody — dokładnie tak samo jak
+          „Załóż konto". Google zakłada konto tym samym kliknięciem, więc
+          przepuszczenie go bez checkboxa omijałoby § 4 ust. 19. Przy LOGOWANIU
+          bramki nie ma: logowanie nie zawiera nowej umowy, a gdyby konto jednak
+          okazało się nowe, złapie to `/auth/callback`. */}
+      <Button
+        type="button"
+        variant="secondary"
+        className="btn-label w-full font-bold"
+        onClick={zalogujGoogle}
+        disabled={zajete || (rejestracja && !zgodaRegulamin)}
+      >
+        <LogoGoogle />
+        Kontynuuj z Google
+      </Button>
 
       <p className="text-center text-sm text-muted-foreground">
         {rejestracja ? "Masz już konto?" : "Nie masz jeszcze konta?"}{" "}

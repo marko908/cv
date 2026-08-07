@@ -316,6 +316,41 @@ odmontowywałaby pole przy każdym naciśnięciu klawisza) · `auth-dialog.tsx`
 (`AuthDialog` + hook `useBramaKonta`) · `strona-auth.tsx` (oprawa pełnych tras).
 Hook sesji: `src/lib/supabase/uzytkownik.ts` (`useUzytkownik`).
 
+**LOGOWANIE GOOGLE (od 2026-08-07) — DWIE BRAMKI ZGODY, bo żadna z osobna nie
+wystarcza.** `signInWithOAuth` w `formularz-auth.tsx` → Google → Supabase →
+`/auth/callback` (trasa serwerowa, `exchangeCodeForSession`; MUSI być trasą,
+Server Components nie zapisują ciasteczek).
+
+1. **Przed przekierowaniem:** na ekranie rejestracji przycisk „Kontynuuj
+   z Google" jest `disabled` bez zgody na Regulamin — tak samo jak „Załóż
+   konto", bo Google zakłada konto tym samym kliknięciem (§ 4 ust. 19). Znacznik
+   czasu zaznaczenia i flaga zgody marketingowej jadą przez przekierowanie
+   w `sessionStorage` (`lib/prawne/zgody-oauth.ts`): stan Reacta nie przeżywa
+   podróży na obcą domenę, a dziennik ma nosić chwilę aktu woli, nie chwilę
+   powrotu (dzieli je ekran wyboru konta Google).
+2. **Po powrocie:** `/auth/callback` czyta dziennik (`maZgodeRegulaminowa`)
+   i przy braku wpisu odsyła na `/dokoncz-rejestracje`. Ta bramka istnieje dla
+   przypadku, którego pierwsza złapać NIE MOŻE — nowy użytkownik klika Google na
+   ekranie LOGOWANIA, konto powstaje, a checkboxa nikt nie pokazał. Strona
+   sprawdza to jeszcze raz serwerowo, więc nie da się jej ominąć wpisaniem
+   adresu docelowego w pasku.
+
+**Konta OAuth nie da się „nie założyć bez zgody"** — istnieje, zanim nasz kod
+cokolwiek zobaczy. Dlatego `/dokoncz-rejestracje` daje drogę wyjścia: zgoda albo
+usunięcie konta jednym kliknięciem.
+
+**Brak wiersza w dzienniku to fakt, nie heurystyka** — dlatego rozpoznajemy po
+nim „nowe konto", a nie po `created_at` (ile sekund to nowe?) ani po
+`last_sign_in_at` (zmienia się przy każdym logowaniu). Przy błędzie ODCZYTU
+`maZgodeRegulaminowa` zwraca `true`: awaria sieci nie ma prawa wysyłać
+zalogowanego użytkownika na ekran zgód w kółko.
+
+⚠️ **Provider w panelu Supabase NIE JEST jeszcze włączony** (stan 2026-08-07:
+przełącznik off, Client ID i Secret puste). Instrukcja krok po kroku:
+`supabase/README.md`, sekcja „Logowanie Google". Uwaga na dwa różne adresy
+powrotne — w Google Cloud rejestruje się callback SUPABASE, a w Supabase adres
+NASZEJ aplikacji z `/auth/callback`.
+
 **Hasło ustawia się DWA RAZY** (rejestracja i „Ustaw nowe hasło" po resecie,
 2026-08-07): pole + „Powtórz hasło", zgodność sprawdzana przed wywołaniem
 Supabase. Powód: odzyskiwanie konta idzie kodem z maila, więc literówka przy
@@ -324,6 +359,13 @@ możliwości sprawdzenia, co się wtedy wpisało. Przy LOGOWANIU powtórzenia ni
 ma i mieć nie może (hasło już istnieje, weryfikuje je serwer). Oba pola mają
 podgląd treści (`PoleHasla`), bo dwa zamaskowane pola bez podglądu zamieniają
 literówkę w zgadywankę.
+
+**`MIN_HASLO = 8` MUSI zgadzać się z „Minimum password length" w panelu
+Supabase** (ustawione na 8, potwierdzone 2026-08-07). Niższy próg na serwerze
+czyniłby walidację kliencką dekoracją; wyższy dałby użytkownikowi komunikat
+z NASZĄ liczbą przy CUDZYM wymogu — `poPolsku()` tłumaczy „password should be
+at least", ale wstawia w nim `MIN_HASLO`, więc przy rozjeździe podaje błędną
+liczbę znaków.
 
 **Przejście między ekranami ODZNACZA ZGODĘ** (`przelaczEkran`): rejestracja →
 logowanie → z powrotem nie może zostawić zaznaczonego checkboxa. To ta sama
@@ -750,7 +792,9 @@ rząd i jedno kliknięcie, baner BEZ krzyżyka (zamknięcie nie może uchodzić 
 zgodę). Odmowa niczego nie ogranicza.
 
 **Trasy** (`src/app/`): `/` landing · `/rejestracja` · `/logowanie` ·
-`/reset-hasla` (wszystkie trzy = `StronaAuth`) · `/regulamin` ·
+`/reset-hasla` (wszystkie trzy = `StronaAuth`) · `/auth/callback` (powrót
+z logowania Google, trasa serwerowa) · `/dokoncz-rejestracje` (bramka zgody dla
+kont OAuth bez wpisu w dzienniku) · `/regulamin` ·
 `/polityka-prywatnosci` · `/regulamin-newslettera` (grupa `(prawne)`, wspólny
 layout z `SiteHeader` + `Stopka`; wszystkie trzy dokumenty publikowane od
 2026-08-07) · `/app` Start (onboarding/hub) · `/app/kreator`
@@ -787,6 +831,7 @@ API: `runtime nodejs`, `maxDuration 60`.
 - **Podgląd wszystkich maili naraz** → `npx tsx scripts/probne-render-maili.ts <plik.json>` (poza repo, wzorzec `probne-*` w .gitignore) — renderuje 7 maili na przykładowych danych, bez wysyłania czegokolwiek
 - **Wiadomość obsługiwana ręcznie (reklamacja, odstąpienie, DSA, wypowiedzenie)** → `dokumenty-prawne/wzory-wiadomosci-o-zmianie.md`, wzory 4–13 (każdy z terminem z Regulaminu)
 - **PDF Regulaminu w mailach potwierdzających (checklista prawnika, poz. 1)** → `components/prawne/regulamin-pdf.tsx` (react-pdf, `renderToBuffer`, font Lato z dysku przez `path.join(process.cwd(), "public/fonts", …)` — NIE `/fonts/...` jak w `cv-pdf.tsx`, to działa tylko w przeglądarce). Konsumuje `lib/prawne/parsuj-dokument.ts` — parser wydzielony z `dokument-prawny.tsx`, WSPÓLNY dla strony WWW i PDF-a, żeby zmiana treści Regulaminu nigdy nie rozjechała jednego z drugim. Wysyłane z dwóch miejsc: `/api/konto/powitanie` (fire-and-forget z `formularz-auth.tsx` po rejestracji) i `/api/platnosc/webhook` (po `zakup`/`customer.subscription.created`, z jawną zgodą nr 2 — DWA różne paragrafy prawne zależnie od produktu, bo Odblokowanie Jednorazowe traci prawo odstąpienia od razu (art. 38 ust. 1 pkt 1), a Subskrypcja zachowuje 14 dni (art. 35) — wysłanie klientowi subskrypcji błędnej informacji byłoby dla niego szkodliwe)
+- **Logowanie Google** → przycisk i `signInWithOAuth` w `formularz-auth.tsx` · wymiana kodu na sesję w `src/app/auth/callback/route.ts` · przeniesienie zgody przez przekierowanie w `lib/prawne/zgody-oauth.ts` · bramka zgody w `components/auth/dokoncz-rejestracje.tsx` + `app/dokoncz-rejestracje/page.tsx` · konfiguracja paneli (Google Cloud + Supabase) w `supabase/README.md`, sekcja „Logowanie Google"
 - **Gdzie wymagamy konta** → `useBramaKonta` w miejscu akcji (dziś: `download-pdf-button.tsx`, `builder.tsx`); nigdy przez blokadę całej trasy — kreator ma zostać otwarty
 - **Testowe konto do klikania UI** → `scripts/probne-konto-testowe.ts` (poza repo, wzorzec `probne-*` w .gitignore): `node --env-file=.env.local --import tsx scripts/probne-konto-testowe.ts` i `… usun`. Tworzy konto z `email_confirm: true`, więc ŻADEN mail nie wychodzi i nie zjada limitu Resend
 - **Ceny, progi planów, limity, cena jednorazowa, darmowa pula** → `subscription.ts` (jedno źródło; UI tylko to renderuje, serwer bierze stąd limit do RPC)

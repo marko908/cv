@@ -29,6 +29,14 @@ export function StronaAuth({ ekranPoczatkowy }: { ekranPoczatkowy: EkranAuth }) 
   const zadany = params.get("wroc") ?? "";
   const wroc = zadany.startsWith("/") && !zadany.startsWith("//") ? zadany : "/app";
 
+  // `/auth/callback` odsyła tu z `?blad=google`, gdy wymiana kodu na sesję się
+  // nie powiodła albo użytkownik anulował na ekranie Google. Bez tego wracałby
+  // na czysty formularz i nie wiedziałby, czy coś w ogóle się wydarzyło.
+  const bladPoczatkowy =
+    params.get("blad") === "google"
+      ? "Logowanie przez Google nie doszło do skutku. Spróbuj ponownie albo użyj adresu e-mail i hasła."
+      : "";
+
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center px-4 py-10">
       <Link href="/" className="mb-8 flex items-center gap-2">
@@ -51,6 +59,7 @@ export function StronaAuth({ ekranPoczatkowy }: { ekranPoczatkowy: EkranAuth }) 
 
         <FormularzAuth
           ekranPoczatkowy={ekranPoczatkowy}
+          bladPoczatkowy={bladPoczatkowy}
           onEkran={setEkran}
           onSukces={() => {
             router.push(wroc);
