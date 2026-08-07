@@ -18,8 +18,10 @@ czynny podatnik VAT, ceny brutto 29 / 49 / 12 zł.
 
 ## ⛔ BLOKERY — załatw PRZED publikacją
 
-Otwarty jest już tylko **5** — i to wyłącznie po stronie paneli (Google Cloud
-Console + Supabase). Kod jest gotowy. Zamknięte: 0, 0b, 0c, 1, 2, 3, 4.
+**Wszystkie blokery zamknięte** (0, 0b, 0c, 1, 2, 3, 4, 5). Przy blokerze 5
+zostaje jedno domknięcie, którego nie dało się zrobić bez konta Marka:
+przeklikanie pełnego logowania Google i sprawdzenie, czy status „Audience"
+w Google Auth Platform to już „In production", a nie „Testing".
 
 ### 0b. ✅ Migracja `20260807120000_zgoda_marketing.sql` — ZASTOSOWANA (2026-08-07)
 
@@ -172,16 +174,40 @@ Zrobione w kodzie:
       wpuścić do aplikacji i dać drogę wyjścia.
 - [x] Mail powitalny z Regulaminem w PDF również na tej ścieżce.
 
-**Do zrobienia PRZEZ CIEBIE w panelach** (kod bez tego nie zadziała) —
-szczegółowa instrukcja: `supabase/README.md`, sekcja „Logowanie Google".
+**Panele skonfigurowane przez Marka 2026-08-07** (projekt Google Cloud
+`smiling-matrix-504818-k7`) — instrukcja: `supabase/README.md`, sekcja
+„Logowanie Google".
 
-- [ ] Google Cloud Console: ekran zgody OAuth + Client ID (typ „Aplikacja
-      internetowa"), Authorized redirect URI =
-      `https://urjpluqutufsgkzysazq.supabase.co/auth/v1/callback`.
-- [ ] Supabase → Authentication → Providers → Google: wkleić Client ID
-      i Secret, **włączyć przełącznik**, Save.
-- [ ] Supabase → Authentication → URL Configuration: Site URL = adres
-      produkcyjny, Redirect URLs muszą obejmować `/auth/callback`.
+- [x] Google Cloud Console → Google Auth Platform: klient OAuth utworzony.
+- [x] Supabase → Providers → Google: Client ID i Secret wklejone, przełącznik
+      włączony.
+- [x] Supabase → URL Configuration: Redirect URLs obejmują `/auth/callback`.
+
+**Zweryfikowane na produkcji 2026-08-07** (bez logowania — to wymagałoby
+danych Marka, więc ostatnie kliknięcie zostaje po jego stronie):
+
+| Co sprawdzone | Wynik |
+|---|---|
+| Przycisk „Kontynuuj z Google" na `/rejestracja` bez zgody | **wyłączony**, nie wchodzi do drzewa dostępności ✅ |
+| Ten sam przycisk po zaznaczeniu zgody | aktywny ✅ |
+| Kliknięcie → przekierowanie | `accounts.google.com`, `response_type=code` ✅ |
+| `client_id` w adresie | obecny → provider realnie włączony w Supabase ✅ |
+| `redirect_uri` | `https://urjpluqutufsgkzysazq.supabase.co/auth/v1/callback` ✅ |
+| `redirect_to` (nasz powrót) | `…/auth/callback` — brak błędu Supabase, czyli adres jest na liście ✅ |
+| `scope` | `email profile` — bez nadmiarowych uprawnień ✅ |
+| Brak `redirect_uri_mismatch` | Google przyjął klienta i adres ✅ |
+| Znacznik czasu zgody w `sessionStorage` | `{"znacznik":"…","marketing":false}` — przeżył podróż do Google i z powrotem ✅ |
+| `/auth/callback` bez `code` | 307 → `/logowanie?blad=google` + czytelny komunikat ✅ |
+| `/dokoncz-rejestracje` bez sesji | 307 → `/logowanie` ✅ |
+
+**Czego NIE dało się sprawdzić bez konta:** samo dokończenie logowania, zapis
+wiersza `regulamin_polityka` z kontekstem `rejestracja` i mail powitalny.
+Instrukcja tych dwóch testów: `supabase/README.md`, punkty 11–12.
+
+⚠️ **Jeżeli w Google Auth Platform → Audience status to nadal „Testing",
+zaloguje się WYŁĄCZNIE Marko i ręcznie dodani testerzy, a token wygaśnie po
+7 dniach.** Tego nie da się wykryć z zewnątrz — błąd „Access blocked" pojawia
+się dopiero po podaniu adresu spoza listy. Sprawdź status przed startem.
 
 **Otwarte pytanie do rozstrzygnięcia:** Regulamin i Polityka mówią, że
 otrzymujemy z Google **imię, nazwisko i zdjęcie profilowe**. Supabase trzyma je

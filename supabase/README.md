@@ -143,12 +143,24 @@ Projekt Aplikando: `smiling-matrix-504818-k7` (stan 2026-08-07).
 
 ### C. Sprawdzenie
 
-8. Wejdź na `/rejestracja`, zaznacz zgodę na Regulamin, kliknij „Kontynuuj
-   z Google". Po powrocie powinieneś wylądować w aplikacji, a w tabeli `zgoda`
-   ma pojawić się wiersz `regulamin_polityka` z kontekstem `rejestracja`.
-9. Test drugiej bramki: usuń wiersze z `zgoda` dla swojego konta i zaloguj się
-   Google z ekranu `/logowanie`. Powinieneś trafić na `/dokoncz-rejestracje`,
-   a nie do aplikacji.
+Zweryfikowane 2026-08-07 aż do ekranu Google (przekierowanie niesie poprawny
+`client_id`, `redirect_uri` i `scope=email profile`; przycisk jest wyłączony
+bez zgody; `/auth/callback` bez kodu odsyła na `/logowanie?blad=google`;
+`/dokoncz-rejestracje` bez sesji odsyła na `/logowanie`). Zostają dwa testy
+wymagające realnego konta:
+
+11. Wejdź na `/rejestracja`, zaznacz zgodę na Regulamin, kliknij „Kontynuuj
+    z Google". Po powrocie powinieneś wylądować w aplikacji, w tabeli `zgoda`
+    ma pojawić się wiersz `regulamin_polityka` z kontekstem `rejestracja`,
+    a na skrzynkę ma przyjść mail powitalny z Regulaminem w PDF.
+12. Test drugiej bramki: usuń wiersze z `zgoda` dla swojego konta i zaloguj się
+    Google z ekranu `/logowanie`. Powinieneś trafić na `/dokoncz-rejestracje`,
+    a nie do aplikacji. Kontekst zapisanej tam zgody to `rejestracja_google`.
+
+⚠️ **Jeżeli „Audience" w Google Auth Platform to nadal „Testing", zalogujesz
+się tylko Ty i ręcznie dodani testerzy** — a token wygaśnie po 7 dniach. Tego
+nie widać z zewnątrz: „Access blocked" pojawia się dopiero po podaniu adresu
+spoza listy testerów. Sprawdź status przed startem.
 
 ## Środowiska (od 2026-08-02)
 
