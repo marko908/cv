@@ -21,14 +21,16 @@ import { PrzyciskUstawienCookies } from "@/components/cookies/przycisk-ustawien-
 import { APLIKACJA, FIRMA, SCIEZKI } from "@/lib/prawne/dane";
 
 /*
- * Newslettera na razie nie ma (decyzja Marka 2026-08-04: „kiedyś to dodamy"),
- * więc nie ma tu odnośnika do `SCIEZKI.regulaminNewslettera` — trasa jest
- * niepublikowana. Gotowa treść czeka w `lib/prawne/regulamin-newslettera.ts`;
- * przywrócenie = odtworzenie strony + jeden wpis w tej tablicy.
+ * Regulamin newslettera wrócił do stopki 2026-08-07 razem ze zgodą marketingową
+ * przy rejestracji. Instrukcja prawnika (Krok III) wymaga, żeby dokument stał
+ * na osobnej podstronie, a treść zgody odsyłała do niego aktywnym linkiem —
+ * odnośnik w stopce daje do niego dostęp także po rejestracji, gdy checkboxa
+ * już nikt nie widzi.
  */
 const ODNOSNIKI = [
   { href: SCIEZKI.regulamin, etykieta: "Regulamin" },
   { href: SCIEZKI.politykaPrywatnosci, etykieta: "Polityka prywatności" },
+  { href: SCIEZKI.regulaminNewslettera, etykieta: "Regulamin newslettera" },
 ] as const;
 
 export function Stopka() {

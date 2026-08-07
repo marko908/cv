@@ -44,3 +44,64 @@ export async function zapiszZgode(params: {
     console.error("[zgoda] nie udało się zapisać zgody", { rodzaj, kontekst, error });
   }
 }
+
+/**
+ * Zgoda marketingowa — STAN + HISTORIA, dwa różne zapisy o dwóch różnych rolach.
+ *
+ * `profil.zgoda_marketing` to stan bieżący: jedyne pole, którego pyta się kod
+ * przed wysyłką i które użytkownik przestawia w ustawieniach. Dziennik `zgoda`
+ * to historia zmian tego stanu — niezmienna, więc wycofanie NIE jest zmianą
+ * wiersza, tylko nowym wpisem `marketing_wycofanie`.
+ *
+ * Po co jedno i drugie: przy sporze o wysyłkę po wycofaniu faktem spornym jest
+ * MOMENT wycofania, a sam `profil.zgoda_marketing = false` nie mówi, kiedy się
+ * to stało (art. 7 ust. 3 RODO — wycofanie ma być tak łatwe jak udzielenie,
+ * a więc i tak samo dowodliwe).
+ *
+ * KOLEJNOŚĆ MA ZNACZENIE: najpierw stan, potem dziennik. Gdyby padło po
+ * dzienniku, mielibyśmy wpis o zgodzie, której nikt nie egzekwuje — czyli
+ * dokument mówiący, że wysyłamy, przy stanie mówiącym, że nie. Odwrotna
+ * kolejność (dziennik pierwszy) dałaby przy awarii coś gorszego: wysyłkę bez
+ * śladu w dzienniku. Gdy zapis stanu się nie powiedzie, wpisu do dziennika
+ * w ogóle nie robimy.
+ *
+ * NIGDY nie rzuca — jak `zapiszZgode` i `lib/mail.ts`. Zwraca `true`, gdy stan
+ * realnie się zapisał; wołający może to pokazać w UI, ale rejestracji to nie
+ * blokuje: konto ma powstać nawet wtedy, gdy nie udało się zapisać zgody,
+ * której udzielenie i tak było dobrowolne.
+ */
+export async function ustawZgodeMarketingowa(params: {
+  klient: SupabaseClient<Database>;
+  userId: string;
+  /** `true` — udzielenie zgody, `false` — jej wycofanie. */
+  zgoda: boolean;
+  /** np. „rejestracja", „ustawienia". */
+  kontekst: string;
+  udzielonoO?: string;
+}): Promise<boolean> {
+  const { klient, userId, zgoda, kontekst, udzielonoO } = params;
+
+  const { error } = await klient
+    .from("profil")
+    .update({ zgoda_marketing: zgoda })
+    .eq("id", userId);
+
+  if (error) {
+    console.error("[zgoda] nie udało się zapisać zgody marketingowej", {
+      zgoda,
+      kontekst,
+      error,
+    });
+    return false;
+  }
+
+  await zapiszZgode({
+    klient,
+    userId,
+    rodzaj: zgoda ? "marketing" : "marketing_wycofanie",
+    kontekst,
+    udzielonoO,
+  });
+
+  return true;
+}

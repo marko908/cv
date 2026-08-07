@@ -7,10 +7,11 @@ import { Loader2, LogOut, Trash2, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { klientPrzegladarka } from "@/lib/supabase/klient-przegladarka";
 import { useUzytkownik } from "@/lib/supabase/uzytkownik";
+import { ZgodaMarketingowa } from "./zgoda-marketingowa";
 
 /**
- * Sekcja „Konto" w ustawieniach: kto jest zalogowany, wylogowanie i usunięcie
- * konta (RODO art. 17).
+ * Sekcja „Konto" w ustawieniach: kto jest zalogowany, zgoda na informacje
+ * handlowe, wylogowanie i usunięcie konta (RODO art. 17).
  *
  * Usuwanie idzie przez RPC `usun_moje_konto()` — kasuje wpis w `auth.users`,
  * a kaskada z `profil` sprząta CV, dopasowania, zakupy i liczniki. Nie kasuje
@@ -112,6 +113,8 @@ export function KartaKonta() {
           Wyloguj się
         </Button>
       </div>
+
+      <ZgodaMarketingowa userId={uzytkownik.id} />
 
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-secondary p-4">
         <div>

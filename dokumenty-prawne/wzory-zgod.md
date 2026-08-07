@@ -67,8 +67,12 @@ i żądam zwrotu". Bez tej zgody taki zwrot jest w pełni skuteczny.
 
 ## 3. Zgoda marketingowa (newsletter)
 
-**Gdzie:** formularz zapisu do newslettera; opcjonalnie jako **niewymagany**
-checkbox przy rejestracji konta.
+**Gdzie:** **niewymagany** checkbox przy rejestracji konta — i tylko tam.
+Formularza „podaj maila" na stronie nie ma i nie będzie (decyzja Marka
+2026-08-07). Regulamin newslettera § 5 ust. 2 na to pozwala: złożenie
+oświadczeń „może nastąpić w jakikolwiek sposób, w szczególności poprzez
+wypełnienie elektronicznego formularza" — formularz jest przykładem, nie
+warunkiem zawarcia Umowy o dostarczanie Newslettera.
 
 **Treść:**
 
@@ -80,15 +84,18 @@ checkbox przy rejestracji konta.
 
 **Wymagana:** nie — nigdy. Odmowa nie może blokować rejestracji ani zakupu.
 
-**Konsekwencje po stronie kodu:**
+**Konsekwencje po stronie kodu — stan na 2026-08-07:**
 
-- Zaznaczenie ustawia `profil.zgoda_marketing = true` (kolumna już istnieje
-  w bazie, z grantem kolumnowym dla `authenticated`).
-- Po zapisie wyślij mail potwierdzający **z regulaminem newslettera w PDF
-  w załączniku** (checklista prawnika, poz. 3).
-- **Każdy** wysłany newsletter musi zawierać działający link rezygnacji
-  (regulamin newslettera § 5 ust. 8 pkt 1).
-- Rezygnacja ustawia `zgoda_marketing = false` i nie może usuwać konta.
+- [x] Zaznaczenie ustawia `profil.zgoda_marketing = true` i dopisuje wiersz
+      `marketing` do dziennika `zgoda` (`ustawZgodeMarketingowa`).
+- [x] Mail potwierdzający **z regulaminem newslettera w PDF w załączniku**
+      (checklista prawnika, poz. 42) — to mail powitalny, bo zapis następuje
+      w tej samej chwili co rejestracja.
+- [x] Rezygnacja ustawia `zgoda_marketing = false`, dopisuje wiersz
+      `marketing_wycofanie` i nie rusza konta. Przełącznik w `/app/ustawienia`.
+- [ ] **Każdy wysłany newsletter musi zawierać działający link rezygnacji**
+      (regulamin newslettera § 5 ust. 7 pkt 1) — NIE ZROBIONE, bloker wysyłki,
+      patrz `WDROZENIE.md` sekcja D.
 
 ---
 

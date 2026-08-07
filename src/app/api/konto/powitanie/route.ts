@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
-import { zalogowanyUzytkownik } from "@/lib/supabase/klient-serwer";
-import { czyMailDostepny, wyslijMail } from "@/lib/mail";
+import { klientSerwer, zalogowanyUzytkownik } from "@/lib/supabase/klient-serwer";
+import { czyMailDostepny, wyslijMail, type ZalacznikMaila } from "@/lib/mail";
 import { mailPowitalny } from "@/lib/maile/tresci";
-import { regulaminPdfBuffer } from "@/components/prawne/regulamin-pdf";
+import {
+  regulaminNewsletteraPdfBuffer,
+  regulaminPdfBuffer,
+} from "@/components/prawne/regulamin-pdf";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -11,6 +14,12 @@ export const maxDuration = 60;
  * Mail powitalny po utworzeniu Konta — checklista prawnika (poz. 1):
  * „Wdrożenie systemu wysyłającego regulamin w postaci pliku PDF jako
  * załącznik do każdej wiadomości potwierdzającej utworzenie konta".
+ *
+ * Przy udzielonej zgodzie marketingowej ta sama wiadomość potwierdza także
+ * zawarcie Umowy o dostarczanie Newslettera i niesie DRUGI załącznik —
+ * regulamin newslettera w PDF (checklista, poz. 42). Nie robimy z tego
+ * osobnego maila: zapis następuje w tej samej chwili co rejestracja, więc
+ * dwie wiadomości o jednym zdarzeniu byłyby tylko szumem w skrzynce.
  *
  * WOŁANE FIRE-AND-FORGET z `formularz-auth.tsx`, zaraz po zapisaniu zgody na
  * regulamin — rejestracja NIE czeka na tę trasę i NIE pokazuje błędu, gdyby
@@ -33,13 +42,36 @@ export async function POST() {
   }
 
   try {
-    const pdf = await regulaminPdfBuffer();
-    const tresc = mailPowitalny();
+    // Zgodę czytamy Z BAZY, nie z treści żądania — inaczej ktokolwiek mógłby
+    // uderzyć w tę trasę z `{"zgodaMarketing": true}` i dostać potwierdzenie
+    // zapisu na newsletter, którego nigdy nie było. Klient zdążył ją zapisać:
+    // `zapiszZgodyRejestracji` w `formularz-auth.tsx` kończy się przed tym
+    // wywołaniem. Błąd odczytu traktujemy jak brak zgody — mail bez akapitu
+    // o newsletterze jest zawsze prawdziwy, mail z akapitem może nie być.
+    const supabase = await klientSerwer();
+    const { data: profil } = await supabase
+      .from("profil")
+      .select("zgoda_marketing")
+      .eq("id", user.id)
+      .single();
+    const zgodaMarketing = profil?.zgoda_marketing === true;
+
+    const zalaczniki: ZalacznikMaila[] = [
+      { nazwaPliku: "Regulamin-Aplikando.pdf", tresc: await regulaminPdfBuffer() },
+    ];
+    if (zgodaMarketing) {
+      zalaczniki.push({
+        nazwaPliku: "Regulamin-newslettera-Aplikando.pdf",
+        tresc: await regulaminNewsletteraPdfBuffer(),
+      });
+    }
+
+    const tresc = mailPowitalny(zgodaMarketing);
 
     const wynik = await wyslijMail({
       adresat: user.email,
       ...tresc,
-      zalaczniki: [{ nazwaPliku: "Regulamin-Aplikando.pdf", tresc: pdf }],
+      zalaczniki,
     });
 
     if (!wynik.ok) console.error("[konto/powitanie] WYSYŁKA NIEUDANA:", wynik.blad);

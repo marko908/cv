@@ -34,6 +34,7 @@ import {
 } from "@/lib/prawne/parsuj-dokument";
 import { APLIKACJA } from "@/lib/prawne/dane";
 import { REGULAMIN } from "@/lib/prawne/regulamin";
+import { REGULAMIN_NEWSLETTERA } from "@/lib/prawne/regulamin-newslettera";
 
 let fontZarejestrowany = false;
 
@@ -259,4 +260,18 @@ export function DokumentPdf({ zrodlo }: { zrodlo: string }) {
  */
 export async function regulaminPdfBuffer(): Promise<Buffer> {
   return renderToBuffer(<DokumentPdf zrodlo={REGULAMIN} />);
+}
+
+/**
+ * Regulamin newslettera jako PDF — załącznik do wiadomości potwierdzającej
+ * zapis (checklista prawnika, poz. 42: „system wysyłający regulamin w postaci
+ * pliku PDF jako załącznik do każdej wiadomości potwierdzającej zapis do
+ * newslettera"; instrukcja, Krok III).
+ *
+ * Zapis następuje przez checkbox przy rejestracji, więc wiadomością
+ * potwierdzającą jest mail powitalny — stąd wołane z `/api/konto/powitanie`,
+ * obok `regulaminPdfBuffer`, ale TYLKO gdy zgoda została udzielona.
+ */
+export async function regulaminNewsletteraPdfBuffer(): Promise<Buffer> {
+  return renderToBuffer(<DokumentPdf zrodlo={REGULAMIN_NEWSLETTERA} />);
 }

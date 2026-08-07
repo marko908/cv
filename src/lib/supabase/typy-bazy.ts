@@ -5,6 +5,9 @@
  * z aktualnego stanu bazy (Supabase MCP `generate_typescript_types` albo
  * `npx supabase gen types typescript --linked`, z katalogu cv-copilot/,
  * po wcześniejszym `npx supabase link --project-ref urjpluqutufsgkzysazq`).
+ * Generator NIE zachowuje tego komentarza — po odświeżeniu wklej go z powrotem
+ * (i pilnuj, żeby plik nie dostał BOM-a, co robi `Out-File -Encoding utf8`
+ * w Windows PowerShell 5.1).
  *
  * Uwaga: `tresc`, `cv_bazowe`, `cv_dopasowane` i `ai_meta` mają tu typ `Json`,
  * bo baza zna tylko JSONB. Prawdziwym kontraktem tych kolumn jest `TailoredCv`
@@ -513,7 +516,11 @@ export type Database = {
     Enums: {
       okres_rozliczeniowy: "miesiac" | "rok"
       plan_id: "start" | "pro"
-      rodzaj_zgody: "regulamin_polityka" | "usluga_przed_odstapieniem"
+      rodzaj_zgody:
+        | "regulamin_polityka"
+        | "usluga_przed_odstapieniem"
+        | "marketing"
+        | "marketing_wycofanie"
       status_subskrypcji: "aktywna" | "zalega" | "anulowana"
       status_zakupu: "oczekuje" | "oplacony" | "nieudany" | "zwrocony"
     }
@@ -648,7 +655,12 @@ export const Constants = {
     Enums: {
       okres_rozliczeniowy: ["miesiac", "rok"],
       plan_id: ["start", "pro"],
-      rodzaj_zgody: ["regulamin_polityka", "usluga_przed_odstapieniem"],
+      rodzaj_zgody: [
+        "regulamin_polityka",
+        "usluga_przed_odstapieniem",
+        "marketing",
+        "marketing_wycofanie",
+      ],
       status_subskrypcji: ["aktywna", "zalega", "anulowana"],
       status_zakupu: ["oczekuje", "oplacony", "nieudany", "zwrocony"],
     },

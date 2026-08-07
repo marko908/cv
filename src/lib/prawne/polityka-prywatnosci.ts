@@ -74,7 +74,7 @@ Korzystanie z Aplikacji wymaga przetwarzania Twoich danych osobowych. Poniżej z
 
 ### 1. Zawarcie i wykonanie Umowy o Konto
 
-**Przetwarzane dane osobowe:** adres poczty elektronicznej.
+**Przetwarzane dane osobowe:** adres poczty elektronicznej, a w przypadku utworzenia Konta przez uwierzytelnienie kontem Google – także imię, nazwisko oraz zdjęcie profilowe przypisane do tego konta.
 
 **Podstawa prawna:** art. 6 ust. 1 lit. b RODO (przetwarzanie jest niezbędne do wykonania Umowy o Konto zawartej z osobą, której dane dotyczą, lub podjęcia działań w celu jej zawarcia).
 
@@ -160,6 +160,16 @@ Podanie ww. danych osobowych jest dobrowolne, ale niezbędne w celu zapewnienia 
 
 Podanie ww. danych osobowych jest całkowicie dobrowolne, a ich niepodanie (odmowa zgody) nie ogranicza w żaden sposób możliwości korzystania z Aplikacji. Administrator będzie przetwarzał ww. dane osobowe do czasu cofnięcia zgody albo do upływu okresu działania danego pliku cookie – w zależności od tego, które z wymienionych zdarzeń nastąpi wcześniej. Cofnięcie zgody nie wpływa na zgodność z prawem przetwarzania dokonanego przed jej cofnięciem.
 
+### 12. Zawarcie i wykonanie Umowy o dostarczanie Newslettera
+
+**Przetwarzane dane osobowe:** adres poczty elektronicznej.
+
+**Podstawa prawna:** art. 6 ust. 1 lit. b RODO (przetwarzanie jest niezbędne do wykonania Umowy o dostarczanie Newslettera zawartej z osobą, której dane dotyczą, lub podjęcia działań w celu jej zawarcia) oraz art. 6 ust. 1 lit. f RODO (przetwarzanie jest niezbędne w celu realizacji prawnie uzasadnionego interesu Administratora, w tym przypadku informowania o nowościach i promocjach dostępnych w Aplikacji). Niezależnie od powyższego, przesyłanie informacji handlowych pod Twój adres poczty elektronicznej odbywa się na podstawie Twojej zgody, o której mowa w art. 398 ustawy – Prawo komunikacji elektronicznej.
+
+Zgodę tę wyrażasz zaznaczając nieobowiązkowy checkbox w formularzu rejestracji Konta. **Jej udzielenie jest całkowicie dobrowolne, a odmowa nie wpływa na możliwość utworzenia Konta ani na zakres, dostępność i cenę pozostałych Usług.** Możesz cofnąć ją w każdej chwili, bez podania przyczyny i bez żadnych konsekwencji – w ustawieniach Konta albo klikając w link umożliwiający rezygnację, dołączany do każdej wiadomości. Cofnięcie zgody nie wpływa na zgodność z prawem przetwarzania dokonanego przed jej cofnięciem. Szczegółowe zasady dostarczania Newslettera określa [Regulamin newslettera](${SCIEZKI.regulaminNewslettera}).
+
+Podanie ww. danych osobowych jest dobrowolne, ale niezbędne w celu otrzymywania Newslettera (konsekwencją ich niepodania będzie niemożność jego otrzymywania). Administrator będzie przetwarzał ww. dane osobowe do czasu cofnięcia zgody, skutecznego wniesienia sprzeciwu albo do czasu przedawnienia roszczeń wynikających z Umowy o dostarczanie Newslettera – w zależności od tego, które z wymienionych zdarzeń nastąpi wcześniej.
+
 ## Profilowanie
 
 Jeżeli wyrazisz zgodę na marketingowe pliki cookies, Twoje dane osobowe będą przetwarzane w sposób zautomatyzowany, w tym profilowane, w celu stworzenia Twojego profilu na potrzeby marketingu bezpośredniego oraz kierowania do Ciebie reklam dostosowanych do Twoich preferencji. **Nie będzie to wywoływać wobec Ciebie żadnych skutków prawnych ani w podobny sposób istotnie wpływać na Twoją sytuację** – w szczególności nie wpływa na dostępność Usług, ich zakres, cenę ani na warunki zawartej z Tobą Umowy.
@@ -176,10 +186,12 @@ Odbiorcami danych osobowych są następujące podmioty zewnętrzne współpracuj
 | Vercel Inc. (USA) | hosting i udostępnianie Aplikacji, analityka ruchu | wszystkie dane przetwarzane w Aplikacji, dane z logów serwera |
 | Supabase Inc. (USA; instancja bazy danych zlokalizowana we Frankfurcie nad Menem, Niemcy) | baza danych, uwierzytelnianie, przechowywanie plików | dane Konta, treść CV, historia Dopasowań, zdjęcia |
 | Stripe Payments Europe, Limited (Irlandia) oraz Stripe, Inc. (USA) | obsługa płatności i subskrypcji | adres e-mail, identyfikatory klienta i subskrypcji, dane transakcji |
-| Google Ireland Limited oraz Google LLC (USA) | modele sztucznej inteligencji (Gemini API), zarządzanie tagami (Google Tag Manager), analityka (Google Analytics 4) | treść CV i treść ogłoszenia przekazywane w celu wykonania Dopasowania; dane o korzystaniu z Aplikacji |
-| Resend, Inc. (USA) | wysyłka wiadomości e-mail (kody aktywacyjne, powiadomienia) | adres e-mail, treść wiadomości |
+| Google Ireland Limited oraz Google LLC (USA) | modele sztucznej inteligencji (Gemini API), uwierzytelnianie kontem Google, zarządzanie tagami (Google Tag Manager), analityka (Google Analytics 4) | treść CV i treść ogłoszenia przekazywane w celu wykonania Dopasowania; adres e-mail, imię, nazwisko i zdjęcie profilowe przy logowaniu kontem Google; dane o korzystaniu z Aplikacji |
+| Resend, Inc. (USA) | wysyłka wiadomości e-mail (kody aktywacyjne, powiadomienia, Newsletter) | adres e-mail, treść wiadomości |
 | Meta Platforms Ireland Limited (Irlandia) | działania marketingowe i pomiar ich skuteczności (Meta Pixel) | dane o korzystaniu z Aplikacji – wyłącznie po wyrażeniu zgody |
 | Microsoft Ireland Operations Limited oraz Microsoft Corporation (USA) | analiza sposobu korzystania z Aplikacji (Microsoft Clarity) | dane o korzystaniu z Aplikacji – wyłącznie po wyrażeniu zgody |
+| Fakturownia sp. z o.o. (Polska) | wystawianie i doręczanie faktur VAT oraz ich przekazywanie do Krajowego Systemu e-Faktur | adres e-mail, dane nabywcy podane do faktury, dane transakcji |
+| Striptu (integracja przekazująca zdarzenia płatnicze do systemu fakturowania) | przekazanie danych o dokonanej płatności z systemu płatności do systemu fakturowania | adres e-mail, dane transakcji |
 | Podmiot świadczący usługi księgowe na rzecz Administratora | prowadzenie ksiąg i rozliczenia podatkowe | dane z dokumentów księgowych |
 
 Z każdym z ww. podmiotów, który przetwarza dane osobowe w imieniu Administratora, zawarta została umowa powierzenia przetwarzania danych osobowych zgodna z art. 28 RODO.

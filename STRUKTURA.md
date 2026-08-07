@@ -556,7 +556,8 @@ wymaga, żeby oznaczenie przedsiębiorcy było IDENTYCZNE w regulaminie, polityc
 stopce i dokumentach sprzedażowych — dlatego treści dokumentów składają je stąd,
 a nie wpisują na sztywno. Tu też `DATA_OBOWIAZYWANIA` i `WERSJA_DOKUMENTOW`.
 
-Treści: `regulamin.ts` (18 §) · `polityka-prywatnosci.ts` · `regulamin-newslettera.ts`
+Treści: `regulamin.ts` (18 §) · `polityka-prywatnosci.ts` (12 celów
+przetwarzania) · `regulamin-newslettera.ts` (od 2026-08-07 publikowany)
 — jako Markdown-podobne stringi. **Numeracja jest DOSŁOWNIE tym, co stoi
 w źródle**, bo cały regulamin odsyła do „§ 1 ust. 5 pkt 1"; automatyczne `<ol>`
 przesunęłoby wszystkie odesłania przy wstawieniu jednego ustępu. Dlatego
@@ -579,10 +580,10 @@ Tag Managera od zera, krok po kroku (konto nie jest jeszcze założone) ·
 **`WDROZENIE.md`** = checklista prawnika + 25 odstępstw od wzoru z uzasadnieniem
 + blokery przed publikacją.
 
-**Zgody użytkownika (checkboxy, od 2026-08-05).** Dwie zgody z Regulaminu —
-regulamin+polityka (§ 4 ust. 2 pkt 3) i usługa przed upływem terminu na
-odstąpienie (§ 4 ust. 8 pkt 3, § 8 ust. 5) — mają wspólną treść
-w `components/prawne/etykiety-zgod.tsx` i wspólny wiersz-komponent
+**Zgody użytkownika (checkboxy, od 2026-08-05).** Trzy zgody z Regulaminu —
+regulamin+polityka (§ 4 ust. 2 pkt 3), usługa przed upływem terminu na
+odstąpienie (§ 4 ust. 8 pkt 3, § 8 ust. 5) i marketingowa (§ 4 ust. 20) — mają
+wspólną treść w `components/prawne/etykiety-zgod.tsx` i wspólny wiersz-komponent
 `components/prawne/checkbox-zgody.tsx`, na `components/ui/checkbox.tsx`
 (shadcn/radix-nova, ten sam wzorzec `data-checked`/`data-unchecked` co
 `switch.tsx`). **Rejestracja** (`formularz-auth.tsx`, wspólna dla modalu
@@ -594,10 +595,41 @@ zamknięciu okna — zgoda nie ma prawa „zostać zaznaczona" z poprzedniej wiz
 niezależnie od stanu UI — druga linia obrony na wypadek uderzenia w trasę
 z pominięciem przycisków.
 
+**ZGODA MARKETINGOWA (od 2026-08-07) — NIEOBOWIĄZKOWA I NIGDY NIĄ NIE BĘDZIE.**
+Trzeci checkbox przy rejestracji, poza warunkiem `disabled` przycisku „Załóż
+konto": zgoda niebędąca niezbędną do świadczenia usługi nie może warunkować
+korzystania z niej (`wzory-zgod.md`, zasada wspólna nr 5). Osobny od zgody
+nr 1 — łączenie zgody wymaganej z dobrowolną czyni tę drugą nieważną (zasada
+nr 3). Formularza „podaj maila" na stronie NIE MA i nie będzie (decyzja Marka
+2026-08-07); punktem wejścia jest wyłącznie rejestracja, co Regulamin
+newslettera § 5 ust. 2 dopuszcza wprost („może nastąpić w jakikolwiek sposób,
+w szczególności poprzez wypełnienie elektronicznego formularza").
+
+**Stan mieszka w `profil.zgoda_marketing`, historia w dzienniku `zgoda`** —
+zapisuje jedno miejsce, `ustawZgodeMarketingowa` w `lib/prawne/zapis-zgody.ts`
+(najpierw stan, potem dziennik; przy błędzie stanu dziennika nie ruszamy).
+Wycofanie NIE jest zmianą wiersza — dziennik jest niezmienny, więc powstaje
+osobny wpis `marketing_wycofanie`. Powód: przy sporze faktem spornym jest
+MOMENT wycofania, a samo `false` w profilu nie mówi kiedy.
+
+**Wycofanie stoi w `/app/ustawienia`** (`components/auth/zgoda-marketingowa.tsx`,
+przełącznik w `KartaKonta`) — art. 7 ust. 3 RODO: ma być tak łatwe jak
+udzielenie, czyli jedno kliknięcie, nie mail z prośbą. Stan czyta z BAZY, nie
+ze store'a; do czasu odczytu przełącznik jest nieaktywny, żeby nikt nie
+przestawiał wartości, której jeszcze nie znamy.
+
+⚠️ **Regulamin newslettera musi zostać opublikowany tak długo, jak istnieje ten
+checkbox** — treść zgody linkuje do niego, a Krok III instrukcji prawnika tego
+wymaga. ⚠️ **Ani jednego maila marketingowego bez linku rezygnacji** (Regulamin
+newslettera § 5 ust. 7 pkt 1) — mechanizmu wysyłki jeszcze nie ma, otwarty
+punkt w `WDROZENIE.md` sekcja D.
+
 **Dziennik dowodowy zgód** (art. 7 ust. 1 RODO — ciężar dowodu, że zgoda
 została udzielona, spoczywa na administratorze) — tabela `zgoda`
-(`supabase/migrations/20260805103000_zgody.sql`): `user_id`, `rodzaj`
-(`regulamin_polityka` | `usluga_przed_odstapieniem`), `wersja_dokumentow`,
+(`supabase/migrations/20260805103000_zgody.sql`, rozszerzona przez
+`20260807120000_zgoda_marketing.sql`): `user_id`, `rodzaj`
+(`regulamin_polityka` | `usluga_przed_odstapieniem` | `marketing` |
+`marketing_wycofanie`), `wersja_dokumentow`,
 `kontekst` (np. `rejestracja`, `zakup_subskrypcja:pro:rok`), `udzielono_o`
 (czas RZECZYWISTEGO zaznaczenia, dostarczany przez klienta — może różnić się
 od czasu zapisu, gdy rejestracja czeka na kod z maila). Niezmienny dziennik:
@@ -719,9 +751,9 @@ zgodę). Odmowa niczego nie ogranicza.
 
 **Trasy** (`src/app/`): `/` landing · `/rejestracja` · `/logowanie` ·
 `/reset-hasla` (wszystkie trzy = `StronaAuth`) · `/regulamin` ·
-`/polityka-prywatnosci` (grupa `(prawne)`, wspólny
-layout z `SiteHeader` + `Stopka`; `/regulamin-newslettera` jest NIEpublikowana —
-treść czeka w `lib/prawne/`, patrz komentarz w `stopka.tsx`) · `/app` Start (onboarding/hub) · `/app/kreator`
+`/polityka-prywatnosci` · `/regulamin-newslettera` (grupa `(prawne)`, wspólny
+layout z `SiteHeader` + `Stopka`; wszystkie trzy dokumenty publikowane od
+2026-08-07) · `/app` Start (onboarding/hub) · `/app/kreator`
 lista „Moje CV" (+ Dodaj nowe; import CV tylko w edytorze) · `/app/kreator/edytor` edytor ·
 `/app/dopasowania` historia · `/app/dopasowania/[id]` szczegóły (score-breakdown,
 compare, changes, findings, paywall) · `/app/ustawienia`. API: `/api/dopasuj`
@@ -767,8 +799,9 @@ API: `runtime nodejs`, `maxDuration 60`.
 - **Lista narzędzi cookies (tabela w polityce ORAZ panel zgód)** → `src/lib/prawne/cookies-rejestr.ts` — jedno źródło, plus PODNIESIENIE `WERSJA_ZGODY` w `src/lib/cookies/zgody.ts`
 - **Dodanie/zamiana narzędzia analitycznego lub marketingowego** → wpis w rejestrze + hook ładujący w `src/components/cookies/skrypty-narzedzi.tsx` + identyfikator w env; nigdy import skryptu poza tym plikiem
 - **Treść banera, przyciski, kategorie** → `src/components/cookies/{baner-cookies,panel-cookies}.tsx`
-- **Treść dwóch checkboxów zgody (regulamin+polityka, usługa przed odstąpieniem)** → `src/components/prawne/etykiety-zgod.tsx` — jedno źródło dla rejestracji i zakupu, zmień w OBU miejscach zgodnie z Regulaminem, jeśli zmieniasz brzmienie
-- **Dziennik zgód (tabela `zgoda`)** → `supabase/migrations/20260805103000_zgody.sql` (schemat+RLS) + `src/lib/prawne/zapis-zgody.ts` (zapis, nigdy nie rzuca); wywołania w `formularz-auth.tsx` i `/api/platnosc/checkout`
+- **Treść trzech checkboxów zgody (regulamin+polityka, usługa przed odstąpieniem, marketing)** → `src/components/prawne/etykiety-zgod.tsx` — jedno źródło dla rejestracji i zakupu, zmień w OBU miejscach zgodnie z Regulaminem, jeśli zmieniasz brzmienie
+- **Dziennik zgód (tabela `zgoda`)** → `supabase/migrations/20260805103000_zgody.sql` + `20260807120000_zgoda_marketing.sql` (schemat+RLS+enum) i `src/lib/prawne/zapis-zgody.ts` (zapis, nigdy nie rzuca); wywołania w `formularz-auth.tsx`, `zgoda-marketingowa.tsx` i `/api/platnosc/checkout`
+- **Zgoda marketingowa (stan, wycofanie, treść maila potwierdzającego)** → `profil.zgoda_marketing` (stan) · `ustawZgodeMarketingowa` w `lib/prawne/zapis-zgody.ts` (zapis stanu + wpis w dzienniku) · `components/auth/zgoda-marketingowa.tsx` (przełącznik w ustawieniach) · `mailPowitalny(zgodaMarketing)` w `lib/maile/tresci.ts` + `/api/konto/powitanie` (drugi załącznik PDF). Wysyłki marketingowej NIE MA — patrz bloker w `WDROZENIE.md` sekcja D
 
 ## Konwencje i pułapki
 

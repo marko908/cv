@@ -6,22 +6,25 @@
  * Dane spółki kapitałowej zastąpione danymi JDG (Administrator to przedsiębiorca
  * wpisany do CEIDG — nie ma KRS ani kapitału zakładowego).
  *
- * ⚠️ TEN DOKUMENT NIE JEST OBECNIE PUBLIKOWANY. Newslettera nie ma (decyzja
- * Marka 2026-08-04: „na razie nie potrzebuję, kiedyś to dodamy"), a regulamin
- * bez działającego formularza opisywałby usługę, której nie ma — jego § 5
- * mówi o formularzu zapisu, potwierdzeniu e-mail i linku rezygnacji.
- * Trasa `/regulamin-newslettera` została z tego powodu usunięta, a odnośnik
- * zniknął ze stopki. Treść zostaje gotowa do użycia.
+ * OPUBLIKOWANY od 2026-08-07 (wcześniej leżał tu nieużywany od 2026-08-04).
+ * Powód powrotu: Marko wysyła informacje handlowe do zarejestrowanych
+ * użytkowników, którzy wyrazili na to zgodę. To jest Newsletter w rozumieniu
+ * tego dokumentu, więc dokument musi być opublikowany — instrukcja prawnika,
+ * Krok III: osobna podstrona + aktywny link w treści zgody + regulamin w PDF
+ * w załączniku do wiadomości potwierdzającej zapis.
  *
- * PRZYWRÓCENIE (gdy powstanie formularz zapisu) — cztery kroki:
- *   1. odtwórz `src/app/(prawne)/regulamin-newslettera/page.tsx`
- *      (wzór: `regulamin/page.tsx`, podmień import i metadata),
- *   2. dodaj wpis do `ODNOSNIKI` w `src/components/stopka.tsx`,
- *   3. przywróć moduł „Umowa o dostarczanie Newslettera" w polityce
- *      prywatności (cel przetwarzania) i dopisz Newsletter przy Resend
- *      w tabeli odbiorców,
- *   4. wykonaj sekcję „Newsletter" w `dokumenty-prawne/WDROZENIE.md`
- *      (checkbox zgody, link rezygnacji w każdej wysyłce, PDF w potwierdzeniu).
+ * ⚠️ PUNKTEM WEJŚCIA JEST CHECKBOX PRZY REJESTRACJI, NIE FORMULARZ ZAPISU.
+ * Formularza „podaj maila" na stronie nie ma i nie będzie (decyzja Marka
+ * 2026-08-07). Treści dokumentu to NIE ZMIENIA i nie wymaga przepisania:
+ * § 5 ust. 2 mówi wprost, że złożenie oświadczeń „może nastąpić w jakikolwiek
+ * sposób, w szczególności poprzez wypełnienie elektronicznego formularza" —
+ * formularz jest przykładem, nie warunkiem zawarcia Umowy o dostarczanie
+ * Newslettera.
+ *
+ * ⚠️ § 5 ust. 7 pkt 1 OBIECUJE LINK REZYGNACJI W KAŻDEJ WYSYŁCE. Mechanizmu
+ * wysyłki jeszcze nie ma — dopóki nie powstanie, nie wolno wysłać ani jednej
+ * wiadomości marketingowej, bo pierwsza z nich naruszałaby ten ustęp.
+ * Otwarty punkt: `dokumenty-prawne/WDROZENIE.md`, sekcja D.
  *
  * Składnia — patrz `regulamin.ts`.
  */

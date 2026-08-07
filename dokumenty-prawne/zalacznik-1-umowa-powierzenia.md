@@ -139,6 +139,8 @@ Stan na 4 sierpnia 2026 r.
 | Stripe Payments Europe, Limited / Stripe, Inc. | obsługa płatności i subskrypcji | Irlandia / USA | Data Privacy Framework |
 | Google Ireland Limited / Google LLC | modele sztucznej inteligencji (Gemini API), uwierzytelnianie kontem Google | UE / USA | Data Privacy Framework |
 | Resend, Inc. | wysyłka wiadomości e-mail | USA | standardowe klauzule umowne (decyzja 2021/914) |
+| Fakturownia sp. z o.o. | wystawianie i doręczanie faktur VAT, przekazanie do KSeF | Polska | nie dotyczy — przetwarzanie w EOG |
+| Striptu | przekazanie zdarzeń płatniczych do systemu fakturowania | Polska / UE | nie dotyczy — przetwarzanie w EOG |
 
 > **⚠️ Zweryfikuj przed wysłaniem klientowi B2B.** Aktywność certyfikacji Data
 > Privacy Framework sprawdzisz na `dataprivacyframework.gov` (wyszukiwarka

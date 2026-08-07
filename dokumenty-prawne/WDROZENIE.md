@@ -1,7 +1,13 @@
 # Wdrożenie dokumentów prawnych — Aplikando
 
-Stan na 4 sierpnia 2026. Podstawa: pakiet Creativa Legal (pliki 1–4 + wzory),
+Stan na 7 sierpnia 2026. Podstawa: pakiet Creativa Legal (pliki 1–4 + wzory),
 zestawiony z rzeczywistym kodem aplikacji.
+
+**Aplikacja NIE JEST jeszcze live** (potwierdzone 2026-08-07) — zero
+zarejestrowanych użytkowników, zero płatności. To ma znaczenie dla całej tej
+checklisty: obowiązki „powiadom klientów" są dziś bezprzedmiotowe, a każdy
+punkt oznaczony jako bloker można zamknąć bez presji czasu. **Po starcie
+wszystko poniżej robi się droższe** — patrz bloker 0c.
 
 **Dane, na których oparto dokumenty:** Marko Nowak, firma Markonn Marko Nowak,
 ul. Mariana Maliny 5a/17, 41-200 Sosnowiec, CEIDG, NIP 6443568932,
@@ -12,8 +18,36 @@ czynny podatnik VAT, ceny brutto 29 / 49 / 12 zł.
 
 ## ⛔ BLOKERY — załatw PRZED publikacją
 
-Blokery 3 i 4 poniżej wciąż czekają — bez nich nie publikuj dokumentów.
-Blokery 0, 1 i 2 są już zamknięte.
+Otwarte: **4** (synchronizacja polityki z GTM) i **5** (logowanie Google
+w kodzie). Zamknięte: 0, 0b, 0c, 1, 2, 3.
+
+### 0b. ✅ Migracja `20260807120000_zgoda_marketing.sql` — ZASTOSOWANA (2026-08-07)
+
+Dodała `marketing` i `marketing_wycofanie` do enuma `rodzaj_zgody`. Tunel MCP
+dalej zwraca błąd uprawnień, więc tak jak przy blokerze 0 — przez CLI
+(`npx supabase db push --linked`), a potem `gen types typescript --linked`.
+Zweryfikowane: `typy-bazy.ts` zawiera obie nowe wartości, `tsc --noEmit` czysty.
+
+Dwie pułapki przy odświeżaniu typów, obie trafione tym razem: generator **nie
+zachowuje komentarza nagłówkowego** pliku (trzeba go wkleić z powrotem),
+a `Out-File -Encoding utf8` w Windows PowerShell 5.1 dokłada **BOM**. Obie
+opisane w komentarzu na górze `typy-bazy.ts`.
+
+### 0c. ✅ Wersja dokumentów 1.1 — § 17 BEZPRZEDMIOTOWY (2026-08-07)
+
+`DATA_OBOWIAZYWANIA` = 7 sierpnia 2026, `WERSJA_DOKUMENTOW` = 1.1. Regulamin
+§ 17 ust. 2 każe przesłać zmienioną wersję Usługobiorcom na 10 dni przed
+wejściem w życie — **ale Aplikando nie wystartowało i nie ma ani jednego
+zarejestrowanego użytkownika** (potwierdzone przez Marka 2026-08-07). Nie ma
+kogo informować; 7 sierpnia to po prostu data pierwszej publikacji, nie data
+zmiany obowiązującego dokumentu.
+
+⚠️ **PO STARCIE TA REGUŁA SIĘ ODWRACA.** Od chwili, w której powstanie pierwsze
+konto, każda zmiana treści Regulaminu albo Polityki oznacza realnych ludzi do
+poinformowania: mail ze wzoru (`wzory-wiadomosci-o-zmianie.md`), 10 dni
+wyprzedzenia, 10 dni na wypowiedzenie (§ 17 ust. 4). Newsletter ma 7 dni,
+zmiana ceny aktywnej subskrypcji 30. Wtedy podniesienie wersji przestaje być
+jednolinijkową edycją i staje się operacją do zaplanowania.
 
 ### 0. ✅ Migracja `20260805103000_zgody.sql` — ZASTOSOWANA (2026-08-05)
 
@@ -65,28 +99,67 @@ widoczny przy kluczu; upewnij się, że klucz **na produkcji** (Vercel →
 Production env) to ten sam projekt co przetestowany, a nie osobny klucz
 deweloperski założony bez rozliczania.
 
-### 3. Podpisz umowy powierzenia z dostawcami (art. 28 RODO)
+### 3. ✅ Umowy powierzenia (art. 28 RODO) — ZAAKCEPTOWANE (2026-08-07)
 
 Polityka prywatności stwierdza: *„Z każdym z ww. podmiotów, który przetwarza
 dane osobowe w imieniu Administratora, zawarta została umowa powierzenia
-przetwarzania danych osobowych zgodna z art. 28 RODO."* To musi być prawda
-w dniu publikacji.
+przetwarzania danych osobowych zgodna z art. 28 RODO."* Marko potwierdził
+2026-08-07, że DPA są zaakceptowane u wszystkich dostawców — u większości
+wchodzą automatycznie wraz z regulaminem usługi.
 
-| Dostawca | Gdzie zaakceptować DPA |
-|---|---|
-| Vercel | ustawienia zespołu → Legal / Privacy → Data Processing Addendum |
-| Supabase | Dashboard → Organization Settings → Legal Documents |
-| Stripe | DPA wchodzi w skład Services Agreement — pobierz i zachowaj kopię |
-| Google (Gemini API) | Cloud Data Processing Addendum — akceptacja w Google Cloud Console |
-| Resend | Dashboard → Settings → Legal / DPA |
-| Microsoft (Clarity) | Microsoft Products and Services DPA |
-| Meta (Pixel) | Business Tools Terms + Controller-to-Controller Addendum |
-| Biuro rachunkowe | zwykła umowa powierzenia na papierze |
+Zostają dwie rzeczy do jednorazowego sprawdzenia, opisane w `dpa-lista.md`:
+warunki Google Analytics/Tag Managera akceptuje się **osobno** od Cloud DPA dla
+Gemini API, a **biuro rachunkowe nie ma panelu** — tam musi istnieć realnie
+podpisany dokument. Do tego: zbierz kopie w jednym katalogu, bo przy kontroli
+liczy się to, co umiesz pokazać.
+
+**Pełna lista z dokładnymi ścieżkami klikania, podziałem na role (powierzenie
+vs współadministrowanie) i dwiema wykrytymi lukami: `dokumenty-prawne/dpa-lista.md`.**
+
+Skrót: 8 podmiotów przetwarzających (Vercel, Supabase, Google Cloud/Gemini,
+Resend, GA4, GTM, Microsoft Clarity, biuro rachunkowe) + 2 relacje innego typu
+(Stripe — odrębny administrator, Meta — współadministrowanie).
+
+⚠️ Dwie rzeczy wyszły przy składaniu tej listy (2026-08-07), obie opisane
+w `dpa-lista.md`: **Fakturownia i Striptu nie występują w żadnym dokumencie
+prawnym**, choć dostają dane każdego płacącego klienta; **Załącznik nr 2 wciąż
+przypisuje Google „uwierzytelnianie kontem Google"**, którego nie ma w kodzie
+(usunięte z regulaminu i polityki jako odstępstwo nr 23).
 
 Zachowaj PDF-y w jednym miejscu. Przy kontroli UODO to pierwsza rzecz, o którą
 zapytają. Przy okazji sprawdź na `dataprivacyframework.gov`, którzy dostawcy mają
 **aktywną** certyfikację DPF — od tego zależy poprawność sekcji „Przekazywanie
 danych do państwa trzeciego" i Załącznika nr 2 do umowy powierzenia.
+
+### 5. ⛔ Logowanie kontem Google MUSI wejść do kodu przed publikacją
+
+Na prośbę Marka (2026-08-07) opis rejestracji przez Google **wrócił** do
+Regulaminu (§ 4 ust. 19), do Polityki (cel nr 1 + tabela odbiorców) i do
+Załącznika nr 2 — bo funkcja ma być włączona jeszcze przed startem. Odstępstwo
+nr 23 zostało tym samym cofnięte.
+
+**Dziś tej funkcji w kodzie NIE MA.** Provider jest skonfigurowany po stronie
+Supabase (`supabase/README.md`, krok 3), ale w całym `src/` nie ma ani jednego
+wywołania `signInWithOAuth` i nie ma przycisku w UI. Dopóki tak jest, trzy
+opublikowane dokumenty opisują tryb rejestracji, którego nikt nie może użyć.
+
+Do zrobienia:
+
+- [ ] Przycisk „Kontynuuj z Google" w `formularz-auth.tsx` (ekrany
+      `rejestracja` i `logowanie`) + `signInWithOAuth({ provider: "google" })`.
+- [ ] Trasa powrotna z OAuth — dlatego pełne trasy `/rejestracja` i `/logowanie`
+      muszą istnieć obok modalu (już istnieją, patrz komentarz w formularzu).
+- [ ] **Zgoda na Regulamin przy tej ścieżce.** Checkbox z formularza nie
+      pokazuje się przy logowaniu OAuth, a § 4 ust. 19 mówi wprost, że
+      Usługobiorca składa oświadczenie z ust. 2 pkt 3 — musi więc być gdzie je
+      zaznaczyć PRZED przekierowaniem do Google, plus wpis w dzienniku `zgoda`
+      po powrocie.
+- [ ] Zdjęcie profilowe i imię z Google trafiają do `profil` — albo dopisz to
+      do modelu danych, albo usuń z dokumentów, jeżeli ich nie zapisujesz.
+
+**Alternatywa, jeżeli funkcja się opóźni:** wycofaj cztery punkty wymienione
+w `dpa-lista.md` sekcja D. Dokument opisujący nieistniejącą funkcję jest wadliwy
+tak samo jak dokument pomijający istniejącą.
 
 ### 4. Zsynchronizuj politykę z narzędziami analitycznymi
 
@@ -123,7 +196,7 @@ regulaminu newslettera (odstępstwo nr 24).
 |---|---|---|
 | 1 | Regulamin aplikacji (18 §) | `src/lib/prawne/regulamin.ts` → `/regulamin` |
 | 2 | Polityka prywatności | `src/lib/prawne/polityka-prywatnosci.ts` → `/polityka-prywatnosci` |
-| 3 | Regulamin newslettera — treść gotowa, **publikacja odłożona** (sekcja D) | `src/lib/prawne/regulamin-newslettera.ts` |
+| 3 | Regulamin newslettera — **opublikowany** 2026-08-07 (sekcja D) | `src/lib/prawne/regulamin-newslettera.ts` → `/regulamin-newslettera` |
 | 4 | Załącznik nr 1 — umowa powierzenia (B2B) + lista podwykonawców | `dokumenty-prawne/zalacznik-1-umowa-powierzenia.md` |
 | 5 | Wzory 4 zgód (checkboxy) | `dokumenty-prawne/wzory-zgod.md` |
 | 6 | Wzory 3 wiadomości o zmianie | `dokumenty-prawne/wzory-wiadomosci-o-zmianie.md` |
@@ -140,6 +213,7 @@ regulaminu newslettera (odstępstwo nr 24).
 | 17 | Mail przy zakupie (Regulamin w PDF + jawna zgoda nr 2, dwa różne paragrafy dla Odblokowania Jednorazowego i Subskrypcji) | `src/app/api/platnosc/webhook/route.ts` |
 | 18 | **Pełny system maili transakcyjnych** — wspólna oprawa + 7 treści z paragrafem Regulaminu przy każdej | `src/lib/maile/{szablon,tresci}.ts` |
 | 19 | **Wzory 10 wiadomości obsługiwanych ręcznie** (odstąpienie, reklamacje konsument/przedsiębiorca, DSA: zgłoszenie/decyzja/odwołanie, wypowiedzenie, zmiana usługi, przeniesienie praw, eksport danych) | `dokumenty-prawne/wzory-wiadomosci-o-zmianie.md`, wzory 4–13 |
+| 20 | **Zgoda marketingowa (wersja dokumentów 1.1)** — publikacja Regulaminu newslettera, checkbox przy rejestracji, wycofanie w ustawieniach, dziennik zgód, cel nr 12 w polityce, § 4 ust. 20 Regulaminu | sekcja D niżej |
 
 **Poprawione przy okazji:** stopka landingu głosiła *„Twoje dane nie opuszczają
 przeglądarki, dopóki nie użyjesz funkcji AI"*. Po przejściu na Supabase
@@ -259,29 +333,59 @@ instrukcja od zera, krok po kroku, z dokładnymi ścieżkami klikania:
       Od wpięcia GTM dodanie narzędzia przestało być commitem, więc kod już
       tego nie wymusi — patrz odstępstwo nr 25.
 
-### D. Newsletter — ODŁOŻONY (decyzja Marka 2026-08-04)
+### D. Marketing e-mailowy — ZGODA ZBIERANA, WYSYŁKI JESZCZE NIE MA (2026-08-07)
 
-Newslettera na razie nie ma i nie planujemy go teraz. Dlatego **cofnięto jego
-publikację**, żeby żaden opublikowany dokument nie opisywał nieistniejącej usługi:
+Decyzja Marka z 2026-08-07 zmieniła ustalenie z 4 sierpnia: **formularza zapisu
+na stronie nie będzie, ale zarejestrowany użytkownik może wyrazić zgodę na maile
+marketingowe.** To jest Newsletter w rozumieniu dokumentów od prawnika, więc
+publikacja regulaminu wróciła.
 
-- trasa `/regulamin-newslettera` — usunięta,
-- odnośnik w stopce — usunięty,
-- moduł „Umowa o dostarczanie Newslettera" w polityce prywatności — usunięty
-  (komentarz prawnika nr 20: *„moduł należy usunąć, jeżeli wysyłka Newslettera
-  nie jest prowadzona"*); cele przetwarzania przenumerowano z 12 na 11,
-- wzmianka o Newsletterze przy Resend w tabeli odbiorców — usunięta.
+Punkt wejścia nie wymagał przepisania dokumentu: **§ 5 ust. 2 Regulaminu
+newslettera dopuszcza złożenie oświadczeń „w jakikolwiek sposób, w szczególności
+poprzez wypełnienie elektronicznego formularza"** — formularz jest przykładem,
+nie warunkiem zawarcia umowy.
 
-Treść regulaminu **zostaje gotowa** w `src/lib/prawne/regulamin-newslettera.ts`,
-z instrukcją przywrócenia w komentarzu na górze pliku (4 kroki).
+Zrobione:
 
-Gdy wrócisz do tematu, do zrobienia:
+- [x] **Regulamin newslettera opublikowany** — trasa `/regulamin-newslettera`,
+      odnośnik w stopce (instrukcja prawnika, Krok III: osobna podstrona).
+- [x] **Checkbox zgody nr 3** przy rejestracji (`etykiety-zgod.tsx`,
+      `formularz-auth.tsx`), z aktywnymi linkami do regulaminu newslettera
+      i polityki. **NIEOBOWIĄZKOWY** — nie wchodzi do warunku `disabled`
+      przycisku „Załóż konto" (zasada wspólna nr 5 z `wzory-zgod.md`) i jest
+      osobny od zgody nr 1 (zasada nr 3).
+- [x] **Zapis do `profil.zgoda_marketing` + dziennik zgód** —
+      `ustawZgodeMarketingowa` w `lib/prawne/zapis-zgody.ts`. Nowe wartości
+      enuma `rodzaj_zgody`: `marketing` i `marketing_wycofanie` (migracja
+      `20260807120000_zgoda_marketing.sql`). Wycofanie to osobny wpis, bo
+      dziennik jest niezmienny.
+- [x] **Wycofanie zgody w `/app/ustawienia`** — przełącznik
+      (`components/auth/zgoda-marketingowa.tsx`). Art. 7 ust. 3 RODO: wycofanie
+      ma być tak łatwe jak udzielenie.
+- [x] **Regulamin newslettera w PDF w wiadomości potwierdzającej** (checklista
+      prawnika, poz. 42) — mail powitalny dostaje drugi załącznik i akapit
+      potwierdzający zapis, ale WYŁĄCZNIE przy udzielonej zgodzie. Trasa
+      `/api/konto/powitanie` czyta ją z bazy, nie z treści żądania.
+- [x] **Cel przetwarzania nr 12 w polityce prywatności** + Newsletter przy
+      Resend w tabeli odbiorców. Bez tego zbieralibyśmy zgodę na cel, którego
+      opublikowany dokument nie ujawnia (art. 13 RODO).
+- [x] **Regulamin § 4 ust. 20** — nieobowiązkowa zgoda opisana w dokumencie,
+      dopisana NA KOŃCU paragrafu (numeracja jest dosłowna, wstawienie
+      w środek przesunęłoby wszystkie odesłania).
 
-- [ ] Formularz zapisu (pole e-mail + checkbox zgody nr 3 z `wzory-zgod.md`).
-- [ ] Zapis do `profil.zgoda_marketing` (kolumna i grant kolumnowy już istnieją).
-- [ ] **Link rezygnacji w KAŻDYM wysłanym newsletterze** — regulamin § 5 ust. 8
-      pkt 1 to obiecuje, a bez tego wysyłka jest niezgodna z prawem.
-- [ ] Mail potwierdzający zapis z regulaminem w PDF.
-- [ ] Przywrócenie publikacji wg 4 kroków z komentarza w pliku treści.
+### ⛔ BLOKER: nie wysyłaj ani jednego maila marketingowego, dopóki nie ma linku rezygnacji
+
+- [ ] **Link rezygnacji w KAŻDEJ wysyłce** — Regulamin newslettera § 5 ust. 7
+      pkt 1 obiecuje go wprost, Regulamin § 4 ust. 20 i polityka prywatności
+      też. Pierwsza wiadomość bez niego łamie wszystkie trzy dokumenty naraz.
+      Zgoda jest już zbierana, więc **ten punkt jest jedyną rzeczą dzielącą Cię
+      od legalnej wysyłki** — nie odkładaj go do dnia, w którym będziesz chciał
+      wysłać pierwszy mail.
+- [ ] Decyzja: własny mechanizm (trasa rezygnacji z tokenem + szablon) czy
+      narzędzie zewnętrzne (np. Resend Broadcasts, które niesie własny link
+      i obsługę wypisów). Wybór przesądza, ile z tego trzeba pisać.
+- [ ] Jeżeli wejdzie narzędzie zewnętrzne — dopisz je do tabeli odbiorców
+      w polityce prywatności i zawrzyj z nim umowę powierzenia (art. 28 RODO).
 
 ### D2. Maile transakcyjne — ZROBIONE (2026-08-06), zostają dwa warunki
 
@@ -330,7 +434,9 @@ Zostają dwa warunki, oba poza kodem:
       eksport na żądanie mailowe, w terminie 30 dni. To wystarcza prawnie
       (art. 20 RODO), ale samoobsługowy przycisk oszczędziłby Ci ręcznej obsługi
       każdego żądania. Jeśli go dodasz, popraw brzmienie w regulaminie § 4
-      ust. 19 i w polityce („Usunięcie Konta i eksport danych").
+      ust. 18 i w polityce („Usunięcie Konta i eksport danych"). *(Odesłanie
+      poprawione 2026-08-07 z „ust. 19" — § 4 kończył się wtedy na ust. 18,
+      a ust. 19 to od tej daty zgoda marketingowa.)*
 - [ ] **Zgoda przy formularzu zgłoszenia błędu** (`/api/zglos-blad`) — tylko
       jeśli formularz jest dostępny dla niezalogowanych.
 - [ ] **Wyczyść `.next` po dodaniu tras** (`Remove-Item .next -Recurse -Force`).
@@ -389,8 +495,8 @@ listę** — to są miejsca, w których warto się upewnić.
 | 20 | § 13 ust. 5: własność intelektualna **nie obejmuje CV użytkownika** | Wzór tego nie mówił wprost, a przy narzędziu do tworzenia dokumentów to pierwsze pytanie, jakie zada rozsądny użytkownik. |
 | 21 | Umowa powierzenia: przetwarzanie **tylko cyfrowe** | Wzór mówił „oraz w formie papierowej". Nieprawda dla Aplikanda. |
 | 22 | Umowa powierzenia: dodano Załącznik nr 2 z listą podwykonawców | Wzór miał ogólną zgodę na podpowierzenie bez listy. Każdy klient B2B i tak o nią zapyta. |
-| 23 | **Usunięto rejestrację przez konto Google** z regulaminu (§ 4) i z polityki (cel nr 1) | Logowania Google **nie ma w kodzie** — zero wywołań `signInWithOAuth` w całym `src/`. Provider jest skonfigurowany po stronie Supabase (`supabase/README.md`, krok 3), ale w UI nie ma przycisku, więc nikt nie może się tak zarejestrować. Po dodaniu przycisku: przywróć ustęp o rejestracji przez Google w § 4, dopisz do polityki (cel nr 1) imię, nazwisko i zdjęcie profilowe z konta Google, oraz przywróć „uwierzytelnianie kontem Google" przy Google w tabeli odbiorców. |
-| 24 | **Cofnięto publikację regulaminu newslettera** i usunięto moduł newslettera z polityki | Newslettera nie ma i nie jest teraz planowany (decyzja Marka 2026-08-04). Szczegóły i instrukcja przywrócenia — sekcja D powyżej. |
+| 23 | ~~Usunięto rejestrację przez konto Google~~ → **COFNIĘTE 2026-08-07**: opis wrócił do Regulaminu (§ 4 ust. 19), Polityki (cel nr 1 + tabela odbiorców) i Załącznika nr 2 | Decyzja Marka 2026-08-07: funkcja zostanie włączona jeszcze przed startem, więc dokumenty opisują docelowy stan. **Odwrócona kolejność względem zasady „dokument opisuje to, co jest" — świadomie i na czas określony.** Dopóki `signInWithOAuth` nie pojawi się w `src/`, dokumenty wyprzedzają kod; patrz bloker nr 5. |
+| 24 | ~~Cofnięto publikację regulaminu newslettera~~ → **COFNIĘTE 2026-08-07**: regulamin z powrotem opublikowany, moduł newslettera wrócił do polityki jako cel nr 12 | Decyzja Marka 2026-08-04 („newslettera nie ma") została zawężona 2026-08-07: formularza zapisu na stronie nadal nie będzie, ale zarejestrowany użytkownik może wyrazić zgodę na maile marketingowe — a to jest Newsletter w rozumieniu dokumentów. Punkt wejścia nie wymagał zmiany treści: § 5 ust. 2 regulaminu newslettera dopuszcza złożenie oświadczeń „w jakikolwiek sposób", a formularz podaje jako przykład. Sekcja D powyżej. |
 | 25 | Narzędzia analityczne i marketingowe wpięte przez **Google Tag Manager**, a nie ładowane pojedynczo z kodu | Decyzja Marka 2026-08-04. Konsekwencje: (a) GTM dopisany do odbiorców w polityce i do sekcji „Pliki cookies” (ust. 7), (b) Consent Mode sam nie wystarcza — Meta Pixel i Clarity wymagają „Dodatkowych sprawdzeń zgody” w panelu GTM, (c) **tagi żyją poza repo**, więc `cookies-rejestr.ts` przestał być technicznie wymuszalnym źródłem prawdy i zastępuje go zasada organizacyjna. Vercel Analytics świadomie ZOSTAJE w kodzie — jego skrypty są pierwszostronne (`/_vercel/...`), a przeniesienie do GTM zamieniłoby żądanie pierwszostronne na trzeciostronne do Google. |
 
 ---
@@ -424,10 +530,10 @@ Odwzorowanie pliku „4 Checklista wdrożenia - dokumenty SaaS".
 | 1 | Aktywne linki do regulaminu w treści zgód | ✅ sekcja A |
 | 1 | Regulamin w PDF w mailu potwierdzającym | ✅ sekcja B (niepotwierdzone end-to-end na żywym mailu) |
 | 2 | Umowa powierzenia — uzupełnienie wzoru | ✅ + Załącznik nr 2 |
-| 3 | Regulamin newslettera — uzupełnienie | ✅ treść gotowa, publikacja odłożona |
-| 3 | Regulamin newslettera na podstronie | ⏸ odłożone — newslettera nie ma |
-| 3 | Aktywny link w treści zgody na newsletter | ⏸ odłożone (sekcja D) |
-| 3 | Regulamin newslettera w PDF w mailu | ⏸ odłożone (sekcja D) |
+| 3 | Regulamin newslettera — uzupełnienie | ✅ |
+| 3 | Regulamin newslettera na podstronie | ✅ `/regulamin-newslettera` |
+| 3 | Aktywny link w treści zgody na newsletter | ✅ sekcja D |
+| 3 | Regulamin newslettera w PDF w mailu | ✅ sekcja D (w mailu powitalnym, gdy zgoda udzielona) |
 | 4 | Polityka prywatności — uzupełnienie | ✅ |
 | 4 | Polityka na dedykowanej podstronie | ✅ `/polityka-prywatnosci` |
 | 4 | Aktywne linki do polityki w treści zgód | ✅ sekcja A |
@@ -436,10 +542,11 @@ Odwzorowanie pliku „4 Checklista wdrożenia - dokumenty SaaS".
 | 5 | Aktywne linki we wdrożonych zgodach | ✅ sekcja A |
 | 5 | Checkboxy domyślnie odznaczone | ✅ sekcja A |
 | 6 | Zgoda przy formularzu kontaktowym | ⬜ sekcja E (jeśli dotyczy) |
-| 7 | Zgoda marketingowa — uzupełnienie | ✅ treść gotowa, wdrożenie odłożone |
-| 7 | Zgoda w formularzu zapisu do newslettera | ⏸ odłożone (sekcja D) |
-| 7 | Aktywne linki w zgodzie marketingowej | ⏸ odłożone (sekcja D) |
-| 7 | Checkbox domyślnie odznaczony | ⏸ odłożone (sekcja D) |
+| 7 | Zgoda marketingowa — uzupełnienie | ✅ |
+| 7 | Zgoda w formularzu zapisu do newslettera | ✅ w formularzu REJESTRACJI — formularza zapisu nie ma i nie będzie (sekcja D) |
+| 7 | Aktywne linki w zgodzie marketingowej | ✅ regulamin newslettera + polityka |
+| 7 | Checkbox domyślnie odznaczony | ✅ i **nieobowiązkowy** — nie blokuje rejestracji |
+| 7 | Link rezygnacji w każdej wysyłce | ⛔ **BLOKER WYSYŁKI** (sekcja D) |
 | — | Zgoda na dostarczanie usługi przed odstąpieniem (Krok V instrukcji) | ✅ sekcja A |
 
 ---

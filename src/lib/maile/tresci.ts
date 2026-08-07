@@ -41,6 +41,7 @@ const LINK_APLIKACJA = `${APLIKACJA.adresWww}/app`;
 const LINK_USTAWIENIA = `${APLIKACJA.adresWww}/app/ustawienia`;
 const LINK_REGULAMIN = `${APLIKACJA.adresWww}${SCIEZKI.regulamin}`;
 const LINK_POLITYKA = `${APLIKACJA.adresWww}${SCIEZKI.politykaPrywatnosci}`;
+const LINK_REGULAMIN_NEWSLETTERA = `${APLIKACJA.adresWww}${SCIEZKI.regulaminNewslettera}`;
 
 /** Kwota brutto z groszy Stripe'a. Format PL: spacja tysięcy, przecinek groszy. */
 function zl(grosze: number): string {
@@ -82,9 +83,32 @@ const O_FAKTURZE =
  * każdej wiadomości potwierdzającej utworzenie konta.
  *
  * Mail NIE jest marketingiem i nie wymaga zgody marketingowej — potwierdza
- * zawarcie umowy, o którą użytkownik właśnie poprosił.
+ * zawarcie umowy, o którą użytkownik właśnie poprosił. Dotyczy to również
+ * wariantu z `zgodaMarketing = true`: akapit o newsletterze POTWIERDZA zapis,
+ * a nie zachęca do zakupu, więc wychodzi także do osób, które zgody nie
+ * udzieliły — tyle że wtedy bez tego akapitu.
+ *
+ * `zgodaMarketing` dokłada potwierdzenie zawarcia Umowy o dostarczanie
+ * Newslettera (Regulamin § 4 ust. 20, Regulamin newslettera § 5 ust. 1–2)
+ * i drugi załącznik PDF — checklista prawnika, poz. 42. Wołający ustala tę
+ * wartość czytając `profil.zgoda_marketing` z bazy, nigdy z treści żądania.
  */
-export function mailPowitalny(): TrescMaila {
+export function mailPowitalny(zgodaMarketing = false): TrescMaila {
+  // Potwierdzenie zawarcia Umowy o dostarczanie Newslettera — dokładany TYLKO
+  // przy udzielonej zgodzie. Regulamin newslettera § 5 ust. 1–2: zgoda złożona
+  // przy rejestracji zawiera tę umowę, a checklista prawnika (poz. 42) wymaga
+  // potwierdzenia jej wraz z regulaminem w PDF. Dla osoby, która zgody nie
+  // udzieliła, ten akapit byłby nieprawdą.
+  const akapitNewsletteraHtml = zgodaMarketing
+    ? akapit(
+        `Zapisaliśmy Cię też na newsletter — zgodziłeś/-aś się na otrzymywanie informacji handlowych o nowościach i promocjach. Zasady opisuje ${link("Regulamin newslettera", LINK_REGULAMIN_NEWSLETTERA)}, dołączony do tej wiadomości w PDF. Zgodę możesz wycofać w każdej chwili w ${link("ustawieniach konta", LINK_USTAWIENIA)} albo klikając link rezygnacji w dowolnej wiadomości — nie wpływa to na nic innego w Twoim koncie.`
+      )
+    : "";
+
+  const akapitNewsletteraText = zgodaMarketing
+    ? `\nZapisaliśmy Cię też na newsletter — zgodziłeś/-aś się na otrzymywanie informacji handlowych o nowościach i promocjach. Zasady opisuje Regulamin newslettera (${LINK_REGULAMIN_NEWSLETTERA}), dołączony do tej wiadomości w PDF. Zgodę możesz wycofać w każdej chwili w ustawieniach konta (${LINK_USTAWIENIA}) albo klikając link rezygnacji w dowolnej wiadomości — nie wpływa to na nic innego w Twoim koncie.\n`
+    : "";
+
   return {
     temat: `Witaj w ${APLIKACJA.nazwa} — potwierdzenie założenia konta`,
     html: szablonMaila({
@@ -94,6 +118,7 @@ export function mailPowitalny(): TrescMaila {
         akapit(
           `Twoje konto zostało utworzone. Przy rejestracji potwierdziłeś/-aś zapoznanie się z ${link("Regulaminem", LINK_REGULAMIN)} i ${link("Polityką prywatności", LINK_POLITYKA)} oraz akceptację ich postanowień — aktualną treść Regulaminu znajdziesz też w załączniku do tej wiadomości (PDF).`
         ),
+        akapitNewsletteraHtml,
         akapit(
           "Kreator CV, wszystkie szablony i pobranie własnego CV w PDF są bezpłatne. Płatne jest dopasowanie CV do konkretnej oferty pracy."
         ),
@@ -101,12 +126,14 @@ export function mailPowitalny(): TrescMaila {
         drobnymDrukiem(
           `Konto możesz usunąć w każdej chwili w ustawieniach — bez podawania przyczyny (Regulamin § 4 ust. 14). Jeśli to nie Ty zakładałeś/-aś konto, napisz na ${FIRMA.email}.`
         ),
-      ].join("\n"),
+      ]
+        .filter(Boolean)
+        .join("\n"),
     }),
     text: `Cześć!
 
 Twoje konto w ${APLIKACJA.nazwa} zostało utworzone. Przy rejestracji potwierdziłeś/-aś zapoznanie się z Regulaminem (${LINK_REGULAMIN}) i Polityką prywatności (${LINK_POLITYKA}) oraz akceptację ich postanowień — aktualną treść Regulaminu znajdziesz też w załączniku do tej wiadomości (PDF).
-
+${akapitNewsletteraText}
 Kreator CV, wszystkie szablony i pobranie własnego CV w PDF są bezpłatne. Płatne jest dopasowanie CV do konkretnej oferty pracy.
 
 Przejdź do aplikacji: ${LINK_APLIKACJA}

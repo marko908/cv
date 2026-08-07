@@ -6,9 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CheckboxZgody } from "@/components/prawne/checkbox-zgody";
-import { EtykietaZgodaRegulamin } from "@/components/prawne/etykiety-zgod";
+import {
+  EtykietaZgodaMarketing,
+  EtykietaZgodaRegulamin,
+} from "@/components/prawne/etykiety-zgod";
 import { klientPrzegladarka } from "@/lib/supabase/klient-przegladarka";
-import { zapiszZgode } from "@/lib/prawne/zapis-zgody";
+import { ustawZgodeMarketingowa, zapiszZgode } from "@/lib/prawne/zapis-zgody";
 
 /**
  * Mail powitalny z Regulaminem w PDF — fire-and-forget. Autoryzacja trasy
@@ -16,6 +19,11 @@ import { zapiszZgode } from "@/lib/prawne/zapis-zgody";
  * same-origin), nie przez nic, co wysyłamy w body. Rejestracja NIE czeka na
  * wynik i NIE pokazuje błędu, gdyby wysyłka się nie powiodła — konto już
  * istnieje, a awaria maila to nie porażka użytkownika.
+ *
+ * To, czy mail potwierdzi także zapis na newsletter i dołączy jego regulamin
+ * w PDF, trasa ustala SAMA — czytając `profil.zgoda_marketing` z bazy. Nie
+ * przekazujemy tego w body, bo body i tak nie byłoby wiarygodne, a stan w bazie
+ * jest już zapisany: `zapiszZgodyRejestracji` kończy się przed tym wywołaniem.
  */
 function wyslijMailPowitalny() {
   fetch("/api/konto/powitanie", { method: "POST" }).catch(() => {});
@@ -221,6 +229,12 @@ export function FormularzAuth({
     string | null
   >(null);
 
+  // Zgoda na informacje handlowe — NIEOBOWIĄZKOWA (Regulamin § 4 ust. 20).
+  // Świadomie NIE wchodzi do warunku `disabled` przycisku: zgoda, która nie
+  // jest niezbędna do świadczenia usługi, nie może warunkować korzystania
+  // z niej (wzory-zgod.md, zasada wspólna nr 5).
+  const [zgodaMarketing, setZgodaMarketing] = useState(false);
+
   useEffect(() => {
     onEkran?.(ekran);
     // `onEkran` celowo poza zależnościami: rodzic zwykle przekazuje świeżą
@@ -262,7 +276,40 @@ export function FormularzAuth({
     setInfo("");
     setPowtorzHaslo("");
     setZgodaRegulamin(false);
+    setZgodaMarketing(false);
     setZnacznikZgodyRejestracji(null);
+  }
+
+  /**
+   * Zapis obu zgód po powstaniu konta. Wołane z DWÓCH ścieżek rejestracji
+   * (sesja od razu / dopiero po potwierdzeniu kodu z maila), więc musi być
+   * jedno miejsce — rozjazd między nimi znaczyłby, że część użytkowników nie
+   * ma dowodu zgody, a część nie dostaje maili, na które się zgodziła.
+   *
+   * `znacznik` to czas RZECZYWISTEGO zaznaczenia checkboxów, nie czas zapisu.
+   * Żaden z tych zapisów nie rzuca ani nie blokuje rejestracji.
+   */
+  async function zapiszZgodyRejestracji(userId: string, znacznik?: string) {
+    await zapiszZgode({
+      klient: supabase,
+      userId,
+      rodzaj: "regulamin_polityka",
+      kontekst: "rejestracja",
+      udzielonoO: znacznik,
+    });
+    // Wyłącznie przy zaznaczonym checkboxie. Brak zgody to stan domyślny
+    // w bazie (`zgoda_marketing` ma `default false`) — nie zapisujemy
+    // „wycofania" czegoś, czego nikt nie udzielił, bo zaśmiecałoby to dziennik
+    // zdarzeniami, które nigdy nie nastąpiły.
+    if (zgodaMarketing) {
+      await ustawZgodeMarketingowa({
+        klient: supabase,
+        userId,
+        zgoda: true,
+        kontekst: "rejestracja",
+        udzielonoO: znacznik,
+      });
+    }
   }
 
   /** Widoczne dopiero wtedy, gdy użytkownik zaczął wpisywać powtórzenie. */
@@ -306,13 +353,7 @@ export function FormularzAuth({
     // Gdy potwierdzanie maila jest wyłączone, sesja jest od razu — możemy
     // zapisać zgodę już teraz, `auth.uid()` w RLS zobaczy świeżą sesję.
     if (data.session && data.user) {
-      await zapiszZgode({
-        klient: supabase,
-        userId: data.user.id,
-        rodzaj: "regulamin_polityka",
-        kontekst: "rejestracja",
-        udzielonoO: znacznik,
-      });
+      await zapiszZgodyRejestracji(data.user.id, znacznik);
       wyslijMailPowitalny();
       return onSukces?.();
     }
@@ -336,13 +377,10 @@ export function FormularzAuth({
     if (error) return setBlad(poPolsku(error.message));
 
     if (data.user) {
-      await zapiszZgode({
-        klient: supabase,
-        userId: data.user.id,
-        rodzaj: "regulamin_polityka",
-        kontekst: "rejestracja",
-        udzielonoO: znacznikZgodyRejestracji ?? undefined,
-      });
+      await zapiszZgodyRejestracji(
+        data.user.id,
+        znacznikZgodyRejestracji ?? undefined
+      );
       wyslijMailPowitalny();
     }
     onSukces?.();
@@ -626,13 +664,29 @@ export function FormularzAuth({
       )}
 
       {rejestracja && (
-        <CheckboxZgody
-          id="auth-zgoda-regulamin"
-          zaznaczone={zgodaRegulamin}
-          naZmiane={setZgodaRegulamin}
-        >
-          <EtykietaZgodaRegulamin />
-        </CheckboxZgody>
+        <div className="grid gap-2.5">
+          <CheckboxZgody
+            id="auth-zgoda-regulamin"
+            zaznaczone={zgodaRegulamin}
+            naZmiane={setZgodaRegulamin}
+          >
+            <EtykietaZgodaRegulamin />
+          </CheckboxZgody>
+          {/* Osobny checkbox, nigdy wspólny z powyższym — łączenie zgody
+              wymaganej z dobrowolną czyni tę drugą nieświadomą i niedobrowolną,
+              czyli nieważną (wzory-zgod.md, zasada wspólna nr 3). */}
+          <CheckboxZgody
+            id="auth-zgoda-marketing"
+            zaznaczone={zgodaMarketing}
+            naZmiane={setZgodaMarketing}
+          >
+            <EtykietaZgodaMarketing />{" "}
+            <span className="text-muted-foreground/70">
+              (nieobowiązkowe — możesz to wycofać w każdej chwili
+              w ustawieniach konta)
+            </span>
+          </CheckboxZgody>
+        </div>
       )}
 
       {komunikaty}

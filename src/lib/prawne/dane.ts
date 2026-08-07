@@ -59,6 +59,13 @@ export const SCIEZKI = {
  * nową datę i wyślij użytkownikom wiadomość ze wzoru
  * `dokumenty-prawne/wzory-wiadomosci-o-zmianie.md` (regulamin § 17 wymaga
  * poinformowania i daje 10 dni na wypowiedzenie).
+ *
+ * HISTORIA WERSJI (żeby dało się odtworzyć, co użytkownik zaakceptował — wersja
+ * jest zapisywana przy każdej zgodzie w tabeli `zgoda`):
+ *   1.0 — 4 sierpnia 2026 — pierwsza publikacja pakietu.
+ *   1.1 — 7 sierpnia 2026 — zgoda marketingowa przy rejestracji: publikacja
+ *         Regulaminu newslettera, nowy § 4 ust. 20 Regulaminu, nowy cel
+ *         przetwarzania nr 12 w Polityce prywatności.
  */
-export const DATA_OBOWIAZYWANIA = "4 sierpnia 2026";
-export const WERSJA_DOKUMENTOW = "1.0";
+export const DATA_OBOWIAZYWANIA = "7 sierpnia 2026";
+export const WERSJA_DOKUMENTOW = "1.1";
