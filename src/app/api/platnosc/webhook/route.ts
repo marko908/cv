@@ -4,9 +4,16 @@ import { klientAdmin } from "@/lib/supabase/klient-admin";
 import type { Json } from "@/lib/supabase/typy-bazy";
 import { czyStripeDostepny, planZCeny, statusZeStripe, stripe } from "@/lib/stripe";
 import { czyMailDostepny, wyslijMail } from "@/lib/mail";
+import {
+  mailAnulowanieSubskrypcji,
+  mailNieudanaPlatnosc,
+  mailZakupJednorazowy,
+  mailZakupSubskrypcja,
+  type TrescMaila,
+} from "@/lib/maile/tresci";
 import { regulaminPdfBuffer } from "@/components/prawne/regulamin-pdf";
 import { APLIKACJA } from "@/lib/prawne/dane";
-import { CENA_JEDNORAZOWA, OKRESY, PLANY } from "@/lib/subscription";
+import type { OkresRozliczeniowy, PlanId } from "@/lib/subscription";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -103,26 +110,26 @@ export async function POST(request: Request) {
 type Admin = ReturnType<typeof klientAdmin>;
 
 /**
- * Mail potwierdzający zakup, z Regulaminem w PDF — checklista prawnika
- * (poz. 1) oraz art. 15 ust. 1 Ustawy o prawach konsumenta: potwierdzenie na
- * trwałym nośniku jest tym, co domyka skutek zgody na natychmiastowe
- * świadczenie usługi (Regulamin § 8 ust. 5–7). Dlatego treść wprost cytuje
- * TĘ zgodę, a nie tylko fakt zakupu — i to inaczej dla Odblokowania
- * Jednorazowego (prawo odstąpienia przepada od razu, art. 38 ust. 1 pkt 1)
- * i dla Subskrypcji (14 dni zostaje, rozliczenie proporcjonalne, art. 35).
+ * Wysyłka maila do właściciela konta — treść przychodzi gotowa z `lib/maile`.
  *
- * NIGDY nie rzuca. Webhook już nadał dostęp (upsert `zakup`/`subskrypcja`
- * poprzedza to wywołanie) — awaria maila nie ma prawa cofnąć tego przez
- * wywrócenie całej obsługi zdarzenia.
+ * NIGDY nie rzuca. Webhook zdążył już nadać albo odebrać dostęp (upsert
+ * `zakup`/`subskrypcja` poprzedza to wywołanie) — awaria maila nie ma prawa
+ * tego cofnąć przez wywrócenie całej obsługi zdarzenia i wymuszenie ponowienia.
+ *
+ * `zRegulaminem` dokłada Regulamin w PDF. Dokładamy go WYŁĄCZNIE do maili
+ * potwierdzających zawarcie umowy odpłatnej — art. 15 ust. 1 ustawy o prawach
+ * konsumenta wymaga potwierdzenia na trwałym nośniku, i to ono domyka skutek
+ * zgody na natychmiastowe świadczenie usługi (Regulamin § 8 ust. 5–7).
+ * Powiadomienie o nieudanej płatności czy o rezygnacji umowy nie zawiera, więc
+ * załącznik byłby tam tylko szumem.
  */
-async function wyslijMailPotwierdzeniaZakupu(params: {
+async function wyslijDoKonta(params: {
   admin: Admin;
   userId: string;
-  tytul: string;
-  opisUslugi: string;
-  paragrafZgody: string;
+  tresc: TrescMaila;
+  zRegulaminem?: boolean;
 }) {
-  const { admin, userId, tytul, opisUslugi, paragrafZgody } = params;
+  const { admin, userId, tresc, zRegulaminem = false } = params;
   if (!czyMailDostepny()) return;
 
   try {
@@ -133,27 +140,14 @@ async function wyslijMailPotwierdzeniaZakupu(params: {
       .maybeSingle();
     if (!profil?.email) return;
 
-    const pdf = await regulaminPdfBuffer();
-    const linkAplikacji = `${APLIKACJA.adresWww}/app`;
+    const zalaczniki = zRegulaminem
+      ? [{ nazwaPliku: "Regulamin-Aplikando.pdf", tresc: await regulaminPdfBuffer() }]
+      : undefined;
 
-    const wynik = await wyslijMail({
-      adresat: profil.email,
-      temat: `${APLIKACJA.nazwa} — potwierdzenie zamówienia: ${tytul}`,
-      html: `
-        <p>Cześć!</p>
-        <p>Potwierdzamy: <strong>${opisUslugi}</strong>.</p>
-        <p>${paragrafZgody} Aktualną treść Regulaminu znajdziesz też
-        w załączniku do tej wiadomości (PDF).</p>
-        <p>Przejdź do aplikacji: <a href="${linkAplikacji}">${linkAplikacji}</a></p>
-        <p>Pozdrawiamy,<br>${APLIKACJA.nazwa}</p>
-      `,
-      text: `Cześć!\n\nPotwierdzamy: ${opisUslugi}.\n\n${paragrafZgody} Aktualną treść Regulaminu znajdziesz też w załączniku do tej wiadomości (PDF).\n\nPrzejdź do aplikacji: ${linkAplikacji}\n\nPozdrawiamy,\n${APLIKACJA.nazwa}`,
-      zalaczniki: [{ nazwaPliku: "Regulamin-Aplikando.pdf", tresc: pdf }],
-    });
-
-    if (!wynik.ok) console.error("[webhook] mail potwierdzenia nieudany:", wynik.blad);
+    const wynik = await wyslijMail({ adresat: profil.email, ...tresc, zalaczniki });
+    if (!wynik.ok) console.error("[webhook] mail nieudany:", wynik.blad);
   } catch (e) {
-    console.error("[webhook] nie wysłano maila potwierdzenia:", e);
+    console.error("[webhook] nie wysłano maila:", e);
   }
 }
 
@@ -190,18 +184,18 @@ async function obsluz(zdarzenie: Stripe.Event, admin: Admin) {
       );
       if (error) throw new Error(error.message);
 
-      await wyslijMailPotwierdzeniaZakupu({
+      // Kwota Z SESJI, nie ze stałej `CENA_JEDNORAZOWA` — potwierdzenie umowy
+      // ma pokazywać to, co realnie obciążyło kartę. Gdyby cennik zmienił się
+      // po zakupie, stała podałaby klientowi nieprawdziwą kwotę.
+      await wyslijDoKonta({
         admin,
         userId,
-        tytul: `odblokowanie dopasowania (${CENA_JEDNORAZOWA} zł)`,
-        opisUslugi: `Odblokowałeś/-aś pełny wynik jednego Dopasowania za ${CENA_JEDNORAZOWA} zł`,
-        paragrafZgody:
-          "Przy zakupie potwierdziłeś/-aś zapoznanie się z Regulaminem i Polityką " +
-          "prywatności oraz wyraziłeś/-aś zgodę na rozpoczęcie świadczenia usługi " +
-          "cyfrowej przed upływem terminu na odstąpienie od umowy. Zgodnie z art. 38 " +
-          "ust. 1 pkt 1 ustawy o prawach konsumenta oznacza to, że po pełnym " +
-          "wykonaniu usługi (czyli udostępnieniu pełnego wyniku Dopasowania) prawo " +
-          "odstąpienia od tej umowy Ci nie przysługuje.",
+        zRegulaminem: true,
+        tresc: mailZakupJednorazowy({
+          kwotaGrosze: sesja.amount_total ?? 0,
+          zawartoUmowe: zdarzenie.created * 1000,
+          linkDopasowania: `${APLIKACJA.adresWww}/app/dopasowania/${dopasowanieId}`,
+        }),
       });
       break;
     }
@@ -221,8 +215,8 @@ async function obsluz(zdarzenie: Stripe.Event, admin: Admin) {
 
       const pozycja = sub.items.data[0];
       const zCeny = pozycja?.price?.id ? planZCeny(pozycja.price.id) : null;
-      const plan = (sub.metadata?.plan as "start" | "pro") ?? zCeny?.plan;
-      const okres = (sub.metadata?.okres as "miesiac" | "rok") ?? zCeny?.okres;
+      const plan = (sub.metadata?.plan as PlanId) ?? zCeny?.plan;
+      const okres = (sub.metadata?.okres as OkresRozliczeniowy) ?? zCeny?.okres;
       if (!plan || !okres) {
         throw new Error(`Nie rozpoznaję ceny ${pozycja?.price?.id ?? "?"}.`);
       }
@@ -254,21 +248,78 @@ async function obsluz(zdarzenie: Stripe.Event, admin: Admin) {
       // odnowieniu i zmianie planu, `deleted` przy anulowaniu; żadne z nich
       // nie jest „potwierdzeniem zamówienia".
       if (zdarzenie.type === "customer.subscription.created") {
-        await wyslijMailPotwierdzeniaZakupu({
+        await wyslijDoKonta({
           admin,
           userId,
-          tytul: `Subskrypcja ${PLANY[plan].nazwa} (${OKRESY[okres].etykieta.toLowerCase()})`,
-          opisUslugi: `Aktywowaliśmy Twoją subskrypcję ${PLANY[plan].nazwa} (${OKRESY[okres].etykieta.toLowerCase()}) — ${PLANY[plan].limit} dopasowań miesięcznie`,
-          paragrafZgody:
-            "Przy zakupie potwierdziłeś/-aś zapoznanie się z Regulaminem i Polityką " +
-            "prywatności oraz wyraziłeś/-aś zgodę na rozpoczęcie świadczenia usługi " +
-            "cyfrowej przed upływem terminu na odstąpienie od umowy. Mimo to, jeśli " +
-            "jesteś Konsumentem albo Przedsiębiorcą na prawach Konsumenta, masz prawo " +
-            "odstąpić od tej umowy bez podania przyczyny w terminie 14 dni od jej " +
-            "zawarcia — jeżeli w tym czasie korzystałeś/-aś z usługi, zwrócimy Ci " +
-            "opłatę pomniejszoną proporcjonalnie do zakresu spełnionego świadczenia.",
+          zRegulaminem: true,
+          tresc: mailZakupSubskrypcja({
+            plan,
+            okres,
+            kwotaGrosze: pozycja?.price?.unit_amount ?? 0,
+            zawartoUmowe: zdarzenie.created * 1000,
+            koniecOkresu: koniec,
+          }),
         });
       }
+
+      // REZYGNACJA Z ODNOWIENIA. Interesuje nas moment PRZEŁĄCZENIA flagi,
+      // nie jej wartość — `updated` przychodzi przy każdej zmianie subskrypcji
+      // (odnowienie, zmiana karty, zmiana planu), a subskrypcja z ustawionym
+      // `cancel_at_period_end` pozostaje w tym stanie do końca okresu. Bez
+      // porównania z `previous_attributes` klient dostawałby „potwierdzamy
+      // rezygnację" po każdej kolejnej zmianie na koncie.
+      if (zdarzenie.type === "customer.subscription.updated") {
+        const poprzednie = zdarzenie.data.previous_attributes as
+          | Partial<Stripe.Subscription>
+          | undefined;
+        const wlasnieAnulowano =
+          sub.cancel_at_period_end === true &&
+          poprzednie?.cancel_at_period_end === false;
+
+        if (wlasnieAnulowano) {
+          await wyslijDoKonta({
+            admin,
+            userId,
+            tresc: mailAnulowanieSubskrypcji({ plan, dostepDo: koniec }),
+          });
+        }
+      }
+      break;
+    }
+
+    case "invoice.payment_failed": {
+      // Regulamin § 5 ust. 7: brak zapłaty wstrzymuje dostęp z końcem
+      // opłaconego okresu. Bez tego maila człowiek z wygasłą kartą traci
+      // dostęp bez ostrzeżenia i dowiaduje się o tym dopiero wtedy, gdy
+      // potrzebuje dopasowania.
+      const faktura = zdarzenie.data.object as Stripe.Invoice;
+
+      // Pierwsza faktura subskrypcji potrafi nie przejść zanim cokolwiek
+      // aktywowaliśmy — nie ma wtedy czego stracić i nie ma o czym pisać.
+      if (faktura.billing_reason === "subscription_create") break;
+
+      const { data: konto } = await admin
+        .from("profil")
+        .select("id")
+        .eq("stripe_customer_id", String(faktura.customer))
+        .maybeSingle();
+      if (!konto?.id) break;
+
+      const { data: sub } = await admin
+        .from("subskrypcja")
+        .select("plan, koniec_okresu")
+        .eq("user_id", konto.id)
+        .maybeSingle();
+
+      await wyslijDoKonta({
+        admin,
+        userId: konto.id,
+        tresc: mailNieudanaPlatnosc({
+          plan: (sub?.plan as PlanId | undefined) ?? null,
+          kwotaGrosze: faktura.amount_due ?? null,
+          dostepDo: sub?.koniec_okresu ?? null,
+        }),
+      });
       break;
     }
 

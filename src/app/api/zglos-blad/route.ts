@@ -5,6 +5,8 @@ import {
   escapeHtml,
   wyslijMail,
 } from "@/lib/mail";
+import { mailZgloszenieOdebrane } from "@/lib/maile/tresci";
+import { zalogowanyUzytkownik } from "@/lib/supabase/klient-serwer";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -12,11 +14,16 @@ export const maxDuration = 60;
 /**
  * Odbiór zgłoszeń błędów dot. dopasowania/CV.
  *
- * Zgłoszenie leci mailem przez Resend (`lib/mail.ts`). Gdy brakuje klucza albo
- * wysyłka padnie, zgłoszenie i tak ZOSTAJE ZAPISANE w logu serwera i zwracamy
- * użytkownikowi sukces — on zrobił swoje, a nasza infrastruktura to nie jego
- * problem. Log jest dziś jedynym zapasowym kanałem; docelowo zgłoszenie idzie
- * też do tabeli `zgloszenie_bledu` w Supabase (po wpięciu klienta bazy).
+ * DWA MAILE, dwa różne cele. Do nas (`MAIL_ZGLOSZENIA`) leci raport z treścią
+ * zgłoszenia — goły HTML, bo to poczta wewnętrzna, nie komunikacja z klientem.
+ * Do zgłaszającego leci potwierdzenie przyjęcia we wspólnej oprawie: zgłoszenie
+ * może być reklamacją w rozumieniu Regulaminu § 7, a wtedy biegnie nam 14-dniowy
+ * termin na odpowiedź — człowiek ma prawo wiedzieć, że jego pismo dotarło.
+ *
+ * Gdy brakuje klucza albo wysyłka padnie, zgłoszenie i tak ZOSTAJE ZAPISANE
+ * w logu serwera i zwracamy użytkownikowi sukces — on zrobił swoje, a nasza
+ * infrastruktura to nie jego problem. Log jest dziś jedynym zapasowym kanałem;
+ * docelowo zgłoszenie idzie też do tabeli `zgloszenie_bledu` w Supabase.
  */
 export async function POST(request: Request) {
   try {
@@ -63,6 +70,27 @@ export async function POST(request: Request) {
       console.warn(
         "[zgłoszenie błędu] Mail pominięty — brak RESEND_API_KEY lub MAIL_ZGLOSZENIA."
       );
+    }
+
+    // Potwierdzenie dla zgłaszającego. Adres bierzemy WYŁĄCZNIE z sesji, nigdy
+    // z treści żądania — inaczej ta trasa byłaby otwartym nadajnikiem, którym
+    // da się wysłać wiadomość na dowolny cudzy adres. Zgłoszenie od
+    // niezalogowanego zostaje bez potwierdzenia; formularz i tak stoi przy
+    // dopasowaniu, czyli za bramką konta.
+    if (czyMailDostepny()) {
+      const user = await zalogowanyUzytkownik();
+      if (user?.email) {
+        const potwierdzenie = await wyslijMail({
+          adresat: user.email,
+          ...mailZgloszenieOdebrane({ kategoria: zgloszenie.category }),
+          // Odpowiedź na potwierdzenie ma trafiać do obsługi, nie w próżnię
+          // adresu nadawczego, którego nikt nie czyta.
+          odpowiedzDo: MAIL_ZGLOSZENIA || undefined,
+        });
+        if (!potwierdzenie.ok) {
+          console.error("[zgłoszenie błędu] POTWIERDZENIE NIEUDANE:", potwierdzenie.blad);
+        }
+      }
     }
 
     return NextResponse.json({ ok: true });

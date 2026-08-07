@@ -69,15 +69,19 @@ export function KartaKonta() {
     }
     setKasuje(true);
     setBlad("");
-    const supabase = klientPrzegladarka();
-    const { error } = await supabase.rpc("usun_moje_konto");
-    if (error) {
+    // Kasowanie idzie przez trasę serwerową, a nie RPC wprost z przeglądarki:
+    // adres e-mail do potwierdzenia trzeba odczytać PRZED kaskadą, która czyści
+    // `profil`. Szczegóły kolejności w `/api/konto/usun`.
+    const odpowiedz = await fetch("/api/konto/usun", { method: "POST" }).catch(
+      () => null
+    );
+    if (!odpowiedz?.ok) {
       setKasuje(false);
       setPotwierdzam(false);
       setBlad("Nie udało się usunąć konta. Spróbuj ponownie za chwilę.");
       return;
     }
-    await supabase.auth.signOut();
+    await klientPrzegladarka().auth.signOut();
     router.push("/");
     router.refresh();
   }

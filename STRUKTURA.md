@@ -444,10 +444,56 @@ konto" nad formularzem logowania (realny błąd, złapany dopiero na żywo —
 typy tego nie widzą). W okienku kontekstowy tytuł („…żeby pobrać CV") zostaje
 tylko na ekranie wyjściowym.
 
-**`src/lib/mail.ts`** — jedyne miejsce, przez które aplikacja wysyła pocztę
-(Resend API): `wyslijMail` (NIGDY nie rzuca — zwraca `WynikWysylki`, bo awaria
-dostawcy poczty nie ma prawa wywrócić żądania użytkownika), `czyMailDostepny`,
-`MAIL_OD`, `MAIL_ZGLOSZENIA`, `escapeHtml`. **NIE dotyczy maili autoryzacyjnych**
+**POCZTA — TRZY WARSTWY, TRZY POWODY DO ZMIANY.** `src/lib/mail.ts` = transport
+(`wyslijMail` — NIGDY nie rzuca, zwraca `WynikWysylki`, bo awaria dostawcy poczty
+nie ma prawa wywrócić żądania użytkownika; `czyMailDostepny`, `MAIL_OD`,
+`MAIL_ZGLOSZENIA`, `escapeHtml`, `Mail.zalaczniki`). `src/lib/maile/szablon.ts` =
+wspólna oprawa (`szablonMaila({naglowek, tresc})` + klocki `akapit`, `link`,
+`przycisk`, `podsumowanie`, `uwaga`, `drobnymDrukiem`).
+`src/lib/maile/tresci.ts` = **treść wszystkich maili aplikacji w jednym pliku**,
+każda funkcja zwraca `{temat, html, text}` i niczego nie wysyła.
+
+Rozdział jest celowy: treść realizuje konkretne obowiązki z Regulaminu, więc musi
+dać się zaudytować bez czytania tras API i wyrenderować do podglądu bez wysyłania
+czegokolwiek. **Nad każdym mailem stoi w komentarzu paragraf, który go wymaga —
+zmiana tego paragrafu w Regulaminie to zmiana maila w TYM SAMYM commicie.**
+
+Siedem maili i ich wyzwalacze: `mailPowitalny` (`/api/konto/powitanie`, § 4 ust. 4)
+· `mailZakupJednorazowy` + `mailZakupSubskrypcja` (webhook, § 4 ust. 10 — dlatego
+zawierają KWOTĘ i DATĘ zawarcia, nie samo „dziękujemy") · `mailNieudanaPlatnosc`
+(webhook `invoice.payment_failed`, § 5 ust. 7) · `mailAnulowanieSubskrypcji`
+(webhook, § 5 ust. 6) · `mailZgloszenieOdebrane` (`/api/zglos-blad`, § 7 ust. 9)
+· `mailKontoUsuniete` (`/api/konto/usun`, § 4 ust. 14 i 17).
+Wzory wiadomości obsługiwanych RĘCZNIE (odstąpienie, reklamacje, DSA,
+wypowiedzenie, zmiana usługi, eksport danych) — `dokumenty-prawne/wzory-wiadomosci-o-zmianie.md`.
+
+**Regulamin w PDF dołączamy WYŁĄCZNIE do maili potwierdzających zawarcie umowy**
+(powitalny + oba zakupowe) — art. 15 ust. 1 u.p.k. wymaga potwierdzenia na trwałym
+nośniku i to ono domyka skutek zgody z § 8 ust. 5–7. Powiadomienie o nieudanej
+płatności umowy nie zawiera, więc załącznik byłby tam szumem.
+
+Wyjątek od wspólnej oprawy: raport zgłoszenia lecący na `MAIL_ZGLOSZENIA` zostaje
+gołym HTML-em, bo to poczta wewnętrzna (branding i stopka prawna to tam szum) —
+ale POTWIERDZENIE dla zgłaszającego idzie już przez szablon. Adres zgłaszającego
+bierzemy WYŁĄCZNIE z sesji, nigdy z body — inaczej trasa byłaby otwartym
+nadajnikiem na dowolny cudzy adres.
+
+Dwie rzeczy są w mailu odwrotnie niż w aplikacji i tak ma zostać:
+**jasne tło** (dark-only renderuje się źle — Outlook i Gmail potrafią wymusić
+własne tło, dając czarny tekst na czarnym) oraz **układ na tabelach ze stylami
+inline** (klienty pocztowe wycinają `<style>` z `<head>` i nie znają flexboksa).
+To jedyne miejsce w repo, gdzie tak się pisze — nie przenoś tego wzorca do UI.
+**Wersję tekstową piszemy równolegle, nigdy strippingiem HTML-a**: bez `text`
+filtry antyspamowe oceniają wiadomość gorzej, a treść, od której zależą terminy
+na odstąpienie, musi być czytelna też w kliencie bez HTML-a.
+
+**Faktury VAT NIE wychodzą z tej aplikacji** (§ 5 ust. 4): zdarzenia Stripe'a
+łapie Striptu i przekazuje do Fakturowni, która sama wysyła fakturę klientowi
+i wystawia ją do KSeF. Dlatego w `/api/platnosc/checkout` świadomie NIE MA
+`invoice_creation`. ⚠️ Oba maile zakupowe zapowiadają fakturę — ta integracja
+musi działać, zanim pójdzie pierwsza płatność live.
+
+**NIE dotyczy maili autoryzacyjnych**
 — kody aktywacyjne i resety hasła wysyła Supabase przez SMTP Resendu
 (konfiguracja w panelu, ten sam klucz `re_...` jako hasło SMTP). Env:
 `RESEND_API_KEY`, `MAIL_OD`, `MAIL_ZGLOSZENIA`. Test: `npm run test:mail`.
@@ -661,9 +707,13 @@ treść czeka w `lib/prawne/`, patrz komentarz w `stopka.tsx`) · `/app` Start (
 lista „Moje CV" (+ Dodaj nowe; import CV tylko w edytorze) · `/app/kreator/edytor` edytor ·
 `/app/dopasowania` historia · `/app/dopasowania/[id]` szczegóły (score-breakdown,
 compare, changes, findings, paywall) · `/app/ustawienia`. API: `/api/dopasuj`
-(pipeline), `/api/parsuj-cv` (import), `/api/zglos-blad` (wysyła mail przez `lib/mail.ts`;
-bez klucza albo przy błędzie wysyłki loguje zgłoszenie i tak zwraca użytkownikowi
-sukces — docelowo zapis też do tabeli `zgloszenie_bledu`). Wszystkie
+(pipeline), `/api/parsuj-cv` (import), `/api/zglos-blad` (raport do nas + potwierdzenie
+dla zgłaszającego; bez klucza albo przy błędzie wysyłki loguje zgłoszenie i tak zwraca
+użytkownikowi sukces — docelowo zapis też do tabeli `zgloszenie_bledu`),
+`/api/konto/powitanie` (mail powitalny, fire-and-forget), `/api/konto/usun`
+(usunięcie konta + potwierdzenie mailem — RPC leci klientem SESYJNYM, nie adminem,
+bo `usun_moje_konto()` bierze użytkownika z `auth.uid()`),
+`/api/platnosc/{checkout,webhook,portal}`. Wszystkie
 API: `runtime nodejs`, `maxDuration 60`.
 
 ## Gdzie zmienić X
@@ -683,7 +733,9 @@ API: `runtime nodejs`, `maxDuration 60`.
 - **Podgląd CV (wielostronicowy, 1:1 z plikiem)** → `pdf-preview.tsx` (`PdfPreview`, `PdfThumb`)
 - **Ochrona przed rozcięciem sekcji/pozycji w PDF** → `SekcjaZNaglowkiem` (`cv-pdf-sekcja.tsx`) + `wrap={false}` na blokach pozycji w każdym `cv-pdf*.tsx` — `minPresenceAhead` NIE działa, patrz „Konwencje i pułapki"
 - **Wybór modelu AI** → env `CV_MODEL_*` (bez ruszania kodu)
-- **Wysyłka maili aplikacji (zgłoszenia, onboarding, marketing)** → `src/lib/mail.ts` (od 2026-08-05 też `Mail.zalaczniki`, Resend `attachments`); maile autoryzacyjne to NIE tutaj, tylko panel Supabase (SMTP)
+- **Treść dowolnego maila do klienta** → `src/lib/maile/tresci.ts` (jedno miejsce, każdy mail z paragrafem Regulaminu w komentarzu) · **oprawa/klocki** → `src/lib/maile/szablon.ts` · **sama wysyłka** → `src/lib/mail.ts`; maile autoryzacyjne to NIE tutaj, tylko panel Supabase (SMTP)
+- **Podgląd wszystkich maili naraz** → `npx tsx scripts/probne-render-maili.ts <plik.json>` (poza repo, wzorzec `probne-*` w .gitignore) — renderuje 7 maili na przykładowych danych, bez wysyłania czegokolwiek
+- **Wiadomość obsługiwana ręcznie (reklamacja, odstąpienie, DSA, wypowiedzenie)** → `dokumenty-prawne/wzory-wiadomosci-o-zmianie.md`, wzory 4–13 (każdy z terminem z Regulaminu)
 - **PDF Regulaminu w mailach potwierdzających (checklista prawnika, poz. 1)** → `components/prawne/regulamin-pdf.tsx` (react-pdf, `renderToBuffer`, font Lato z dysku przez `path.join(process.cwd(), "public/fonts", …)` — NIE `/fonts/...` jak w `cv-pdf.tsx`, to działa tylko w przeglądarce). Konsumuje `lib/prawne/parsuj-dokument.ts` — parser wydzielony z `dokument-prawny.tsx`, WSPÓLNY dla strony WWW i PDF-a, żeby zmiana treści Regulaminu nigdy nie rozjechała jednego z drugim. Wysyłane z dwóch miejsc: `/api/konto/powitanie` (fire-and-forget z `formularz-auth.tsx` po rejestracji) i `/api/platnosc/webhook` (po `zakup`/`customer.subscription.created`, z jawną zgodą nr 2 — DWA różne paragrafy prawne zależnie od produktu, bo Odblokowanie Jednorazowe traci prawo odstąpienia od razu (art. 38 ust. 1 pkt 1), a Subskrypcja zachowuje 14 dni (art. 35) — wysłanie klientowi subskrypcji błędnej informacji byłoby dla niego szkodliwe)
 - **Gdzie wymagamy konta** → `useBramaKonta` w miejscu akcji (dziś: `download-pdf-button.tsx`, `builder.tsx`); nigdy przez blokadę całej trasy — kreator ma zostać otwarty
 - **Testowe konto do klikania UI** → `scripts/probne-konto-testowe.ts` (poza repo, wzorzec `probne-*` w .gitignore): `node --env-file=.env.local --import tsx scripts/probne-konto-testowe.ts` i `… usun`. Tworzy konto z `email_confirm: true`, więc ŻADEN mail nie wychodzi i nie zjada limitu Resend

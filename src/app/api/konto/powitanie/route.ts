@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { zalogowanyUzytkownik } from "@/lib/supabase/klient-serwer";
 import { czyMailDostepny, wyslijMail } from "@/lib/mail";
+import { mailPowitalny } from "@/lib/maile/tresci";
 import { regulaminPdfBuffer } from "@/components/prawne/regulamin-pdf";
-import { APLIKACJA, SCIEZKI } from "@/lib/prawne/dane";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -34,22 +34,11 @@ export async function POST() {
 
   try {
     const pdf = await regulaminPdfBuffer();
+    const tresc = mailPowitalny();
 
     const wynik = await wyslijMail({
       adresat: user.email,
-      temat: `Witaj w ${APLIKACJA.nazwa} — potwierdzenie założenia konta`,
-      html: `
-        <p>Cześć!</p>
-        <p>Twoje konto w ${APLIKACJA.nazwa} zostało utworzone. Przy rejestracji
-        potwierdziłeś/-aś zapoznanie się z
-        <a href="${APLIKACJA.adresWww}${SCIEZKI.regulamin}">Regulaminem</a>
-        i <a href="${APLIKACJA.adresWww}${SCIEZKI.politykaPrywatnosci}">Polityką prywatności</a>
-        oraz akceptację ich postanowień — aktualną treść Regulaminu znajdziesz
-        też w załączniku do tej wiadomości (PDF).</p>
-        <p>Możesz teraz zacząć tworzyć CV: <a href="${APLIKACJA.adresWww}/app">${APLIKACJA.adresWww}/app</a></p>
-        <p>Pozdrawiamy,<br>${APLIKACJA.nazwa}</p>
-      `,
-      text: `Cześć!\n\nTwoje konto w ${APLIKACJA.nazwa} zostało utworzone. Przy rejestracji potwierdziłeś/-aś zapoznanie się z Regulaminem (${APLIKACJA.adresWww}${SCIEZKI.regulamin}) i Polityką prywatności (${APLIKACJA.adresWww}${SCIEZKI.politykaPrywatnosci}) oraz akceptację ich postanowień — aktualną treść Regulaminu znajdziesz też w załączniku do tej wiadomości (PDF).\n\nMożesz teraz zacząć tworzyć CV: ${APLIKACJA.adresWww}/app\n\nPozdrawiamy,\n${APLIKACJA.nazwa}`,
+      ...tresc,
       zalaczniki: [{ nazwaPliku: "Regulamin-Aplikando.pdf", tresc: pdf }],
     });
 

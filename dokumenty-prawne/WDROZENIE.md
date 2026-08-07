@@ -133,6 +133,8 @@ regulaminu newslettera (odstępstwo nr 24).
 | 15 | PDF Regulaminu (parser współdzielony ze stroną WWW) + załączniki w mailu | `components/prawne/regulamin-pdf.tsx`, `lib/prawne/parsuj-dokument.ts`, `lib/mail.ts` |
 | 16 | Mail przy utworzeniu konta (Regulamin w PDF) | `src/app/api/konto/powitanie/route.ts` + wywołanie w `formularz-auth.tsx` |
 | 17 | Mail przy zakupie (Regulamin w PDF + jawna zgoda nr 2, dwa różne paragrafy dla Odblokowania Jednorazowego i Subskrypcji) | `src/app/api/platnosc/webhook/route.ts` |
+| 18 | **Pełny system maili transakcyjnych** — wspólna oprawa + 7 treści z paragrafem Regulaminu przy każdej | `src/lib/maile/{szablon,tresci}.ts` |
+| 19 | **Wzory 10 wiadomości obsługiwanych ręcznie** (odstąpienie, reklamacje konsument/przedsiębiorca, DSA: zgłoszenie/decyzja/odwołanie, wypowiedzenie, zmiana usługi, przeniesienie praw, eksport danych) | `dokumenty-prawne/wzory-wiadomosci-o-zmianie.md`, wzory 4–13 |
 
 **Poprawione przy okazji:** stopka landingu głosiła *„Twoje dane nie opuszczają
 przeglądarki, dopóki nie użyjesz funkcji AI"*. Po przejściu na Supabase
@@ -272,6 +274,45 @@ Gdy wrócisz do tematu, do zrobienia:
       pkt 1 to obiecuje, a bez tego wysyłka jest niezgodna z prawem.
 - [ ] Mail potwierdzający zapis z regulaminem w PDF.
 - [ ] Przywrócenie publikacji wg 4 kroków z komentarza w pliku treści.
+
+### D2. Maile transakcyjne — ZROBIONE (2026-08-06), zostają dwa warunki
+
+Audyt Regulaminu pod kątem obowiązków informacyjnych wykazał **22 zdarzenia,
+przy których musimy się odezwać do klienta**, wobec 2 maili realnie wysyłanych
+przez kod. Uzupełnione: 7 maili automatycznych (`src/lib/maile/tresci.ts`)
+i 10 wzorów ręcznych. Trzy luki, które realnie szkodziły klientowi:
+
+- [x] **Brak ostrzeżenia o nieudanej płatności.** Webhook nie łapał
+      `invoice.payment_failed` w ogóle — klient z wygasłą kartą tracił dostęp
+      bez słowa (Regulamin § 5 ust. 7 zapowiada wstrzymanie dostępu, więc
+      milczenie było sprzeczne z dokumentem). Dopisany handler + mail.
+- [x] **Potwierdzenie zakupu bez kwoty i daty.** § 4 ust. 10 wymaga
+      potwierdzenia zawarcia Umowy *wraz z jej treścią*; mail podawał nazwę
+      planu i limit, ale ani ceny, ani daty, ani informacji o automatycznym
+      odnowieniu (§ 5 ust. 5) i sposobie rezygnacji (§ 5 ust. 6). Kwota bierze
+      się teraz **ze zdarzenia Stripe'a, nie ze stałej** — po zmianie cennika
+      stała podałaby klientowi nieprawdziwą kwotę.
+- [x] **Zgłaszający błąd nie dostawał nic.** Zgłoszenie może być reklamacją
+      w rozumieniu § 7, a wtedy biegnie 14-dniowy termin na odpowiedź.
+      Deklarujemy krótszy z możliwych terminów (14, nie 21 z § 9) — obiecanie
+      konsumentowi 21 dni byłoby wprowadzeniem w błąd.
+
+Przy okazji: **usunięcie konta przeniesione z RPC w przeglądarce na
+`/api/konto/usun`**, bo adres e-mail do potwierdzenia trzeba odczytać PRZED
+kaskadą czyszczącą `profil` — po `usun_moje_konto` nie ma już skąd go wziąć.
+
+Zostają dwa warunki, oba poza kodem:
+
+- [ ] **⚠️ Striptu → Fakturownia → KSeF musi działać przed pierwszą płatnością
+      live.** Oba maile zakupowe zawierają zdanie „Fakturę VAT wyślemy osobną
+      wiadomością na ten sam adres e-mail" — to obietnica z § 5 ust. 4.
+      W `/api/platnosc/checkout` świadomie NIE MA `invoice_creation` (decyzja
+      Marka 2026-08-06: faktury Stripe'a są zbędne, bo Fakturownia sama wysyła
+      dokument klientowi i wystawia go do KSeF).
+- [ ] **Nie testowane end-to-end na żywej skrzynce.** HTML zweryfikowany
+      renderem (`scripts/probne-render-maili.ts`), ale wysyłki przez Resend
+      i wyglądu w Gmailu/Outlooku nikt jeszcze nie sprawdził. Najprościej:
+      rejestracja na własny adres + płatność testowa w sandboxie.
 
 ### E. Drobne
 
