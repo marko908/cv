@@ -166,7 +166,10 @@ UI: `components/ui/checkbox.tsx` (shadcn/radix-nova, ten sam wzorzec co
       bez niej (plus walidacja w `zarejestruj()` jako druga linia obrony).
       Działa identycznie w modalu (`AuthDialog`) i na pełnej trasie
       (`StronaAuth`) — jedna implementacja formularza, patrz komentarz na
-      górze pliku.
+      górze pliku. **Od 2026-08-07** przejście rejestracja ↔ logowanie
+      odznacza checkbox (`przelaczEkran`) — zgoda nie może „zostać
+      zaznaczona" z wcześniejszego kliknięcia w tej samej sesji, tak samo
+      jak `resetZgod()` w oknie zakupu.
 - [x] **Zakup subskrypcji i odblokowanie jednorazowe**
       (`paywall-dialog.tsx`) — DWA osobne checkboxy (`ZgodyZakupu`): zgoda
       regulamin+polityka ORAZ zgoda na rozpoczęcie usługi przed upływem

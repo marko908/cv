@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowLeft, Loader2, MailCheck } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Loader2, MailCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,6 +49,82 @@ export type EkranAuth =
 /** Odstęp między mailami do tego samego użytkownika — ustawiony też w SMTP. */
 const ODSTEP_S = 60;
 const MIN_HASLO = 8;
+
+/**
+ * POLE HASŁA — z podglądem treści i miejscem na błąd POD polem.
+ *
+ * Musi stać na poziomie modułu, nie wewnątrz `FormularzAuth`: komponent trzyma
+ * własny `useState` (podgląd wł./wył.), a definicja w ciele rodzica tworzyłaby
+ * przy każdym renderze nowy typ komponentu — React odmontowałby pole przy
+ * każdym naciśnięciu klawisza, gubiąc fokus i stan podglądu.
+ *
+ * Podgląd jest tu ważniejszy niż zwykle, bo od tej zmiany rejestracja ma DWA
+ * pola hasła: bez możliwości sprawdzenia, co się wpisało, jedyną informacją
+ * o literówce jest komunikat „hasła nie są takie same" po submicie.
+ *
+ * Przycisk oka ZOSTAJE w kolejności tabulacji (bez `tabIndex={-1}`) — osoba
+ * korzystająca wyłącznie z klawiatury też musi móc podejrzeć wpisane hasło.
+ */
+function PoleHasla({
+  id,
+  etykieta,
+  wartosc,
+  naZmiane,
+  autoComplete,
+  placeholder,
+  obokEtykiety,
+  bladPola,
+}: {
+  id: string;
+  etykieta: string;
+  wartosc: string;
+  naZmiane: (v: string) => void;
+  autoComplete: "new-password" | "current-password";
+  placeholder?: string;
+  /** Np. odnośnik „Nie pamiętam hasła" po prawej stronie etykiety. */
+  obokEtykiety?: React.ReactNode;
+  /** Komunikat pod polem; ustawia też `aria-invalid`. */
+  bladPola?: string;
+}) {
+  const [widoczne, setWidoczne] = useState(false);
+
+  return (
+    <div className="grid gap-1.5">
+      <div className="flex items-baseline justify-between gap-2">
+        <Label htmlFor={id}>{etykieta}</Label>
+        {obokEtykiety}
+      </div>
+      <div className="relative">
+        <Input
+          id={id}
+          type={widoczne ? "text" : "password"}
+          autoComplete={autoComplete}
+          required
+          value={wartosc}
+          onChange={(e) => naZmiane(e.target.value)}
+          placeholder={placeholder}
+          aria-invalid={bladPola ? true : undefined}
+          aria-describedby={bladPola ? `${id}-blad` : undefined}
+          className="pr-10"
+        />
+        <button
+          type="button"
+          onClick={() => setWidoczne((w) => !w)}
+          aria-label={widoczne ? "Ukryj hasło" : "Pokaż hasło"}
+          aria-pressed={widoczne}
+          className="absolute inset-y-0 right-0 flex w-10 items-center justify-center rounded-r-lg text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+        >
+          {widoczne ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+        </button>
+      </div>
+      {bladPola && (
+        <p id={`${id}-blad`} className="text-xs text-destructive">
+          {bladPola}
+        </p>
+      )}
+    </div>
+  );
+}
 
 /**
  * Nagłówki dla każdego ekranu. Formularz przełącza się WEWNĘTRZNIE (rejestracja
@@ -123,6 +199,10 @@ export function FormularzAuth({
   const [ekran, setEkran] = useState<EkranAuth>(ekranPoczatkowy);
   const [email, setEmail] = useState("");
   const [haslo, setHaslo] = useState("");
+  // Powtórzenie hasła — TYLKO tam, gdzie hasło jest USTALANE (rejestracja,
+  // ustawianie nowego hasła po resecie). Przy logowaniu byłoby szkodliwe:
+  // hasło już istnieje, a literówkę i tak wyłapuje serwer.
+  const [powtorzHaslo, setPowtorzHaslo] = useState("");
   const [kod, setKod] = useState("");
   const [zajete, setZajete] = useState(false);
   const [blad, setBlad] = useState("");
@@ -164,10 +244,41 @@ export function FormularzAuth({
     setInfo("");
   }
 
+  /**
+   * Przejście między ekranami tego samego formularza.
+   *
+   * Czyści komunikaty, powtórzenie hasła ORAZ ZGODĘ. Odznaczenie zgody jest
+   * celowe i wynika z tej samej zasady, co `resetZgod()` w oknie zakupu:
+   * zaznaczenie checkboxa ma być świadomym aktem podjętym przy TYM
+   * formularzu rejestracji, a nie stanem odziedziczonym po wcześniejszym
+   * kliknięciu (art. 7 ust. 1 RODO + Regulamin § 4 ust. 2 pkt 3).
+   *
+   * Samego hasła nie kasujemy — przy „Masz już konto? Zaloguj się" ktoś, kto
+   * właśnie je wpisał, chce się nim zalogować.
+   */
+  function przelaczEkran(nowy: EkranAuth) {
+    setEkran(nowy);
+    setBlad("");
+    setInfo("");
+    setPowtorzHaslo("");
+    setZgodaRegulamin(false);
+    setZnacznikZgodyRejestracji(null);
+  }
+
+  /** Widoczne dopiero wtedy, gdy użytkownik zaczął wpisywać powtórzenie. */
+  const hasloNiezgodne = powtorzHaslo.length > 0 && haslo !== powtorzHaslo;
+
   async function zarejestruj(e: React.FormEvent) {
     e.preventDefault();
     if (haslo.length < MIN_HASLO) {
       setBlad(`Hasło musi mieć co najmniej ${MIN_HASLO} znaków.`);
+      return;
+    }
+    // Bez tego literówka w haśle daje konto, do którego nikt się nie zaloguje —
+    // odzyskiwanie idzie kodem z maila, więc użytkownik odkrywa problem dopiero
+    // przy następnym logowaniu, już bez możliwości sprawdzenia, co wpisał.
+    if (haslo !== powtorzHaslo) {
+      setBlad("Hasła nie są takie same.");
       return;
     }
     // Druga linia obrony obok `disabled` na przycisku — gdyby ktoś jednak
@@ -188,7 +299,7 @@ export function FormularzAuth({
     // u nas konto. Musimy to rozpoznać sami, inaczej człowiek czeka na kod,
     // który nigdy nie przyjdzie.
     if (data.user && data.user.identities?.length === 0) {
-      setEkran("logowanie");
+      przelaczEkran("logowanie");
       return setBlad("Konto z tym adresem już istnieje — zaloguj się.");
     }
 
@@ -288,6 +399,7 @@ export function FormularzAuth({
     setZajete(false);
     if (error) return setBlad(poPolsku(error.message));
     setHaslo("");
+    setPowtorzHaslo("");
     setEkran("reset-haslo");
   }
 
@@ -295,6 +407,10 @@ export function FormularzAuth({
     e.preventDefault();
     if (haslo.length < MIN_HASLO) {
       setBlad(`Hasło musi mieć co najmniej ${MIN_HASLO} znaków.`);
+      return;
+    }
+    if (haslo !== powtorzHaslo) {
+      setBlad("Hasła nie są takie same.");
       return;
     }
     zacznij();
@@ -397,10 +513,8 @@ export function FormularzAuth({
         <button
           type="button"
           onClick={() => {
-            setEkran(rejestracja ? "rejestracja" : "reset-prosba");
             setKod("");
-            setBlad("");
-            setInfo("");
+            przelaczEkran(rejestracja ? "rejestracja" : "reset-prosba");
           }}
           className="inline-flex items-center justify-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
         >
@@ -418,18 +532,23 @@ export function FormularzAuth({
         <p className="text-sm text-muted-foreground">
           Kod potwierdzony. Ustaw nowe hasło do konta.
         </p>
-        <div className="grid gap-1.5">
-          <Label htmlFor="auth-nowe-haslo">Nowe hasło</Label>
-          <Input
-            id="auth-nowe-haslo"
-            type="password"
-            autoComplete="new-password"
-            required
-            value={haslo}
-            onChange={(e) => setHaslo(e.target.value)}
-            placeholder={`Co najmniej ${MIN_HASLO} znaków`}
-          />
-        </div>
+        <PoleHasla
+          id="auth-nowe-haslo"
+          etykieta="Nowe hasło"
+          wartosc={haslo}
+          naZmiane={setHaslo}
+          autoComplete="new-password"
+          placeholder={`Co najmniej ${MIN_HASLO} znaków`}
+        />
+        <PoleHasla
+          id="auth-nowe-haslo-powtorz"
+          etykieta="Powtórz nowe hasło"
+          wartosc={powtorzHaslo}
+          naZmiane={setPowtorzHaslo}
+          autoComplete="new-password"
+          placeholder="Wpisz to samo hasło"
+          bladPola={hasloNiezgodne ? "Hasła nie są takie same." : undefined}
+        />
         {komunikaty}
         {przyciskGlowny("Zapisz nowe hasło", "Zapisuję…")}
       </form>
@@ -471,10 +590,15 @@ export function FormularzAuth({
     >
       {poleEmail}
 
-      <div className="grid gap-1.5">
-        <div className="flex items-baseline justify-between gap-2">
-          <Label htmlFor="auth-haslo">Hasło</Label>
-          {!rejestracja && (
+      <PoleHasla
+        id="auth-haslo"
+        etykieta="Hasło"
+        wartosc={haslo}
+        naZmiane={setHaslo}
+        autoComplete={rejestracja ? "new-password" : "current-password"}
+        placeholder={rejestracja ? `Co najmniej ${MIN_HASLO} znaków` : "Twoje hasło"}
+        obokEtykiety={
+          !rejestracja && (
             <button
               type="button"
               onClick={() => {
@@ -485,18 +609,21 @@ export function FormularzAuth({
             >
               Nie pamiętam hasła
             </button>
-          )}
-        </div>
-        <Input
-          id="auth-haslo"
-          type="password"
-          autoComplete={rejestracja ? "new-password" : "current-password"}
-          required
-          value={haslo}
-          onChange={(e) => setHaslo(e.target.value)}
-          placeholder={rejestracja ? `Co najmniej ${MIN_HASLO} znaków` : "Twoje hasło"}
+          )
+        }
+      />
+
+      {rejestracja && (
+        <PoleHasla
+          id="auth-haslo-powtorz"
+          etykieta="Powtórz hasło"
+          wartosc={powtorzHaslo}
+          naZmiane={setPowtorzHaslo}
+          autoComplete="new-password"
+          placeholder="Wpisz to samo hasło"
+          bladPola={hasloNiezgodne ? "Hasła nie są takie same." : undefined}
         />
-      </div>
+      )}
 
       {rejestracja && (
         <CheckboxZgody
@@ -519,11 +646,7 @@ export function FormularzAuth({
         {rejestracja ? "Masz już konto?" : "Nie masz jeszcze konta?"}{" "}
         <button
           type="button"
-          onClick={() => {
-            setEkran(rejestracja ? "logowanie" : "rejestracja");
-            setBlad("");
-            setInfo("");
-          }}
+          onClick={() => przelaczEkran(rejestracja ? "logowanie" : "rejestracja")}
           className="text-foreground underline underline-offset-4"
         >
           {rejestracja ? "Zaloguj się" : "Załóż konto"}

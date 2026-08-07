@@ -309,9 +309,27 @@ jednorazowo migruje do bazy.
 **`src/components/auth/`** — konto. `formularz-auth.tsx` (JEDEN komponent na
 wszystkie ekrany: `rejestracja` / `logowanie` / `kod-rejestracji` /
 `reset-prosba` / `reset-kod` / `reset-haslo`; `TEKSTY_AUTH` = tytuły per ekran,
-`poPolsku()` = tłumaczenie komunikatów Supabase) · `auth-dialog.tsx`
+`poPolsku()` = tłumaczenie komunikatów Supabase; `PoleHasla` = pole hasła
+z podglądem treści i błędem pod polem — komponent MODUŁOWY, nie zagnieżdżony
+w `FormularzAuth`, bo trzyma własny `useState` i definicja w ciele rodzica
+odmontowywałaby pole przy każdym naciśnięciu klawisza) · `auth-dialog.tsx`
 (`AuthDialog` + hook `useBramaKonta`) · `strona-auth.tsx` (oprawa pełnych tras).
 Hook sesji: `src/lib/supabase/uzytkownik.ts` (`useUzytkownik`).
+
+**Hasło ustawia się DWA RAZY** (rejestracja i „Ustaw nowe hasło" po resecie,
+2026-08-07): pole + „Powtórz hasło", zgodność sprawdzana przed wywołaniem
+Supabase. Powód: odzyskiwanie konta idzie kodem z maila, więc literówka przy
+zakładaniu konta wychodzi na jaw dopiero przy następnym logowaniu — bez
+możliwości sprawdzenia, co się wtedy wpisało. Przy LOGOWANIU powtórzenia nie
+ma i mieć nie może (hasło już istnieje, weryfikuje je serwer). Oba pola mają
+podgląd treści (`PoleHasla`), bo dwa zamaskowane pola bez podglądu zamieniają
+literówkę w zgadywankę.
+
+**Przejście między ekranami ODZNACZA ZGODĘ** (`przelaczEkran`): rejestracja →
+logowanie → z powrotem nie może zostawić zaznaczonego checkboxa. To ta sama
+zasada, co `resetZgod()` w oknie zakupu — zgoda ma być świadomym aktem przy
+TYM formularzu, nie stanem odziedziczonym (art. 7 ust. 1 RODO, Regulamin § 4
+ust. 2 pkt 3).
 
 **Aktywacja idzie KODEM, nie linkiem** — szablon „Confirm sign up" w Supabase
 używa `{{ .Token }}`, a kod weryfikuje `verifyOtp({ type: "signup" })`. Reset
