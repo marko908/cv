@@ -79,8 +79,9 @@ export function EtykietaZgodaMarketing() {
   return (
     <>
       Wyrażam zgodę na otrzymywanie informacji handlowych o nowościach
-      i promocjach w aplikacji „{APLIKACJA.nazwa}", przesyłanych przez{" "}
-      {FIRMA.nazwa} pod podany przeze mnie adres poczty elektronicznej. Ponadto
+      i promocjach w aplikacji „{APLIKACJA.nazwa}
+      {"”"}, przesyłanych przez {FIRMA.nazwa} pod podany przeze mnie adres
+      poczty elektronicznej. Ponadto
       oświadczam, że zapoznałem/-am się z{" "}
       <Link
         href={SCIEZKI.regulaminNewslettera}

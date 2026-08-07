@@ -101,28 +101,45 @@ zgody `/dokoncz-rejestracje`), ale **bez tych kroków przycisk zwróci błąd**.
 - w **Supabase → URL Configuration** dopisuje się adres NASZEJ aplikacji
   zakończony `/auth/callback` (bo tam Supabase odsyła użytkownika z kodem).
 
-### A. Google Cloud Console
+### A. Google Cloud Console → Google Auth Platform
 
-1. [console.cloud.google.com](https://console.cloud.google.com) → wybierz
-   projekt (najlepiej ten sam, w którym masz Gemini API) albo załóż nowy.
-2. **APIs & Services → OAuth consent screen**: typ **External**, nazwa
-   aplikacji „Aplikando", e-mail wsparcia `marko@aplikando.pl`, domena
-   `aplikando.pl`, odnośniki do polityki prywatności (`/polityka-prywatnosci`)
-   i regulaminu (`/regulamin`). Zakresy: wystarczą `email`, `profile`,
-   `openid` — **nie proś o więcej, niż opisują dokumenty**.
-3. **Credentials → Create Credentials → OAuth client ID**, typ
-   **Web application**.
-4. **Authorized redirect URIs** → dodaj dokładnie:
+⚠️ Ścieżka zmieniła się w 2025 r.: dawne „APIs & Services → OAuth consent
+screen" i „Credentials" zastąpiła **Google Auth Platform**
+(`console.cloud.google.com/auth/overview`). Stare instrukcje z sieci prowadzą
+w miejsca, których już nie ma.
+
+Projekt Aplikando: `smiling-matrix-504818-k7` (stan 2026-08-07).
+
+1. **Google Auth Platform → Overview → Create OAuth client.**
+2. Typ: **Web application**. Nazwa dowolna, widoczna tylko w konsoli.
+3. **Authorized JavaScript origins: zostaw puste.** Potrzebne wyłącznie przy
+   Google One Tap; my używamy zwykłego przekierowania.
+4. **Authorized redirect URIs** → dokładnie jeden wpis:
    `https://urjpluqutufsgkzysazq.supabase.co/auth/v1/callback`
-5. Skopiuj **Client ID** i **Client Secret**.
+5. Create → skopiuj **Client ID** i **Client Secret**.
+6. **Audience → Publish app.** Dopóki status to „Testing", zalogują się
+   WYŁĄCZNIE ręcznie dodani testerzy, a tokeny wygasają po 7 dniach — to
+   najczęstsza przyczyna „u mnie działa, u znajomego nie". Przy zakresach
+   `email`, `profile`, `openid` (same nieszczególne) publikacja **nie wymaga
+   weryfikacji Google**, jest natychmiastowa.
+7. **Branding**: nazwa aplikacji, e-mail wsparcia, linki do
+   `/polityka-prywatnosci` i `/regulamin`. To widzi użytkownik na ekranie
+   zgody Google, więc musi zgadzać się z dokumentami.
+8. **Data access**: tylko `email`, `profile`, `openid` — **nie proś o więcej,
+   niż opisują dokumenty** (art. 5 ust. 1 lit. c RODO, minimalizacja).
 
 ### B. Supabase
 
-6. **Authentication → Providers → Google**: wklej Client ID i Client Secret,
+9. **Authentication → Providers → Google**: wklej Client ID i Client Secret,
    **włącz przełącznik „Enable Sign in with Google"**, Save.
-7. **Authentication → URL Configuration**: Site URL = adres produkcyjny;
-   w Redirect URLs dopisz adres produkcyjny z `/auth/callback` (wzorzec
-   `https://…/**` też to obejmie).
+   Pozostałe przełączniki na tym ekranie zostają WYŁĄCZONE: „Skip nonce
+   checks" osłabia ochronę przed podstawieniem tokenu, a „Allow users without
+   an email" wpuszczałoby konta bez adresu — a na adresie stoi u nas cała
+   komunikacja z klientem (potwierdzenia umów, faktury, reset hasła).
+10. **Authentication → URL Configuration**: Site URL = adres produkcyjny;
+    w Redirect URLs dopisz wzorce obejmujące `/auth/callback` dla produkcji
+    i dla preview z Vercela. Bez wpisu Supabase odrzuci powrót z Google
+    („requested path is invalid").
 
 ### C. Sprawdzenie
 
