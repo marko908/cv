@@ -40,10 +40,15 @@ zgodziła się co do joty z tym, co było dopisane ręcznie.
 
 ### 1. ✅ Skrzynka marko@aplikando.pl — AKTYWNA (2026-08-05, potwierdzone przez Marka)
 
-Ten adres stoi w regulaminie, w polityce prywatności i jako punkt kontaktowy
-DSA. Zostaje do sprawdzenia (nie blokuje): czy `MAIL_OD` i `MAIL_ZGLOSZENIA`
-w env na Vercelu (Production) wskazują na tę samą domenę, a nie na testowy
-`onboarding@resend.dev` z `lib/mail.ts`.
+Ten adres stoi w regulaminie, w polityce prywatności i jako punkt kontaktowy DSA.
+
+`MAIL_OD` na Vercelu wskazuje na własną domenę (`noreply@aplikando.pl`) —
+**potwierdzone przez Marka 2026-08-06**, punkt zamknięty. W `lib/mail.ts`
+zostaje fallback na testowy `onboarding@resend.dev`, który wysyła WYŁĄCZNIE
+na skrzynkę właściciela konta Resend. Fallback jest celowy (bez zmiennej nie
+chcemy wysypywać buildu), ale przy zakładaniu nowego środowiska trzeba o nim
+pamiętać: brak `MAIL_OD` nie wywala niczego głośno — `wyslijMail` z założenia
+nie rzuca, więc maile po prostu cicho nie docierają do klientów.
 
 ### 2. ✅ Tier Google Gemini API — POTWIERDZONY (2026-08-05, Tier 1)
 
