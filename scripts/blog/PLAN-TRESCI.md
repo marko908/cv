@@ -71,7 +71,7 @@ Planer słów kluczowych i przestawić kolejność, jeśli dane powiedzą co inn
 
 ## FALA 1 — szybkie wygrane (wąskie pytania, najłatwiej wejść)
 
-### [ ] 1. Klauzula RODO w CV — aktualna treść i gdzie ją wstawić
+### [x] 1. Klauzula RODO w CV — aktualna treść i gdzie ją wstawić
 - **Fraza:** `klauzula rodo do cv` · wsparcie: `klauzula rodo cv 2026`, `zgoda na przetwarzanie danych w cv`
 - **Intencja:** czytelnik chce skopiować gotowy tekst i wrócić do pisania CV.
 - **Szkic:** czym jest i czy jest obowiązkowa → gotowa treść do skopiowania →
@@ -81,7 +81,7 @@ Planer słów kluczowych i przestawić kolejność, jeśli dane powiedzą co inn
   jedna rzecz mniej do pamiętania przy każdej aplikacji.
 - **Linkuj do:** 15 (filar), 2
 
-### [ ] 2. Ile stron powinno mieć CV?
+### [x] 2. Ile stron powinno mieć CV?
 - **Fraza:** `ile stron cv` · wsparcie: `czy cv może mieć 2 strony`, `jak skrócić cv`
 - **Intencja:** pytanie zamknięte — odpowiedz w pierwszym akapicie, potem
   uzasadnij.
