@@ -38,8 +38,20 @@ export const OZNACZENIE_PRZEDSIEBIORCY =
 
 export const APLIKACJA = {
   nazwa: "Aplikando",
+  /** Krótka forma do wyświetlania w tekście i w dokumentach. */
   domena: "aplikando.pl",
-  adresWww: "https://aplikando.pl",
+  /**
+   * KANONICZNY adres aplikacji — z `www`, bo tak serwuje ją Vercel
+   * (`aplikando.pl` przekierowuje tu 308-ką). To NIE jest kosmetyka: z tego
+   * pola biorą się `metadataBase` (czyli każdy canonical i `og:image`), adresy
+   * w `sitemap.xml` oraz wskazanie sitemapy w `robots.txt`. Gdyby stała tu
+   * wersja bez `www`, każdy adres zgłaszany Google przekierowywałby, a tagi
+   * canonical wskazywałyby na stronę, która nie serwuje treści bezpośrednio —
+   * wyszukiwarka sama rozstrzygałaby wtedy, którą wersję uznać za właściwą.
+   *
+   * Zmiana domeny głównej w panelu Vercel = zmiana TEJ stałej w tym samym kroku.
+   */
+  adresWww: "https://www.aplikando.pl",
 } as const;
 
 /** Ścieżki podstron z dokumentami — używane też w linkach wewnątrz dokumentów. */
