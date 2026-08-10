@@ -2,7 +2,6 @@ import Link from "next/link";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-  CENA_JEDNORAZOWA,
   LIMIT_DARMOWY,
   LISTA_PLANOW,
   rabatRoczny,
@@ -12,20 +11,65 @@ import {
 import { cn } from "@/lib/utils";
 
 /**
- * Cennik na landingu — czysto informacyjny (bez wyboru okresu rozliczeniowego
+ * Cennik na landingu - czysto informacyjny (bez wyboru okresu rozliczeniowego
  * i bez logiki zakupu, ta żyje w `paywall-dialog.tsx` po zalogowaniu). Dane
- * z `subscription.ts`, JEDNEGO źródła cen — nic tu nie jest wpisane na sztywno.
+ * z `subscription.ts`, JEDNEGO źródła cen - nic tu nie jest wpisane na sztywno.
  *
- * `id="cennik"` — Regulamin (§ 2 ust. 1 pkt 2) i `SCIEZKI.cennik` w
+ * `id="cennik"` - Regulamin (§ 2 ust. 1 pkt 2) i `SCIEZKI.cennik` w
  * `lib/prawne/dane.ts` wskazują na `/#cennik`; do tej sekcji ten adres
  * wcześniej nie prowadził NIGDZIE (kotwica bez celu).
  *
- * Karta „Darmowy" NIE pochodzi z `LISTA_PLANOW` — to lista PŁATNYCH planów,
+ * Karta „Darmowy" NIE pochodzi z `LISTA_PLANOW` - to lista PŁATNYCH planów,
  * używana też przez `paywall-dialog.tsx` do renderowania przycisków zakupu;
  * pokazanie tam przycisku „kup" przy planie za 0 zł nie miałoby sensu.
  * Limit darmowego dopasowania (`LIMIT_DARMOWY`) i mechanizm przyznawania go
  * opisane są przy stałej w `subscription.ts`.
+ *
+ * Karty mają CELOWO różne wysokości (Marek 2026-08-10: pierwsza najniższa,
+ * druga najwyższa, trzecia pośrednia) - `items-start` na siatce, żeby grid
+ * nie wyrównał ich do najwyższej. Przyciski mimo to lądują w tej samej
+ * odległości od DOLNEJ KRAWĘDZI KAŻDEJ karty (`mt-auto` w kolumnie flex +
+ * jednakowy `p-6` na wszystkich kartach), a nie w tym samym miejscu na
+ * stronie.
  */
+const WYSOKOSC_KARTY = [
+  "sm:min-h-[420px]",
+  "sm:min-h-[500px]",
+  "sm:min-h-[460px]",
+] as const;
+
+const KORZYSCI_DARMOWY = [
+  `${LIMIT_DARMOWY} w pełni odblokowane dopasowanie / mies.`,
+  "Wszystkie 9 szablonów CV",
+  "Bez karty płatniczej",
+] as const;
+
+const KORZYSCI_PLANU: Record<string, readonly string[]> = {
+  start: [
+    "30 dopasowań / mies.",
+    "Pełny raport i wywiad uzupełniający",
+    "Dla aktywnie szukających pracy",
+  ],
+  pro: [
+    "100 dopasowań / mies.",
+    "Najniższa cena za jedno dopasowanie",
+    "Dla aplikujących seryjnie",
+  ],
+};
+
+function Korzysci({ pozycje }: { pozycje: readonly string[] }) {
+  return (
+    <ul className="mt-4 flex flex-col gap-2">
+      {pozycje.map((p) => (
+        <li key={p} className="flex items-start gap-2 text-sm text-muted-foreground">
+          <Check className="mt-0.5 size-4 shrink-0 text-primary" />
+          {p}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function PricingSection() {
   return (
     <section id="cennik" className="mx-auto w-full max-w-5xl scroll-mt-16 px-4 pb-20">
@@ -34,11 +78,16 @@ export function PricingSection() {
         Zacznij za darmo, płać dopiero gdy potrzebujesz więcej
       </h2>
       <p className="mx-auto mt-3 max-w-xl text-pretty text-center text-muted-foreground">
-        Konto, kreator i pierwsze dopasowanie w miesiącu — bez opłat.
+        Konto, kreator i pierwsze dopasowanie w miesiącu - bez opłat.
       </p>
 
-      <div className="mt-10 grid gap-4 sm:grid-cols-3">
-        <div className="card-surface flex flex-col p-6">
+      <div className="mt-10 grid items-start gap-4 sm:grid-cols-3">
+        <div
+          className={cn(
+            "card-surface flex flex-col p-6",
+            WYSOKOSC_KARTY[0]
+          )}
+        >
           <h3 className="text-lg font-bold">Darmowy</h3>
           <p className="mt-1 text-sm text-muted-foreground">
             Wypróbuj pełne dopasowanie, zanim zapłacisz.
@@ -47,19 +96,18 @@ export function PricingSection() {
             <span className="text-3xl font-extrabold tracking-tight">0 zł</span>
           </div>
           <p className="mt-1 text-xs text-muted-foreground">na zawsze</p>
-          <p className="mt-4 text-sm font-bold">
-            {LIMIT_DARMOWY} dopasowanie / mies.
-          </p>
-          <Button asChild className="mt-6 w-full" variant="secondary">
+          <Korzysci pozycje={KORZYSCI_DARMOWY} />
+          <Button asChild className="mt-auto w-full" variant="secondary">
             <Link href="/rejestracja">Załóż konto</Link>
           </Button>
         </div>
 
-        {LISTA_PLANOW.map((plan) => (
+        {LISTA_PLANOW.map((plan, i) => (
           <div
             key={plan.id}
             className={cn(
               "card-surface flex flex-col p-6",
+              WYSOKOSC_KARTY[i + 1],
               plan.polecany && "ring-1 ring-primary"
             )}
           >
@@ -77,14 +125,12 @@ export function PricingSection() {
               <span className="text-sm text-muted-foreground">/ mies.</span>
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              albo {plan.ceny.rok} zł rocznie — {rabatRoczny(plan)}% taniej
+              albo {plan.ceny.rok} zł rocznie - {rabatRoczny(plan)}% taniej
             </p>
-            <p className="mt-4 text-sm font-bold">
-              {plan.limit} dopasowań / mies.
-            </p>
+            <Korzysci pozycje={KORZYSCI_PLANU[plan.id] ?? []} />
             <Button
               asChild
-              className="mt-6 w-full"
+              className="mt-auto w-full"
               variant={plan.polecany ? "default" : "secondary"}
             >
               <Link href="/rejestracja">Załóż konto</Link>
@@ -92,15 +138,6 @@ export function PricingSection() {
           </div>
         ))}
       </div>
-
-      <p className="mt-6 text-center text-sm text-muted-foreground">
-        Wykorzystałeś darmowe dopasowanie i potrzebujesz tylko jeszcze
-        jednego?{" "}
-        <span className="font-bold text-foreground">
-          Odblokuj je za {CENA_JEDNORAZOWA} zł
-        </span>
-        , bez subskrypcji.
-      </p>
 
       <div className="mt-10 grid gap-4 sm:grid-cols-2">
         <div>

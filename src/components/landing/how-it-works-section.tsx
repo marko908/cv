@@ -2,17 +2,17 @@ const KROKI = [
   {
     numer: "01",
     tytul: "Dodaj CV",
-    opis: "Wgraj obecne CV albo uzupełnij je w kreatorze — dwie minuty.",
+    opis: "Wgraj obecne CV albo stwórz je w darmowym kreatorze.",
   },
   {
     numer: "02",
-    tytul: "Wklej ofertę",
-    opis: "Link do ogłoszenia albo jego treść. Reszta dzieje się automatycznie.",
+    tytul: "Wybierz ofertę",
+    opis: "Wklej link do ogłoszenia albo jego treść. Reszta dzieje się automatycznie.",
   },
   {
     numer: "03",
-    tytul: "Dostań wynik",
-    opis: "Ocena, słowa kluczowe, dziennik zmian i przerobione CV do pobrania.",
+    tytul: "Sprawdź wyniki",
+    opis: "Zobacz ocenę, słowa kluczowe, dziennik zmian i przerobione CV do pobrania.",
   },
 ] as const;
 

@@ -4,12 +4,12 @@ const GWARANCJE = [
   {
     icon: FileSearch,
     tytul: "Rejestr faktów z Twojego CV",
-    opis: "Zanim cokolwiek napisze, AI dostaje wyłącznie fakty, które sam podałeś — firmy, stanowiska, liczby, umiejętności.",
+    opis: "Zanim cokolwiek napisze, AI dostaje wyłącznie fakty, które sam podałeś - firmy, stanowiska, liczby, umiejętności.",
   },
   {
     icon: ShieldCheck,
     tytul: "Walidator odrzuca zmyślone dane",
-    opis: "To nie prośba w prompcie — kod sprawdza każdy wygenerowany fragment i cofa wszystko, czego nie ma w Twoim CV.",
+    opis: "To nie prośba w prompcie - kod sprawdza każdy wygenerowany fragment i cofa wszystko, czego nie ma w Twoim CV.",
   },
   {
     icon: TrendingUp,
@@ -23,15 +23,15 @@ export function WhyDifferentSection() {
     <section className="mx-auto w-full max-w-5xl px-4 pb-20">
       <div className="grid items-center gap-10 lg:grid-cols-2">
         <div>
-          <p className="eyebrow text-muted-foreground">Dlaczego to inne</p>
+          <p className="eyebrow text-muted-foreground">Dlaczego my?</p>
           <h2 className="mt-2 text-balance text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl">
             AI nie wymyśla Twojego CV
           </h2>
           <p className="mt-4 text-pretty text-muted-foreground">
-            Większość narzędzi „AI do CV” generuje treść od zera — z ryzykiem,
-            że dopisze umiejętność, której nie masz, albo liczbę, której nikt
-            nie zweryfikuje. Aplikando działa odwrotnie: AI wybiera, porządkuje
-            i przeformułowuje Twoje własne fakty. Nigdy ich nie dodaje.
+            Większość narzędzi „AI do CV” generuje treść od zera - bardzo prawdopodobne,
+            że dopisze umiejętność, której nie masz, albo liczbę, która jest nieprawdziwa. 
+            Aplikando działa odwrotnie: AI wybiera, porządkuje
+            i przeformułowuje Twoje własne dane. Nigdy ich nie wymyśla.
           </p>
         </div>
 

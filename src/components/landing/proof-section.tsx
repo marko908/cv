@@ -55,11 +55,10 @@ export function ProofSection() {
     <section className="mx-auto w-full max-w-4xl px-4 pb-20">
       <p className="eyebrow text-center text-muted-foreground">Dowód</p>
       <h2 className="mt-2 text-balance text-center text-2xl font-extrabold tracking-tight sm:text-3xl">
-        Zobacz raport, zanim mu zaufasz
+        Każde CV punktowane jest w różnych kategoriach
       </h2>
       <p className="mx-auto mt-3 max-w-xl text-pretty text-center text-muted-foreground">
-        To dokładnie ten sam ekran, który dostajesz po dopasowaniu — nie
-        ilustracja, tylko realny format wyniku.
+          Taki sam widok zoabczysz po dopasowaniu swojego CV. 
       </p>
 
       <div className="mt-10 grid gap-4 lg:grid-cols-5">
@@ -105,12 +104,12 @@ export function ProofSection() {
               <p className="mt-1.5 text-sm leading-relaxed">
                 Rozwijałem stronę sklepu internetowego w zespole
                 frontendowym, koncentrując się na optymalizacji wydajności i
-                SEO — kluczowych wymaganiach z tej oferty.
+                SEO - kluczowych wymaganiach z tej oferty.
               </p>
             </div>
           </div>
           <p className="mt-4 flex-1 text-xs text-muted-foreground">
-            Żadna liczba ani umiejętność nie została dodana — AI tylko
+            Żadna liczba ani umiejętność nie została dodana - AI tylko
             uporządkowała fakty, które już były w Twoim CV.
           </p>
         </div>

@@ -44,7 +44,7 @@ export const ZAKRES_BEZPLATNY = [
 /** Co odblokowuje dostęp. Tylko rzeczy, które REALNIE istnieją w kodzie. */
 export const ZAKRES_PLATNY = [
   "Kolejne dopasowania CV do oferty (pierwsze w miesiącu jest darmowe)",
-  "Wynik z rozbiciem na kryteria — widzisz, skąd się bierze",
+  "Wynik z rozbiciem na kryteria - widzisz, skąd się bierze",
   "Raport: co zmieniliśmy w CV i dlaczego",
   "Wywiad uzupełniający, który podnosi wynik",
   "Przerobione CV do edycji i pobrania",

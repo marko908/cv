@@ -30,19 +30,19 @@ const features = [
     icon: ShieldCheck,
     title: "Klauzula RODO",
     description:
-      "Aktualna polska klauzula o przetwarzaniu danych — zawsze na miejscu.",
+      "Aktualna polska klauzula o przetwarzaniu danych - zawsze na miejscu.",
   },
   {
     icon: ListChecks,
     title: "Dziennik zmian",
     description:
-      "Widzisz dokładnie, co AI zmieniło w Twoim CV i dlaczego — pełna kontrola.",
+      "Widzisz dokładnie, co AI zmieniło w Twoim CV i dlaczego - masz pełną kontrolę.",
   },
   {
     icon: Languages,
     title: "Polski rynek pracy",
     description:
-      "Profesjonalna polszczyzna, realia UoP i B2B. Zero amerykańskiego hype'u.",
+      "Pełne dostosowanie do języka polskiego i polskiego rybku pracy.",
   },
 ];
 
@@ -95,8 +95,8 @@ export default function Home() {
               </div>
               <h2 className="text-lg font-bold">Mam już CV</h2>
               <p className="mt-2 flex-1 text-sm text-muted-foreground">
-                Wgraj obecne CV, wklej ofertę pracy, a AI dopasuje
-                treść, słowa kluczowe i akcenty - z dziennikiem zmian.
+                Wgraj obecne CV i wklej ofertę pracy, a AI dopasuje
+                treść, słowa kluczowe i dane.
               </p>
               <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-bold">
                 Dopasuj CV do oferty
@@ -112,8 +112,8 @@ export default function Home() {
               </div>
               <h2 className="text-lg font-bold">Nie mam CV</h2>
               <p className="mt-2 flex-1 text-sm text-muted-foreground">
-                Podaj podstawowe dane i ofertę, na którą aplikujesz. AI ułoży
-                profesjonalne CV od zera — w gotowym szablonie ATS.
+                Podaj podstawowe dane i wklej ofertę, na którą chcesz aplikować. AI ułoży
+                profesjonalne CV od zera w wybranym przez Ciebie szablonie.
               </p>
               <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-bold">
                 Stwórz CV od zera
@@ -148,7 +148,7 @@ export default function Home() {
         {/* CTA */}
         <section className="mx-auto flex w-full max-w-4xl flex-col items-center px-4 pb-24 text-center">
           <h2 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
-            Gotowy na rozmowę kwalifikacyjną?
+            Gotowy na nową pracę?
           </h2>
           <p className="mt-3 max-w-xl text-muted-foreground">
             Każda oferta pracy to inne słowa kluczowe. Przestań wysyłać wszędzie

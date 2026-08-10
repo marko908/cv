@@ -12,15 +12,15 @@ import { SCIEZKI } from "@/lib/prawne/dane";
 const PYTANIA = [
   {
     q: "Czy AI zmyśla informacje w moim CV?",
-    a: "Nie. AI dostaje wyłącznie fakty, które sam podałeś w CV, i może je tylko wybrać, uporządkować oraz przeformułować — nigdy dopisać. Każdy wygenerowany fragment przechodzi przez walidator w kodzie, który odrzuca zmyślone liczby, umiejętności, firmy czy stanowiska.",
+    a: "Nie. AI dostaje wyłącznie fakty, które sam podałeś w CV, i może je tylko wybrać, uporządkować oraz przeformułować - nigdy dopisać. Każdy wygenerowany fragment przechodzi przez walidator w kodzie, który odrzuca zmyślone liczby, umiejętności, firmy czy stanowiska.",
   },
   {
     q: "Czy muszę zakładać konto?",
-    a: "Tak — konto jest wymagane do korzystania z Aplikacji, ale założenie go zajmuje około 30 sekund i jest bezpłatne.",
+    a: "Tak - konto jest wymagane do korzystania z Aplikacji, ale założenie go zajmuje około 30 sekund i jest bezpłatne.",
   },
   {
     q: "Co jest darmowe, a za co płacę?",
-    a: `Konto, kreator CV, wszystkie szablony i pobranie własnego CV w PDF są bezpłatne zawsze. Do tego co miesiąc dostajesz ${LIMIT_DARMOWY} w pełni odblokowane dopasowanie za darmo — płacisz dopiero za kolejne w tym samym miesiącu.`,
+    a: `Konto, kreator CV, wszystkie szablony i pobranie własnego CV w PDF są bezpłatne zawsze. Do tego co miesiąc dostajesz ${LIMIT_DARMOWY} w pełni odblokowane dopasowanie za darmo - płacisz dopiero za kolejne w tym samym miesiącu.`,
   },
   {
     q: "Ile kosztuje kolejne dopasowanie CV do oferty?",
@@ -28,13 +28,13 @@ const PYTANIA = [
   },
   {
     q: "Czy moje CV przejdzie przez systemy rekrutacyjne (ATS)?",
-    a: "Tak, wszystkie szablony — także te ze zdjęciem i panelem bocznym. Pilnujemy kolejności tekstu w pliku PDF, więc systemy ATS czytają go poprawnie niezależnie od wybranego układu.",
+    a: "Tak, wszystkie szablony - także te ze zdjęciem i panelem bocznym. Pilnujemy kolejności tekstu w pliku PDF, więc systemy ATS czytają go poprawnie niezależnie od wybranego układu.",
   },
   {
     q: "Co się dzieje z moimi danymi?",
     a: (
       <>
-        Przetwarzamy je zgodnie z RODO — szczegóły w{" "}
+        Przetwarzamy je zgodnie z RODO - szczegóły w{" "}
         <Link
           href={SCIEZKI.politykaPrywatnosci}
           className="underline underline-offset-2 hover:text-foreground"

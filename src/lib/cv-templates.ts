@@ -122,7 +122,7 @@ export function templatesByTag(tag: TemplateTag): CvTemplate[] {
  * a kategorie mówią tylko o tym, co realnie różni układy.
  */
 export const ATS_OBIETNICA =
-  "Każdy szablon jest czytelny dla systemów rekrutacyjnych (ATS) — pilnujemy kolejności tekstu w pliku, więc zdjęcie i boczny panel niczego nie psują.";
+  "Każdy szablon jest czytelny dla systemów rekrutacyjnych (ATS).";
 
 /**
  * Kategorie widoczne w galerii — jeden wiersz na kategorię, przewijany w bok.
