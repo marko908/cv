@@ -11,7 +11,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { SiteHeader } from "@/components/site-header";
 import { Stopka } from "@/components/stopka";
-import { BackgroundTiles } from "@/components/background-tiles";
 
 const features = [
   {
@@ -47,8 +46,7 @@ export default function Home() {
 
       <main className="flex-1">
         {/* Hero — treść świeci, UI znika w czerni */}
-        <section className="relative mx-auto flex w-full max-w-4xl flex-col items-center overflow-hidden px-4 pb-16 pt-20 text-center">
-          <BackgroundTiles />
+        <section className="mx-auto flex w-full max-w-4xl flex-col items-center px-4 pb-16 pt-20 text-center">
           <span className="mb-6 rounded-full bg-secondary px-4 py-1.5 text-xs font-bold uppercase tracking-[1.4px] text-muted-foreground">
             AI pod polski rynek pracy
           </span>
