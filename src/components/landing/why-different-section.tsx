@@ -1,5 +1,13 @@
-import { ShieldCheck, FileSearch, TrendingUp } from "lucide-react";
+import { ShieldCheck, FileSearch, Gauge } from "lucide-react";
 
+/**
+ * Gwarancje po ludzku, nie po inżyniersku (Marek 2026-08-10): poprzednia
+ * wersja opisywała walidator i podłogę wyniku od strony implementacji
+ * ("kod sprawdza...", "gdyby wypadło gorzej, wracamy do oryginału") -
+ * brzmiało to jak przyznanie się, że model czasem psuje CV, a nie jak
+ * korzyść. Teraz każda karta mówi o REZULTACIE dla klienta, nie o mechanizmie
+ * bezpieczeństwa za nim.
+ */
 const GWARANCJE = [
   {
     icon: FileSearch,
@@ -8,13 +16,13 @@ const GWARANCJE = [
   },
   {
     icon: ShieldCheck,
-    tytul: "Walidator odrzuca zmyślone dane",
-    opis: "To nie prośba w prompcie - kod sprawdza każdy wygenerowany fragment i cofa wszystko, czego nie ma w Twoim CV.",
+    tytul: "Zero zmyślonych faktów",
+    opis: "Przerobione CV zawiera wyłącznie prawdziwe firmy, stanowiska, liczby i umiejętności - nic, czego nie napisałeś sam.",
   },
   {
-    icon: TrendingUp,
-    tytul: "Wynik nigdy nie spada",
-    opis: "Jeśli dopasowanie mimo wszystko wypadłoby gorzej niż oryginał, wracamy do CV wejściowego. Najgorszy możliwy rezultat to brak zmiany.",
+    icon: Gauge,
+    tytul: "Ocena z jasnych kryteriów",
+    opis: "Wynik liczony jest za każdym razem z tej samej, przejrzystej rubryki - nie z ogólnego wrażenia modelu.",
   },
 ] as const;
 
