@@ -133,6 +133,17 @@ export function CvTemplateMarquee({
           />
         ))}
       </div>
+
+      {/* Zanikanie na krawędziach zamiast twardego ucięcia przez
+          `overflow-hidden` — dwie nakładające się „ramki" w kolorze tła
+          strony (#121212 przez `var(--background)`), przezroczyste w całym
+          środku i tylko kilkanaście % gasnące przy każdej krawędzi. Tailwind
+          `via-transparent` NIE nadaje się tu — jego domyślny środkowy punkt
+          na 50% dałby przenikanie przez całą szerokość, a nie tylko przy
+          brzegach. Dwie warstwy (pozioma + pionowa) razem dają ciche
+          wyciszenie w rogach, gdzie się nakładają. */}
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,var(--background)_0%,transparent_12%,transparent_88%,var(--background)_100%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_bottom,var(--background)_0%,transparent_18%,transparent_82%,var(--background)_100%)]" />
     </div>
   );
 }

@@ -46,29 +46,34 @@ export default function Home() {
       <SiteHeader />
 
       <main className="flex-1">
-        {/* Hero — treść świeci, UI znika w czerni */}
-        <section className="relative mx-auto flex w-full max-w-4xl flex-col items-center overflow-hidden px-4 pb-16 pt-20 text-center">
+        {/* Hero — treść świeci, UI znika w czerni. Karuzela w tle jest CAŁEJ
+            SZEROKOŚCI (poza max-w-4xl treści), dlatego mieszka w osobnym,
+            nieograniczonym `section`, a treść stoi w wewnętrznym,
+            wyśrodkowanym kontenerze nad nią (`relative z-10`). */}
+        <section className="relative overflow-hidden">
           <CvTemplateMarquee />
-          <span className="mb-6 rounded-full bg-secondary px-4 py-1.5 text-xs font-bold uppercase tracking-[1.4px] text-muted-foreground">
-            AI pod polski rynek pracy
-          </span>
-          <h1 className="text-balance text-4xl font-extrabold leading-tight tracking-tight sm:text-6xl">
-            Dopasuj swoje CV
-            <br />
-            do oferty <span className="text-primary">w 60 sekund</span>
-          </h1>
-          <p className="mt-6 max-w-2xl text-pretty text-lg text-muted-foreground">
-            Wklej opis stanowiska lub link do ogłoszenia, a Aplikando zoptymalizuje Twoje CV pod ofertę
-            i oczekiwania rekrutera - po polsku, z zachowaniem formatowania
-            i z klauzulą RODO.
-          </p>
-          <Button
-            asChild
-            size="lg"
-            className="btn-label mt-10 h-12 px-10 text-sm font-bold hover:scale-[1.04] hover:bg-primary"
-          >
-            <Link href="/app">Zacznij teraz</Link>
-          </Button>
+          <div className="relative z-10 mx-auto flex w-full max-w-4xl flex-col items-center px-4 pb-16 pt-20 text-center">
+            <span className="mb-6 rounded-full bg-secondary px-4 py-1.5 text-xs font-bold uppercase tracking-[1.4px] text-muted-foreground">
+              AI pod polski rynek pracy
+            </span>
+            <h1 className="text-balance text-4xl font-extrabold leading-tight tracking-tight sm:text-6xl">
+              Dopasuj swoje CV
+              <br />
+              do oferty <span className="text-primary">w 60 sekund</span>
+            </h1>
+            <p className="mt-6 max-w-2xl text-pretty text-lg text-muted-foreground">
+              Wklej opis stanowiska lub link do ogłoszenia, a Aplikando zoptymalizuje Twoje CV pod ofertę
+              i oczekiwania rekrutera - po polsku, z zachowaniem formatowania
+              i z klauzulą RODO.
+            </p>
+            <Button
+              asChild
+              size="lg"
+              className="btn-label mt-10 h-12 px-10 text-sm font-bold hover:scale-[1.04] hover:bg-primary"
+            >
+              <Link href="/app">Zacznij teraz</Link>
+            </Button>
+          </div>
         </section>
 
         {/* Dwie ścieżki — karty jak playlisty */}
