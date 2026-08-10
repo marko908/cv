@@ -1,20 +1,3 @@
-/**
- * Typy wygenerowane ze schematu bazy Aplikando (projekt urjpluqutufsgkzysazq).
- *
- * PLIK GENEROWANY — nie edytuj ręcznie. Po każdej migracji odśwież go
- * z aktualnego stanu bazy (Supabase MCP `generate_typescript_types` albo
- * `npx supabase gen types typescript --linked`, z katalogu cv-copilot/,
- * po wcześniejszym `npx supabase link --project-ref urjpluqutufsgkzysazq`).
- * Generator NIE zachowuje tego komentarza — po odświeżeniu wklej go z powrotem
- * (i pilnuj, żeby plik nie dostał BOM-a, co robi `Out-File -Encoding utf8`
- * w Windows PowerShell 5.1).
- *
- * Uwaga: `tresc`, `cv_bazowe`, `cv_dopasowane` i `ai_meta` mają tu typ `Json`,
- * bo baza zna tylko JSONB. Prawdziwym kontraktem tych kolumn jest `TailoredCv`
- * i `AiMeta` — przy odczycie przepuszczaj je przez Zoda z `cv-schema.ts`,
- * a nie rzutuj na siłę.
- */
-
 export type Json =
   | string
   | number
@@ -473,18 +456,21 @@ export type Database = {
       }
       zuzycie_miesieczne: {
         Row: {
+          darmowy_dopasowanie_id: string | null
           dopasowania: number
           miesiac: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          darmowy_dopasowanie_id?: string | null
           dopasowania?: number
           miesiac: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          darmowy_dopasowanie_id?: string | null
           dopasowania?: number
           miesiac?: string
           updated_at?: string
@@ -510,6 +496,10 @@ export type Database = {
       ma_aktywna_subskrypcje: { Args: never; Returns: boolean }
       ma_dostep_do: { Args: { p_dopasowanie: string }; Returns: boolean }
       usun_moje_konto: { Args: never; Returns: undefined }
+      zuzyj_darmowe_dopasowanie: {
+        Args: { p_dopasowanie: string }
+        Returns: boolean
+      }
       zuzyj_dopasowanie: { Args: { p_limit: number }; Returns: number }
       zuzyto_w_tym_miesiacu: { Args: never; Returns: number }
     }

@@ -179,12 +179,46 @@ export async function pobierzUprawnienia(): Promise<{
       }
     : BRAK_SUBSKRYPCJI;
 
+  // Darmowe odblokowanie tego miesiąca (jeśli wykorzystane) liczy się jako
+  // odblokowane dopasowanie na dokładnie tych samych zasadach co zakup —
+  // useMaDostepDo nie rozróżnia, skąd wzięło się id na tej liście.
+  const darmowyId = zuzycie.data?.darmowy_dopasowanie_id;
+
   return {
     subscription,
-    odblokowaneDopasowania: (zakupy.data ?? []).map((z) => z.dopasowanie_id),
+    odblokowaneDopasowania: [
+      ...(zakupy.data ?? []).map((z) => z.dopasowanie_id),
+      ...(darmowyId ? [darmowyId] : []),
+    ],
     usage: {
       miesiac: zuzycie.data?.miesiac ?? kluczMiesiaca(),
       dopasowania: zuzycie.data?.dopasowania ?? 0,
     },
   };
+}
+
+/**
+ * Próba przyznania darmowego, w pełni odblokowanego dopasowania na TEN
+ * miesiąc — jedno na konto, niezależnie od subskrypcji (patrz migracja
+ * `20260810130000_darmowe_dopasowanie.sql`). Zwraca `true`, gdy TO wywołanie
+ * przyznało odblokowanie (pierwsze w tym miesiącu), `false` gdy miesięczna
+ * pula była już zajęta przez inne dopasowanie.
+ *
+ * Wołane z `tailor-flow.tsx` zaraz po utworzeniu nowego (korzeniowego)
+ * rekordu — CELOWO bez czekania na zapis do bazy przez `synchronizacja-konta`
+ * (debounce 900 ms): kolumna `darmowy_dopasowanie_id` nie ma klucza obcego,
+ * więc kolejność zapisu nie ma znaczenia.
+ */
+export async function zuzyjDarmoweDopasowanie(
+  dopasowanieId: string
+): Promise<boolean> {
+  const { data, error } = await klientPrzegladarka().rpc(
+    "zuzyj_darmowe_dopasowanie",
+    { p_dopasowanie: dopasowanieId }
+  );
+  if (error) {
+    console.error("[repo] zuzyj_darmowe_dopasowanie:", error.message);
+    return false;
+  }
+  return data === true;
 }

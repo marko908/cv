@@ -21,16 +21,29 @@
  * danych w hookach w `store.ts` — reszta aplikacji zostaje bez zmian.
  */
 
+/**
+ * Darmowa oferta (decyzja Marka 2026-08-10): jedno w pełni odblokowane
+ * dopasowanie miesięcznie, dla KAŻDEGO konta — nie tylko subskrybentów.
+ * Odnawia się co miesiąc, jak limity `PLANY`, ale to NIE jest subskrypcja
+ * (konto bez planu dostaje dostęp do JEDNEGO wybranego dopasowania, nie do
+ * wszystkich) — mechanizm w bazie: kolumna `zuzycie_miesieczne
+ * .darmowy_dopasowanie_id` + funkcja `zuzyj_darmowe_dopasowanie`
+ * (`supabase/migrations/20260810130000_darmowe_dopasowanie.sql`), wołana
+ * z `tailor-flow.tsx` zaraz po utworzeniu nowego dopasowania.
+ */
+export const LIMIT_DARMOWY = 1;
+
 /** Co użytkownik dostaje BEZ płacenia — darmowy zakres produktu. */
 export const ZAKRES_BEZPLATNY = [
   "Konto i kreator CV",
   "Wszystkie szablony i podgląd na żywo",
   "Pobranie własnego CV w PDF",
+  `${LIMIT_DARMOWY} w pełni odblokowane dopasowanie miesięcznie`,
 ] as const;
 
 /** Co odblokowuje dostęp. Tylko rzeczy, które REALNIE istnieją w kodzie. */
 export const ZAKRES_PLATNY = [
-  "Dopasowanie CV do konkretnej oferty",
+  "Kolejne dopasowania CV do oferty (pierwsze w miesiącu jest darmowe)",
   "Wynik z rozbiciem na kryteria — widzisz, skąd się bierze",
   "Raport: co zmieniliśmy w CV i dlaczego",
   "Wywiad uzupełniający, który podnosi wynik",

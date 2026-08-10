@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
-import { CENA_JEDNORAZOWA, PLANY } from "@/lib/subscription";
+import { CENA_JEDNORAZOWA, LIMIT_DARMOWY, PLANY } from "@/lib/subscription";
 import { SCIEZKI } from "@/lib/prawne/dane";
 
 /**
@@ -20,11 +20,11 @@ const PYTANIA = [
   },
   {
     q: "Co jest darmowe, a za co płacę?",
-    a: "Konto, kreator CV, wszystkie szablony i pobranie własnego CV w PDF są bezpłatne zawsze. Płatne jest wyłącznie dopasowanie CV do konkretnej oferty.",
+    a: `Konto, kreator CV, wszystkie szablony i pobranie własnego CV w PDF są bezpłatne zawsze. Do tego co miesiąc dostajesz ${LIMIT_DARMOWY} w pełni odblokowane dopasowanie za darmo — płacisz dopiero za kolejne w tym samym miesiącu.`,
   },
   {
-    q: "Ile kosztuje dopasowanie CV do oferty?",
-    a: `Jednorazowo ${CENA_JEDNORAZOWA} zł za jedno dopasowanie, albo subskrypcja od ${PLANY.start.ceny.miesiac} zł miesięcznie za ${PLANY.start.limit} dopasowań.`,
+    q: "Ile kosztuje kolejne dopasowanie CV do oferty?",
+    a: `Jednorazowo ${CENA_JEDNORAZOWA} zł, albo subskrypcja od ${PLANY.start.ceny.miesiac} zł miesięcznie za ${PLANY.start.limit} dopasowań.`,
   },
   {
     q: "Czy moje CV przejdzie przez systemy rekrutacyjne (ATS)?",

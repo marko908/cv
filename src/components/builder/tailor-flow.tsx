@@ -37,6 +37,8 @@ import {
 } from "@/lib/ai/interview";
 import type { ParsedOferta } from "@/lib/ai/job-offer";
 import { czyPoprawnyLink } from "@/lib/ai/fetch-oferta";
+import { czyAktywna } from "@/lib/subscription";
+import { pobierzUprawnienia, zuzyjDarmoweDopasowanie } from "@/lib/supabase/repo";
 import { PaywallDialog } from "./paywall-dialog";
 import { ScoreBreakdown } from "./score-breakdown";
 import { cn, pluralize } from "@/lib/utils";
@@ -88,6 +90,7 @@ export function TailorFlow({
     zliczDopasowanie,
     przeniesOdblokowanie,
     tailorings,
+    subscription,
   } = useCvStore();
 
   // Rekord do zastąpienia po przeliczeniu z wywiadu (żeby nie mnożyć historii).
@@ -203,6 +206,24 @@ export function TailorFlow({
     // Licznik uczciwego użycia. Przeliczenie po wywiadzie ZASTĘPUJE rekord,
     // ale zużyło osobne wywołania modelu, więc liczy się jak nowe dopasowanie.
     zliczDopasowanie();
+
+    // DARMOWA OFERTA: jedno w pełni odblokowane dopasowanie miesięcznie, dla
+    // KAŻDEGO konta (nie tylko subskrybentów) — patrz migracja
+    // 20260810130000. Próbujemy TYLKO dla nowych korzeni (nie dla przeliczeń
+    // z wywiadu — `t.korzenId` wtedy wskazuje na oryginał, więc to ta sama
+    // oferta, nie nowa szansa na darmowe odblokowanie) i tylko bez aktywnej
+    // subskrypcji (subskrybent ma dostęp do wszystkiego i tak).
+    // Odpowiedź RPC jest AUTORYTATYWNA — store nigdy sam nie nadaje dostępu
+    // (patrz komentarz przy `przeniesOdblokowanie` w store.ts), więc po
+    // sukcesie wczytujemy uprawnienia PONOWNIE z bazy, zamiast zakładać je
+    // lokalnie.
+    if (!t.korzenId && !czyAktywna(subscription)) {
+      void zuzyjDarmoweDopasowanie(t.id).then((przyznano) => {
+        if (!przyznano) return;
+        void pobierzUprawnienia().then((u) => useCvStore.setState(u));
+      });
+    }
+
     // Przeliczenie z wywiadu zastępuje poprzedni rekord, nie mnoży historii.
     if (zastapRef.current && zastapRef.current !== t.id) {
       // NAJPIERW przenieś opłacony jednorazowo dostęp na nowe id — inaczej

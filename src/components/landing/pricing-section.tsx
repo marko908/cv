@@ -3,6 +3,7 @@ import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   CENA_JEDNORAZOWA,
+  LIMIT_DARMOWY,
   LISTA_PLANOW,
   rabatRoczny,
   ZAKRES_BEZPLATNY,
@@ -18,19 +19,42 @@ import { cn } from "@/lib/utils";
  * `id="cennik"` — Regulamin (§ 2 ust. 1 pkt 2) i `SCIEZKI.cennik` w
  * `lib/prawne/dane.ts` wskazują na `/#cennik`; do tej sekcji ten adres
  * wcześniej nie prowadził NIGDZIE (kotwica bez celu).
+ *
+ * Karta „Darmowy" NIE pochodzi z `LISTA_PLANOW` — to lista PŁATNYCH planów,
+ * używana też przez `paywall-dialog.tsx` do renderowania przycisków zakupu;
+ * pokazanie tam przycisku „kup" przy planie za 0 zł nie miałoby sensu.
+ * Limit darmowego dopasowania (`LIMIT_DARMOWY`) i mechanizm przyznawania go
+ * opisane są przy stałej w `subscription.ts`.
  */
 export function PricingSection() {
   return (
-    <section id="cennik" className="mx-auto w-full max-w-4xl scroll-mt-16 px-4 pb-20">
+    <section id="cennik" className="mx-auto w-full max-w-5xl scroll-mt-16 px-4 pb-20">
       <p className="eyebrow text-center text-muted-foreground">Cennik</p>
       <h2 className="mt-2 text-balance text-center text-2xl font-extrabold tracking-tight sm:text-3xl">
-        Konto i kreator zawsze bez opłat
+        Zacznij za darmo, płać dopiero gdy potrzebujesz więcej
       </h2>
       <p className="mx-auto mt-3 max-w-xl text-pretty text-center text-muted-foreground">
-        Płacisz wyłącznie za dopasowanie CV do konkretnej oferty.
+        Konto, kreator i pierwsze dopasowanie w miesiącu — bez opłat.
       </p>
 
-      <div className="mt-10 grid gap-4 sm:grid-cols-2">
+      <div className="mt-10 grid gap-4 sm:grid-cols-3">
+        <div className="card-surface flex flex-col p-6">
+          <h3 className="text-lg font-bold">Darmowy</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Wypróbuj pełne dopasowanie, zanim zapłacisz.
+          </p>
+          <div className="mt-4 flex items-baseline gap-1.5">
+            <span className="text-3xl font-extrabold tracking-tight">0 zł</span>
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">na zawsze</p>
+          <p className="mt-4 text-sm font-bold">
+            {LIMIT_DARMOWY} dopasowanie / mies.
+          </p>
+          <Button asChild className="mt-6 w-full" variant="secondary">
+            <Link href="/rejestracja">Załóż konto</Link>
+          </Button>
+        </div>
+
         {LISTA_PLANOW.map((plan) => (
           <div
             key={plan.id}
@@ -70,7 +94,8 @@ export function PricingSection() {
       </div>
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
-        Potrzebujesz tylko jednego dopasowania?{" "}
+        Wykorzystałeś darmowe dopasowanie i potrzebujesz tylko jeszcze
+        jednego?{" "}
         <span className="font-bold text-foreground">
           Odblokuj je za {CENA_JEDNORAZOWA} zł
         </span>

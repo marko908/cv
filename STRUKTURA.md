@@ -186,11 +186,33 @@ faktycznie zapłaci.
    Użytkownik może kupić dowolnie wiele takich odblokowań — każde dotyczy
    konkretnego rekordu (`odblokowaneDopasowania: string[]`).
 
+**TRZECIA DROGA — DARMOWA OFERTA (`LIMIT_DARMOWY`, decyzja Marka 2026-08-10):
+jedno w pełni odblokowane dopasowanie miesięcznie, dla KAŻDEGO konta, nie
+tylko subskrybentów.** To NIE jest subskrypcja (subskrybent widzi WSZYSTKIE
+swoje dopasowania odblokowane; tu chodzi o JEDNO wybrane, więc osobny
+mechanizm zamiast trzeciego wpisu w `subskrypcja`). Baza: kolumna
+`zuzycie_miesieczne.darmowy_dopasowanie_id` + funkcja `zuzyj_darmowe_dopasowanie(uuid)`
+(`supabase/migrations/20260810130000_darmowe_dopasowanie.sql`) — ATOMOWO
+przyznaje wolny slot miesiąca, tym samym wzorcem `insert ... on conflict ...
+where` co `zuzyj_dopasowanie`. Wołana z `tailor-flow.zapiszWynik` zaraz po
+`addTailoring`, TYLKO dla nowych korzeni (`!t.korzenId` — przeliczenie
+z wywiadu to ta sama oferta, nie nowa szansa) i tylko bez aktywnej
+subskrypcji. Celowo BEZ klucza obcego na `dopasowanie_id` (inaczej niż
+`zakup`) — wołana zanim debounce (900 ms) w `synchronizacja-konta.tsx` zdąży
+zapisać rekord do bazy, więc referencja „na słowo" jest tu akceptowalna
+(darmowa zachęta, nie płatność). Po sukcesie `tailor-flow` NIE nadaje dostępu
+lokalnie — woła ponownie `pobierzUprawnienia()` i wstawia wynik przez
+`useCvStore.setState()`, bo store nie ma prawa nadać dostępu sam z siebie
+(patrz ZASADA niżej). `pobierzUprawnienia()` czyta tę kolumnę dla bieżącego
+miesiąca i dolewa do `odblokowaneDopasowania` — `useMaDostepDo` nie musiał się
+zmienić, bo nie rozróżnia, skąd wzięło się id na tej liście.
+
 **ZASADA: uprawnienia sprawdza się WYŁĄCZNIE przez `useMaDostepDo(tailoringId)`**
 (store.ts) — nigdy przez `aiMeta.unlocked` (pole martwe, zostało dla starych
 zapisów). Hook zwraca `true`, gdy jest aktywna subskrypcja ALBO rekord został
-kupiony jednorazowo. `useMaSubskrypcje()` tylko tam, gdzie chodzi o samo konto
-(lista dopasowań liczy uprawnienie per wiersz).
+kupiony jednorazowo ALBO wykorzystano na nim darmową ofertę miesiąca.
+`useMaSubskrypcje()` tylko tam, gdzie chodzi o samo konto (lista dopasowań
+liczy uprawnienie per wiersz).
 
 **Przeliczenie po wywiadzie TWORZY NOWY REKORD i kasuje stary**, więc
 `tailor-flow.zapiszWynik` woła `przeniesOdblokowanie(stareId, noweId)` PRZED
@@ -253,9 +275,11 @@ skorzystanie z wywiadu). W bazie zakup dotyczy KORZENIA łańcucha
 (`coalesce(korzen_id, id)`) — nie ma czego przenosić, dostęp nie może zginąć.
 
 **Uprawnienia sprawdza wyłącznie RPC `ma_dostep_do(id)`** (subskrypcja ALBO zakup
-korzenia) — dokładnie ta sama zasada co `useMaDostepDo` w `store.ts`, tylko
-egzekwowana po stronie serwera. `ma_aktywna_subskrypcje()` odwzorowuje `czyAktywna`
-(`past_due`/`canceled` dają dostęp do końca opłaconego okresu).
+korzenia ALBO darmowa oferta miesiąca — od 2026-08-10) — dokładnie ta sama
+zasada co `useMaDostepDo` w `store.ts`, tylko egzekwowana po stronie serwera
+(choć na dziś ta funkcja nie jest jeszcze wołana z kodu aplikacji — patrz
+„Monetyzacja i uprawnienia" wyżej). `ma_aktywna_subskrypcje()` odwzorowuje
+`czyAktywna` (`past_due`/`canceled` dają dostęp do końca opłaconego okresu).
 
 **Limit dopasowań jest TWARDY i liczony na serwerze** (decyzja Marka 2026-08-02).
 `zuzyj_dopasowanie(limit)` inkrementuje licznik i sprawdza próg JEDNĄ instrukcją
