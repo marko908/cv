@@ -258,6 +258,13 @@ export function FormularzAuth({
   // (Regulamin § 4 ust. 2 pkt 3). Domyślnie odznaczona: użytkownik musi
   // zaznaczyć ją sam.
   const [zgodaRegulamin, setZgodaRegulamin] = useState(false);
+  // Przyciski „Załóż konto" / „Kontynuuj z Google" NIE są z góry `disabled`
+  // przy braku zgody — walidacja idzie dopiero po kliknięciu, a jej wynik
+  // podświetla konkretne pole/checkbox na czerwono zamiast po cichu blokować
+  // przycisk (decyzja Marka 2026-08-10: użytkownik ma zobaczyć, CZEGO
+  // brakuje, zamiast zgadywać, czemu przycisk nie reaguje).
+  const [zgloszonoRejestracje, setZgloszonoRejestracje] = useState(false);
+  const [bladZgodyRegulamin, setBladZgodyRegulamin] = useState(false);
   // Moment RZECZYWISTEGO zaznaczenia — złapany przy submicie formularza.
   // Gdy rejestracja wymaga potwierdzenia kodem z maila, wiersz w tabeli
   // `zgoda` powstaje dopiero PO potwierdzeniu, ale ma nosić czas zgody,
@@ -315,6 +322,8 @@ export function FormularzAuth({
     setZgodaRegulamin(false);
     setZgodaMarketing(false);
     setZnacznikZgodyRejestracji(null);
+    setZgloszonoRejestracje(false);
+    setBladZgodyRegulamin(false);
   }
 
   /**
@@ -349,11 +358,16 @@ export function FormularzAuth({
     }
   }
 
-  /** Widoczne dopiero wtedy, gdy użytkownik zaczął wpisywać powtórzenie. */
-  const hasloNiezgodne = powtorzHaslo.length > 0 && haslo !== powtorzHaslo;
+  // Widoczne, gdy użytkownik zaczął wpisywać powtórzenie ALBO już próbował
+  // wysłać formularz — inaczej pusty drugi pole po nieudanym submicie nie
+  // pokazywałoby żadnego wizualnego sygnału, mimo że hasła realnie się różnią.
+  const hasloNiezgodne =
+    (zgloszonoRejestracje || powtorzHaslo.length > 0) && haslo !== powtorzHaslo;
+  const hasloZaKrotkie = zgloszonoRejestracje && haslo.length < MIN_HASLO;
 
   async function zarejestruj(e: React.FormEvent) {
     e.preventDefault();
+    setZgloszonoRejestracje(true);
     if (haslo.length < MIN_HASLO) {
       setBlad(`Hasło musi mieć co najmniej ${MIN_HASLO} znaków.`);
       return;
@@ -365,12 +379,14 @@ export function FormularzAuth({
       setBlad("Hasła nie są takie same.");
       return;
     }
-    // Druga linia obrony obok `disabled` na przycisku — gdyby ktoś jednak
-    // wysłał formularz bez zgody (np. programowo).
+    // Druga linia obrony obok czerwonego podświetlenia checkboxa — gdyby ktoś
+    // jednak wysłał formularz bez zgody (np. programowo).
     if (!zgodaRegulamin) {
+      setBladZgodyRegulamin(true);
       setBlad("Zaznacz zgodę na Regulamin i Politykę prywatności.");
       return;
     }
+    setBladZgodyRegulamin(false);
     const znacznik = new Date().toISOString();
     zacznij();
     const { data, error } = await supabase.auth.signUp({ email, password: haslo });
@@ -424,9 +440,11 @@ export function FormularzAuth({
     const zRejestracji = ekran === "rejestracja";
 
     if (zRejestracji && !zgodaRegulamin) {
+      setBladZgodyRegulamin(true);
       setBlad("Zaznacz zgodę na Regulamin i Politykę prywatności.");
       return;
     }
+    setBladZgodyRegulamin(false);
 
     // Znacznik czasu i zgoda marketingowa muszą przeżyć przekierowanie —
     // stan Reacta nie przeżyje, a dziennik ma nosić chwilę zaznaczenia, nie
@@ -728,6 +746,11 @@ export function FormularzAuth({
         naZmiane={setHaslo}
         autoComplete={rejestracja ? "new-password" : "current-password"}
         placeholder={rejestracja ? `Co najmniej ${MIN_HASLO} znaków` : "Twoje hasło"}
+        bladPola={
+          hasloZaKrotkie
+            ? `Hasło musi mieć co najmniej ${MIN_HASLO} znaków.`
+            : undefined
+        }
         obokEtykiety={
           !rejestracja && (
             <button
@@ -761,7 +784,15 @@ export function FormularzAuth({
           <CheckboxZgody
             id="auth-zgoda-regulamin"
             zaznaczone={zgodaRegulamin}
-            naZmiane={setZgodaRegulamin}
+            naZmiane={(v) => {
+              setZgodaRegulamin(v);
+              if (v) setBladZgodyRegulamin(false);
+            }}
+            blad={
+              bladZgodyRegulamin
+                ? "Zaznacz zgodę na Regulamin i Politykę prywatności."
+                : undefined
+            }
           >
             <EtykietaZgodaRegulamin />
           </CheckboxZgody>
@@ -773,11 +804,7 @@ export function FormularzAuth({
             zaznaczone={zgodaMarketing}
             naZmiane={setZgodaMarketing}
           >
-            <EtykietaZgodaMarketing />{" "}
-            <span className="text-muted-foreground/70">
-              (nieobowiązkowe — możesz to wycofać w każdej chwili
-              w ustawieniach konta)
-            </span>
+            <EtykietaZgodaMarketing />
           </CheckboxZgody>
         </div>
       )}
@@ -785,8 +812,7 @@ export function FormularzAuth({
       {komunikaty}
       {przyciskGlowny(
         rejestracja ? "Załóż konto" : "Zaloguj się",
-        rejestracja ? "Zakładam konto…" : "Loguję…",
-        rejestracja && !zgodaRegulamin
+        rejestracja ? "Zakładam konto…" : "Loguję…"
       )}
 
       <div className="flex items-center gap-3">
@@ -795,17 +821,19 @@ export function FormularzAuth({
         <span className="h-px flex-1 bg-border" />
       </div>
 
-      {/* Na ekranie REJESTRACJI wyłączony bez zgody — dokładnie tak samo jak
-          „Załóż konto". Google zakłada konto tym samym kliknięciem, więc
-          przepuszczenie go bez checkboxa omijałoby § 4 ust. 19. Przy LOGOWANIU
-          bramki nie ma: logowanie nie zawiera nowej umowy, a gdyby konto jednak
-          okazało się nowe, złapie to `/auth/callback`. */}
+      {/* Na ekranie REJESTRACJI walidacja zgody idzie PO kliknięciu (patrz
+          `zalogujGoogle`), nie przez `disabled` — Google zakłada konto tym
+          samym kliknięciem, więc brak zgody i tak zatrzymuje przekierowanie,
+          tylko z czerwonym podświetleniem checkboxa zamiast martwego
+          przycisku. Przy LOGOWANIU bramki nie ma: logowanie nie zawiera nowej
+          umowy, a gdyby konto jednak okazało się nowe, złapie to
+          `/auth/callback`. */}
       <Button
         type="button"
         variant="secondary"
         className="btn-label w-full font-bold"
         onClick={zalogujGoogle}
-        disabled={zajete || (rejestracja && !zgodaRegulamin)}
+        disabled={zajete}
       >
         <LogoGoogle />
         Kontynuuj z Google

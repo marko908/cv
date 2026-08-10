@@ -300,11 +300,18 @@ w DWA miejsca (żądanie + odpowiedź) — pominięcie jednego daje losowe wylog
 Wszędzie `getUser()`, NIGDY `getSession()`: `getSession()` ufa ciasteczku,
 `getUser()` weryfikuje token u Supabase.
 
-**BRAMKA KONTA (decyzja Marka 2026-08-02): kreator działa BEZ konta.** Konto jest
-wymagane dopiero przy ZAPISIE CV, pobraniu PDF i dopasowaniu do oferty. Powód:
-użytkownik ma zobaczyć produkt, zanim odda maila. Konsekwencja dla kodu: stan
-anonimowy zostaje w `localStorage` (jak dziś), a przy pierwszym logowaniu
-jednorazowo migruje do bazy.
+**BRAMKA KONTA (decyzja Marka 2026-08-10): CAŁA aplikacja wymaga zalogowania —
+zastępuje wcześniejsze „kreator działa bez konta" (2026-08-02).** Bez konta nie
+da się otworzyć nawet kreatora CV. Wymuszane SERWEROWO w `src/proxy.ts`: każde
+żądanie do `/app/**` bez aktywnej sesji (`getUser()` zwraca `null`) dostaje
+przekierowanie na `/logowanie?wroc=<ścieżka>` — wpisanie adresu wprost w pasku
+nic nie daje, bramka nie jest tylko kosmetyką w UI. Konsekwencja: anonimowa faza
+w `localStorage` (dane budowane PRZED kontem, migrowane jednorazowo po
+pierwszym logowaniu) już nie występuje w normalnym flow — kod migracji
+w `synchronizacja-konta.tsx` zostaje jako nieszkodliwa siatka bezpieczeństwa
+(np. dla danych z przeglądarki sprzed tej zmiany), ale nowy użytkownik nigdy
+nie dotrze do kreatora bez sesji, więc go nie uruchomi. Regulamin § 3 ust. 7
+i § 4 ust. 5–6 zaktualizowane w tym samym duchu (wersja dokumentów 1.2).
 
 **`src/components/auth/`** — konto. `formularz-auth.tsx` (JEDEN komponent na
 wszystkie ekrany: `rejestracja` / `logowanie` / `kod-rejestracji` /
@@ -321,9 +328,12 @@ wystarcza.** `signInWithOAuth` w `formularz-auth.tsx` → Google → Supabase �
 `/auth/callback` (trasa serwerowa, `exchangeCodeForSession`; MUSI być trasą,
 Server Components nie zapisują ciasteczek).
 
-1. **Przed przekierowaniem:** na ekranie rejestracji przycisk „Kontynuuj
-   z Google" jest `disabled` bez zgody na Regulamin — tak samo jak „Załóż
-   konto", bo Google zakłada konto tym samym kliknięciem (§ 4 ust. 19). Znacznik
+1. **Przed przekierowaniem:** na ekranie rejestracji przyciski „Kontynuuj
+   z Google" i „Załóż konto" NIE są z góry `disabled` bez zgody na Regulamin
+   (decyzja Marka 2026-08-10, patrz niżej) — walidacja idzie PO kliknięciu i
+   podświetla checkbox na czerwono, bo Google zakłada konto tym samym
+   kliknięciem (§ 4 ust. 19), więc brak zgody i tak zatrzymuje przekierowanie.
+   Znacznik
    czasu zaznaczenia i flaga zgody marketingowej jadą przez przekierowanie
    w `sessionStorage` (`lib/prawne/zgody-oauth.ts`): stan Reacta nie przeżywa
    podróży na obcą domenę, a dziennik ma nosić chwilę aktu woli, nie chwilę
@@ -491,12 +501,16 @@ w `/app/ustawienia`: e-mail, wylogowanie, usunięcie konta przez RPC
 `usun_moje_konto` z potwierdzeniem drugim kliknięciem). Po wylogowaniu UI
 przełącza się BEZ przeładowania — `useUzytkownik` słucha `onAuthStateChange`.
 
-**Bramki konta (stan na 2026-08-02):** „Pobierz PDF" (`download-pdf-button.tsx`)
+**Bramki konta na akcjach (stan na 2026-08-02, dziś DRUGA linia obrony za
+bramką serwerową w `proxy.ts`):** „Pobierz PDF" (`download-pdf-button.tsx`)
 i „Dopasuj do oferty" (`builder.tsx`). Obie przez `useBramaKonta` — po założeniu
 konta akcja wykonuje się SAMA. W `builder.tsx` w trakcie sprawdzania sesji
 (`ladowanie`) przepuszczamy do TailorFlow: okno to ułamek sekundy, a odwrotne
 założenie pokazywałoby ZALOGOWANEMU formularz rejestracji przy szybkim kliknięciu.
-Twardą bramką dla dopasowania i tak będzie serwer (limit + płatność), nie UI.
+Od 2026-08-10 nie da się wejść na `/app/**` bez sesji w ogóle, więc `uzytkownik`
+tu jest w praktyce zawsze prawdziwy — zostawione jako nieszkodliwa redundancja,
+nie usuwane celowo (patrz „BRAMKA KONTA" wyżej). Twardą bramką dla dopasowania
+i tak jest serwer (limit + płatność), nie UI.
 
 **Oprawa musi iść za formularzem.** Formularz przełącza ekrany wewnętrznie, więc
 `onEkran` zgłasza aktualny stan rodzicowi. Bez tego strona krzyczała „Załóż

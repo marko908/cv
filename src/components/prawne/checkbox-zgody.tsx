@@ -17,24 +17,41 @@ export function CheckboxZgody({
   zaznaczone,
   naZmiane,
   children,
+  blad,
 }: {
   id: string;
   zaznaczone: boolean;
   naZmiane: (wartosc: boolean) => void;
   children: React.ReactNode;
+  /**
+   * Komunikat błędu pod wierszem — pokazywany PO próbie wysłania formularza
+   * bez zaznaczonej zgody (przycisk nie jest już z góry `disabled`, więc to
+   * jedyny sposób, w jaki użytkownik dowiaduje się, czego brakuje).
+   * Podświetla też sam checkbox na czerwono przez `aria-invalid`.
+   */
+  blad?: string;
 }) {
   return (
-    <label
-      htmlFor={id}
-      className="flex cursor-pointer items-start gap-2.5 text-left text-xs leading-relaxed text-muted-foreground"
-    >
-      <Checkbox
-        id={id}
-        checked={zaznaczone}
-        onCheckedChange={(wartosc) => naZmiane(wartosc === true)}
-        className="mt-0.5"
-      />
-      <span>{children}</span>
-    </label>
+    <div>
+      <label
+        htmlFor={id}
+        className="flex cursor-pointer items-start gap-2.5 text-left text-xs leading-relaxed text-muted-foreground"
+      >
+        <Checkbox
+          id={id}
+          checked={zaznaczone}
+          onCheckedChange={(wartosc) => naZmiane(wartosc === true)}
+          aria-invalid={blad ? true : undefined}
+          aria-describedby={blad ? `${id}-blad` : undefined}
+          className="mt-0.5"
+        />
+        <span>{children}</span>
+      </label>
+      {blad && (
+        <p id={`${id}-blad`} className="mt-1 pl-[26px] text-xs text-destructive">
+          {blad}
+        </p>
+      )}
+    </div>
   );
 }

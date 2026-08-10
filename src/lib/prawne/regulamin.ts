@@ -79,7 +79,7 @@ export const REGULAMIN = `
 4. Usługodawca ma prawo czasowo ograniczyć lub zablokować dostęp do Usługi w przypadku wykrycia nadzwyczajnie wysokiego, nietypowego lub zautomatyzowanego jej zużycia, wskazującego na korzystanie z Aplikacji niezgodnie z Regulaminem.
 5. **Usługami Bezpłatnymi są:** utworzenie i prowadzenie Konta, korzystanie z kreatora CV, dostęp do wszystkich szablonów CV, podgląd CV na żywo oraz pobranie własnego CV w pliku PDF.
 6. **Usługą Płatną jest Dopasowanie**, obejmujące: raport z oceną CV wraz z rozbiciem wyniku na kryteria, dziennik zmian („co zmieniliśmy i dlaczego"), wywiad uzupełniający oraz przeredagowaną wersję CV udostępnioną do edycji i pobrania.
-7. Korzystanie z kreatora CV nie wymaga posiadania Konta. Utworzenie Konta jest wymagane do zapisania CV, pobrania CV w pliku PDF oraz do skorzystania z Dopasowania.
+7. Korzystanie z Aplikacji, w tym z kreatora CV, wymaga uprzedniego utworzenia Konta i zalogowania się do niego. Bez zalogowania funkcjonalności Aplikacji nie są dostępne.
 8. Usługodawca informuje, że stosuje środki techniczne i organizacyjne służące ochronie danych, w szczególności:
    1) szyfrowanie połączenia protokołem TLS (HTTPS),
    2) przechowywanie haseł wyłącznie w postaci skrótów kryptograficznych, po stronie dostawcy usługi uwierzytelniania,
@@ -105,8 +105,8 @@ export const REGULAMIN = `
    5) wprowadzić w Aplikacji kod aktywacyjny przesłany na podany adres poczty elektronicznej.
 3. Usługodawca nie stosuje aktywacji Konta w drodze kliknięcia w link przesłany pocztą elektroniczną. Aktywacja następuje wyłącznie przez wprowadzenie kodu, o którym mowa w ust. 2 pkt 5 powyżej.
 4. Wprowadzenie prawidłowego kodu aktywacyjnego jest równoznaczne z zawarciem nieodpłatnej Umowy o Konto, na czas nieoznaczony.
-5. Do chwili utworzenia Konta dane wprowadzone przez Użytkownika w kreatorze CV przechowywane są wyłącznie w pamięci przeglądarki na jego urządzeniu. Usługodawca nie ma do nich dostępu, nie odpowiada za ich utratę wynikającą z wyczyszczenia danych przeglądarki, zmiany urządzenia lub korzystania z trybu prywatnego, i zaleca utworzenie Konta przed wprowadzeniem obszerniejszych treści.
-6. Po utworzeniu Konta dane wprowadzone przez Użytkownika przed rejestracją są jednorazowo przenoszone na Konto. Od tej chwili Treści Usługobiorcy są przechowywane na Koncie i dostępne na każdym urządzeniu, na którym Usługobiorca zaloguje się do Aplikacji.
+5. Treści Usługobiorcy wprowadzane w Aplikacji, w tym w kreatorze CV, są zapisywane na Koncie i przechowywane w systemie informatycznym Usługodawcy, dzięki czemu są dostępne na każdym urządzeniu, na którym Usługobiorca zaloguje się do Aplikacji.
+6. Zapis Treści Usługobiorcy na Koncie następuje na bieżąco, w toku korzystania z Aplikacji, bez konieczności podejmowania przez Usługobiorcę dodatkowych czynności.
 7. Usługodawca informuje, a Usługobiorca przyjmuje do wiadomości, że zachowanie zgodności Usługi z Umową nie wymaga instalowania przez Usługobiorcę jakichkolwiek aktualizacji – Aplikacja jest udostępniana w wersji przeglądarkowej, a aktualizacje wprowadza Usługodawca po swojej stronie.
 8. W celu zawarcia Umowy Subskrypcji Usługobiorca powinien:
    1) będąc zalogowanym na Konto, przejść do Cennika,

@@ -59,11 +59,31 @@ export async function proxy(request: NextRequest) {
   });
 
   // Awaria Supabase też nie ma prawa położyć strony — w najgorszym razie
-  // użytkownik zostanie wylogowany, ale kreator CV działa dalej.
+  // użytkownik zostanie wylogowany.
+  let uzytkownik = null;
   try {
-    await supabase.auth.getUser();
+    const { data } = await supabase.auth.getUser();
+    uzytkownik = data.user;
   } catch (e) {
     console.error("[proxy] Nie udało się odświeżyć sesji:", e);
+  }
+
+  // BRAMKA KONTA (decyzja Marka 2026-08-10): CAŁA aplikacja pod `/app` wymaga
+  // zalogowania — zastępuje wcześniejsze „kreator działa bez konta". Bez tej
+  // bramki serwerowej dałoby się wejść na `/app/kreator` wpisując adres
+  // wprost, mimo że UI już nigdzie do niego nie prowadzi niezalogowanego.
+  const { pathname, search } = request.nextUrl;
+  if (!uzytkownik && pathname.startsWith("/app")) {
+    const cel = new URL("/logowanie", request.url);
+    cel.searchParams.set("wroc", pathname + search);
+    const przekierowanie = NextResponse.redirect(cel);
+    // Ciasteczka odświeżonej sesji (jeśli `setAll` zdążyło coś zapisać na
+    // `odpowiedz` powyżej) muszą przejść na TĘ odpowiedź — inaczej
+    // przekierowanie zbudowane od zera by je zgubiło.
+    for (const ciastko of odpowiedz.cookies.getAll()) {
+      przekierowanie.cookies.set(ciastko);
+    }
+    return przekierowanie;
   }
 
   return odpowiedz;
