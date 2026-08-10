@@ -26,11 +26,12 @@ import { cn } from "@/lib/utils";
  * opisane są przy stałej w `subscription.ts`.
  *
  * Karty mają CELOWO różne wysokości (Marek 2026-08-10: pierwsza najniższa,
- * druga najwyższa, trzecia pośrednia) - `items-start` na siatce, żeby grid
- * nie wyrównał ich do najwyższej. Przyciski mimo to lądują w tej samej
- * odległości od DOLNEJ KRAWĘDZI KAŻDEJ karty (`mt-auto` w kolumnie flex +
- * jednakowy `p-6` na wszystkich kartach), a nie w tym samym miejscu na
- * stronie.
+ * druga najwyższa, trzecia pośrednia) - `items-center` na siatce (nie
+ * domyślny `stretch`), więc grid nie wyrównuje ich do najwyższej, tylko
+ * centruje każdą względem wspólnej poziomej osi wiersza (górne krawędzie
+ * NIE są równe - to zamierzone, środki są). Przyciski mimo to lądują w tej
+ * samej odległości od DOLNEJ KRAWĘDZI KAŻDEJ karty (`mt-auto` w kolumnie
+ * flex + jednakowy `p-6` na wszystkich kartach).
  */
 const WYSOKOSC_KARTY = [
   "sm:min-h-[420px]",
@@ -81,7 +82,7 @@ export function PricingSection() {
         Konto, kreator i pierwsze dopasowanie w miesiącu - bez opłat.
       </p>
 
-      <div className="mt-10 grid items-start gap-4 sm:grid-cols-3">
+      <div className="mt-10 grid items-center gap-4 sm:grid-cols-3">
         <div
           className={cn(
             "card-surface flex flex-col p-6",
