@@ -1,51 +1,42 @@
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
-import { CENA_JEDNORAZOWA, LIMIT_DARMOWY, PLANY } from "@/lib/subscription";
-import { SCIEZKI } from "@/lib/prawne/dane";
+import { FAQ_LANDING, type PytanieLandingu } from "@/lib/faq-landing";
 
 /**
  * Natywny `<details>/<summary>` zamiast biblioteki akordeonu — jedyne miejsce
  * w aplikacji, które go potrzebuje, więc nie ma po co dodawać zależności ani
  * kolejnego prymitywu w `components/ui/`. Klawiatura i czytniki ekranu
  * działają z tego od razu, bez własnego JS.
+ *
+ * Treść pytań mieszka w `lib/faq-landing.ts`, bo tę samą listę renderuje
+ * schemat `FAQPage` w JSON-LD na stronie głównej.
  */
-const PYTANIA = [
-  {
-    q: "Czy AI zmyśla informacje w moim CV?",
-    a: "Nie. AI dostaje wyłącznie fakty, które sam podałeś w CV, i może je tylko wybrać, uporządkować oraz przeformułować - nigdy dopisać. Każdy wygenerowany fragment przechodzi przez walidator w kodzie, który odrzuca zmyślone liczby, umiejętności, firmy czy stanowiska.",
-  },
-  {
-    q: "Czy muszę zakładać konto?",
-    a: "Tak - konto jest wymagane do korzystania z Aplikacji, ale założenie go zajmuje około 30 sekund i jest bezpłatne.",
-  },
-  {
-    q: "Co jest darmowe, a za co płacę?",
-    a: `Konto, kreator CV, wszystkie szablony i pobranie własnego CV w PDF są bezpłatne zawsze. Do tego co miesiąc dostajesz ${LIMIT_DARMOWY} w pełni odblokowane dopasowanie za darmo - płacisz dopiero za kolejne w tym samym miesiącu.`,
-  },
-  {
-    q: "Ile kosztuje kolejne dopasowanie CV do oferty?",
-    a: `Jednorazowo ${CENA_JEDNORAZOWA} zł, albo subskrypcja od ${PLANY.start.ceny.miesiac} zł miesięcznie za ${PLANY.start.limit} dopasowań.`,
-  },
-  {
-    q: "Czy moje CV przejdzie przez systemy rekrutacyjne (ATS)?",
-    a: "Tak, wszystkie szablony - także te ze zdjęciem i panelem bocznym. Pilnujemy kolejności tekstu w pliku PDF, więc systemy ATS czytają go poprawnie niezależnie od wybranego układu.",
-  },
-  {
-    q: "Co się dzieje z moimi danymi?",
-    a: (
-      <>
-        Przetwarzamy je zgodnie z RODO - szczegóły w{" "}
-        <Link
-          href={SCIEZKI.politykaPrywatnosci}
-          className="underline underline-offset-2 hover:text-foreground"
-        >
-          Polityce prywatności
-        </Link>
-        . Dane zapisane na koncie widzisz i usuwasz samodzielnie w ustawieniach.
-      </>
-    ),
-  },
-] as const;
+
+/**
+ * Podmienia frazę z odpowiedzi na odnośnik. Gdy frazy nie ma w tekście (ktoś
+ * poprawił treść, nie ruszając pola `odnosnik`), zwracamy sam tekst — strona
+ * traci link, ale się nie wywraca.
+ */
+function Odpowiedz({ pozycja }: { pozycja: PytanieLandingu }) {
+  const { odpowiedz, odnosnik } = pozycja;
+  if (!odnosnik) return <>{odpowiedz}</>;
+
+  const i = odpowiedz.indexOf(odnosnik.fraza);
+  if (i === -1) return <>{odpowiedz}</>;
+
+  return (
+    <>
+      {odpowiedz.slice(0, i)}
+      <Link
+        href={odnosnik.href}
+        className="underline underline-offset-2 hover:text-foreground"
+      >
+        {odnosnik.fraza}
+      </Link>
+      {odpowiedz.slice(i + odnosnik.fraza.length)}
+    </>
+  );
+}
 
 export function FaqSection() {
   return (
@@ -56,17 +47,17 @@ export function FaqSection() {
       </h2>
 
       <div className="mt-10 flex flex-col gap-3">
-        {PYTANIA.map(({ q, a }) => (
+        {FAQ_LANDING.map((pozycja) => (
           <details
-            key={q}
+            key={pozycja.pytanie}
             className="card-surface group px-5 py-4 open:pb-4 [&_summary::-webkit-details-marker]:hidden"
           >
             <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-bold">
-              {q}
+              {pozycja.pytanie}
               <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
             </summary>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              {a}
+              <Odpowiedz pozycja={pozycja} />
             </p>
           </details>
         ))}

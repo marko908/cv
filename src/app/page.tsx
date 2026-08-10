@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -18,6 +19,22 @@ import { WhyDifferentSection } from "@/components/landing/why-different-section"
 import { TemplateShowcaseSection } from "@/components/landing/template-showcase-section";
 import { PricingSection } from "@/components/landing/pricing-section";
 import { FaqSection } from "@/components/landing/faq-section";
+import {
+  schemaAplikacji,
+  schemaFaqLandingu,
+  schemaOrganizacji,
+  schemaWitryny,
+} from "@/lib/schema-strony";
+
+/**
+ * Canonical stoi TUTAJ, a nie w `layout.tsx`. Metadane w Next są dziedziczone,
+ * więc `alternates.canonical` w korzeniu przypisałby adres strony głównej
+ * KAŻDEJ podstronie, która go nie nadpisuje — czyli powiedziałby Google, że
+ * blog i dokumenty prawne to duplikaty landingu.
+ */
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 const features = [
   {
@@ -49,6 +66,29 @@ const features = [
 export default function Home() {
   return (
     <div className="flex flex-1 flex-col">
+      {/*
+        Dane strukturalne. Osobne tagi zamiast jednego `@graph` — ta sama
+        decyzja co na blogu: przy błędzie Search Console wskazuje KONKRETNY
+        schemat. Encje spina `@id`, więc wyszukiwarka i tak widzi jedną
+        organizację, a nie cztery luźne bloki.
+      */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaOrganizacji()) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaWitryny()) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaAplikacji()) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaFaqLandingu()) }}
+      />
+
       <SiteHeader />
 
       <main className="flex-1">

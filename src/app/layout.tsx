@@ -28,6 +28,11 @@ const lato = localFont({
   ],
 });
 
+/** Tytuł i opis w jednym miejscu — powtarza je Open Graph i karta Twittera. */
+const TYTUL = "Aplikando — CV dopasowane do oferty pracy";
+const OPIS =
+  "Dopasuj lub stwórz CV pod konkretną ofertę pracy. AI wytrenowane pod polski rynek pracy: ATS, RODO, profesjonalna polszczyzna bez amerykańskiego hype'u.";
+
 export const metadata: Metadata = {
   /*
    * BEZ `metadataBase` Next renderuje `og:image` i `canonical` jako ścieżki
@@ -37,9 +42,55 @@ export const metadata: Metadata = {
    * tego pola był realnym błędem SEO od początku projektu.
    */
   metadataBase: new URL(APLIKACJA.adresWww),
-  title: "Aplikando — CV dopasowane do oferty pracy",
-  description:
-    "Dopasuj lub stwórz CV pod konkretną ofertę pracy. AI wytrenowane pod polski rynek pracy: ATS, RODO, profesjonalna polszczyzna bez amerykańskiego hype'u.",
+  title: TYTUL,
+  description: OPIS,
+  applicationName: APLIKACJA.nazwa,
+  /*
+   * `canonical` NIE stoi tutaj celowo — metadane są dziedziczone, więc adres
+   * z korzenia przykleiłby się do każdej podstrony, która go nie nadpisuje.
+   * Canonical ustawia każda strona u siebie (`page.tsx`, `blog/[slug]`, …).
+   */
+  openGraph: {
+    type: "website",
+    siteName: APLIKACJA.nazwa,
+    locale: "pl_PL",
+    url: "/",
+    title: TYTUL,
+    description: OPIS,
+    /*
+     * TYMCZASOWO logo, nie grafika promocyjna. Docelowo warto tu dać obraz
+     * 1200×630 (`opengraph-image.tsx`) — ikona 512×409 wyświetli się jako
+     * mały kafelek, ale brak `og:image` oznacza link BEZ ŻADNEJ miniatury
+     * na LinkedInie i Facebooku, a tam ląduje większość udostępnień.
+     */
+    images: [{ url: "/aplikando-icon.png", width: 512, height: 409, alt: APLIKACJA.nazwa }],
+  },
+  twitter: {
+    // `summary`, nie `summary_large_image` — duży wariant przycina obraz do
+    // proporcji 1,91:1, więc kwadratowe logo zostałoby obcięte z góry i dołu.
+    card: "summary",
+    title: TYTUL,
+    description: OPIS,
+    images: ["/aplikando-icon.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    /*
+     * Domyślnie Google skraca opis w wynikach i pokazuje miniatury w małym
+     * rozmiarze. Te trzy dyrektywy zdejmują limit — ma to znaczenie nie tylko
+     * dla klasycznych wyników, ale i dla odpowiedzi generowanych przez AI:
+     * krótszy dozwolony fragment to mniejsza szansa, że zacytowany zostanie
+     * sensowny kawałek tekstu.
+     */
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-snippet": -1,
+      "max-image-preview": "large",
+      "max-video-preview": -1,
+    },
+  },
 };
 
 export default function RootLayout({

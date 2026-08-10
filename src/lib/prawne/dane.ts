@@ -12,12 +12,24 @@
  * z tego pliku. Zmiana adresu / e-maila / daty = zmiana TUTAJ, w jednym miejscu.
  */
 
+/*
+ * Kod pocztowy i miejscowość stoją ROZDZIELNIE, bo `PostalAddress` ze
+ * schema.org (JSON-LD na landingu, `lib/schema-strony.ts`) wymaga osobnych
+ * pól `postalCode` i `addressLocality`. Sklejona forma „41-200 Sosnowiec",
+ * której używają dokumenty prawne, powstaje z nich niżej — dzięki temu nie ma
+ * dwóch zapisów tego samego adresu, które mogłyby się rozjechać.
+ */
+const KOD_POCZTOWY = "41-200";
+const MIASTO = "Sosnowiec";
+
 /** Pełne dane rejestrowe. JDG wpisana do CEIDG — nie ma KRS ani kapitału zakładowego. */
 export const FIRMA = {
   imieNazwisko: "Marko Nowak",
   nazwa: "Markonn Marko Nowak",
   ulica: "ul. Mariana Maliny 5a/17",
-  kodMiasto: "41-200 Sosnowiec",
+  kodPocztowy: KOD_POCZTOWY,
+  miasto: MIASTO,
+  kodMiasto: `${KOD_POCZTOWY} ${MIASTO}`,
   nip: "6443568932",
   regon: "522854985",
   email: "marko@aplikando.pl",

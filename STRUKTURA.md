@@ -993,6 +993,65 @@ obrazków, edytor FAQ, podgląd SEO, akcje wiersza).
   Supabase, a `next/image` domyślnie odmawia optymalizacji obcych adresów
   (błąd 400, nie ciche pominięcie).
 
+## Dane strukturalne i widoczność w AI (od 2026-08-10)
+
+Warstwa „co wyszukiwarka i model językowy wiedzą o tej stronie". Wszystko
+składane z ISTNIEJĄCYCH stałych (`subscription.ts`, `dane.ts`,
+`faq-landing.ts`) — nigdzie nie ma drugiego zapisu ceny ani danych firmy.
+Powód nie jest estetyczny: dane strukturalne albo llms.txt z inną kwotą niż
+kasa to informacja handlowa wprowadzająca konsumenta w błąd, a dla Google
+powód do odebrania wyników rozszerzonych.
+
+**`src/lib/faq-landing.ts` = JEDNO ŹRÓDŁO pytań z landingu.** Zasila
+JEDNOCZEŚNIE sekcję `FaqSection` i schemat `FAQPage` (Google WYMAGA, żeby
+treść schematu była widoczna na stronie — osobne, „lepsze pod SEO" pytania
+w JSON-LD byłyby naruszeniem, nie optymalizacją). Odpowiedzi są CZYSTYM
+TEKSTEM, nie JSX, bo schemat przyjmuje tekst; odnośnik wewnątrz odpowiedzi
+opisuje pole `odnosnik: {fraza, href}`, a komponent podmienia frazę na
+`<Link>` przy renderowaniu. Moduł stoi w `lib/`, nie w komponencie, żeby
+`schema-strony.ts` nie musiał importować z `components/`.
+
+**`src/lib/schema-strony.ts`** — JSON-LD landingu, odpowiednik
+`lib/blog/schema.ts`: `Organization` (dane rejestrowe z `dane.ts`),
+`WebSite`, `SoftwareApplication` (wszystkie oferty cennika + plan darmowy jako
+osobna pozycja z ceną 0) i `FAQPage`. Encje spina `@id`, więc cztery osobne
+tagi `<script>` opisują JEDNĄ organizację. **Świadomie BEZ `aggregateRating`
+i `review`** — zero użytkowników znaczy, że oceny musiałyby być zmyślone
+(ta sama zasada, co brak sekcji „social proof" na landingu).
+
+**`/llms.txt`** (`src/app/llms.txt/route.ts`) — mapa serwisu dla modeli
+językowych wg konwencji llmstxt.org. Różnica wobec `sitemap.xml`: sitemapa
+mówi „te adresy istnieją", llms.txt mówi „to robi ten produkt, tyle kosztuje,
+tego NIE robi". Sekcja „Czego ta aplikacja NIE robi" jest tam celowo — model
+pytany o narzędzia do CV inaczej dopisze nam funkcje, których nie mamy.
+`revalidate = 3600` z tego samego powodu, co w `sitemap.ts` (Route Handler
+cache'owany domyślnie na stałe → nowy wpis bloga nie trafiłby do pliku aż do
+wdrożenia). Żaden dostawca nie gwarantuje, że go czyta — koszt utrzymania jest
+zerowy, bo plik składa się z istniejących stałych.
+
+**`robots.ts` — trzy grupy zamiast jednej.** Roboty AI są WYPISANE z nazwy,
+mimo że mają te same reguły co `*`, bo robot, który znajdzie grupę ze swoją
+nazwą, ignoruje `*` w całości; jawny wpis oznacza, że przyszła zmiana reguł
+ogólnych nie ominie ich po cichu. Grupy: wyszukiwarki AI odpytujące na żywo
+(`OAI-SearchBot`, `ChatGPT-User`, `Claude-User/SearchBot`, `PerplexityBot`…
+— przynoszą ruch i cytowania, blokada byłaby strzałem w stopę) oraz roboty
+TRENUJĄCE (`GPTBot`, `ClaudeBot`, `CCBot`, `Google-Extended`…). Dla obu
+dziś ZGODA — zmiana to jedna linijka (`allow` → `disallow: "/"`).
+`Google-Extended` i `Applebot-Extended` nie są robotami, tylko przełącznikami
+zgody na trenowanie; ich blokada nie wpływa na pozycje w wyszukiwarce.
+
+**`layout.tsx`: Open Graph, karta Twittera i `max-snippet:-1`.** Ostatnie
+zdejmuje limit długości fragmentu w wynikach — ma znaczenie też dla odpowiedzi
+generowanych przez AI (krótszy dozwolony fragment = mniejsza szansa, że
+zacytowany zostanie sensowny kawałek). **`alternates.canonical` NIE stoi
+w `layout.tsx`** — metadane są dziedziczone, więc adres z korzenia
+przykleiłby się do każdej podstrony, która go nie nadpisuje, i ogłosił blog
+duplikatem landingu. Canonical ustawia każda strona u siebie.
+
+⚠️ **`og:image` to dziś logo 512×409, nie grafika promocyjna** — link
+udostępniony na LinkedInie pokazuje mały kafelek. Docelowo `opengraph-image.tsx`
+(1200×630); brak `og:image` byłby gorszy (żadnej miniatury).
+
 **Panel `/admin`:** `proxy.ts` odsiewa niezalogowanych, `app/admin/layout.tsx`
 sprawdza rolę przez RPC `czy_admin()` i przy braku daje `notFound()` (komunikat
 o braku uprawnień potwierdzałby, że panel istnieje). Sprawdzanie roli NIE stoi
@@ -1018,6 +1077,9 @@ użytkownikowi sukces — docelowo zapis też do tabeli `zgloszenie_bledu`),
 bo `usun_moje_konto()` bierze użytkownika z `auth.uid()`),
 `/api/platnosc/{checkout,webhook,portal}`. Wszystkie
 API: `runtime nodejs`, `maxDuration 60`.
+Pliki generowane dla robotów (nie strony, ale trasy): `/robots.txt`
+(`robots.ts`) · `/sitemap.xml` (`sitemap.ts`) · `/llms.txt`
+(`llms.txt/route.ts`) — wszystkie trzy biorą domenę z `dane.ts`.
 
 ## Gdzie zmienić X
 
@@ -1058,6 +1120,11 @@ API: `runtime nodejs`, `maxDuration 60`.
 - **Treść trzech checkboxów zgody (regulamin+polityka, usługa przed odstąpieniem, marketing)** → `src/components/prawne/etykiety-zgod.tsx` — jedno źródło dla rejestracji i zakupu, zmień w OBU miejscach zgodnie z Regulaminem, jeśli zmieniasz brzmienie
 - **Dziennik zgód (tabela `zgoda`)** → `supabase/migrations/20260805103000_zgody.sql` + `20260807120000_zgoda_marketing.sql` (schemat+RLS+enum) i `src/lib/prawne/zapis-zgody.ts` (zapis, nigdy nie rzuca); wywołania w `formularz-auth.tsx`, `zgoda-marketingowa.tsx` i `/api/platnosc/checkout`
 - **Zgoda marketingowa (stan, wycofanie, treść maila potwierdzającego)** → `profil.zgoda_marketing` (stan) · `ustawZgodeMarketingowa` w `lib/prawne/zapis-zgody.ts` (zapis stanu + wpis w dzienniku) · `components/auth/zgoda-marketingowa.tsx` (przełącznik w ustawieniach) · `mailPowitalny(zgodaMarketing)` w `lib/maile/tresci.ts` + `/api/konto/powitanie` (drugi załącznik PDF). Wysyłki marketingowej NIE MA — patrz bloker w `WDROZENIE.md` sekcja D
+- **Pytania FAQ na landingu (widoczne ORAZ w JSON-LD)** → `src/lib/faq-landing.ts` — jedno źródło dla `FaqSection` i schematu `FAQPage`; link w odpowiedzi przez pole `odnosnik`, nie przez JSX
+- **Dane strukturalne landingu (Organization / WebSite / SoftwareApplication / FAQPage)** → `src/lib/schema-strony.ts`, wstawiane w `src/app/page.tsx`; dane bloga osobno w `src/lib/blog/schema.ts`
+- **Opis produktu dla modeli językowych (czym jest, ile kosztuje, czego NIE robi)** → `src/app/llms.txt/route.ts`
+- **Polityka wobec robotów AI (trenujące / wyszukiwarki AI) i ścieżki zamknięte dla robotów** → `src/app/robots.ts` (stałe `ZAMKNIETE`, `ROBOTY_WYSZUKIWANIA_AI`, `ROBOTY_TRENUJACE`)
+- **Tytuł, opis, Open Graph, karta Twittera dla całej witryny** → `src/app/layout.tsx` (stałe `TYTUL`/`OPIS`); canonical — ZAWSZE w konkretnej stronie, nigdy w layoucie
 
 ## Konwencje i pułapki
 
