@@ -154,13 +154,6 @@ export default function Home() {
             Każda oferta pracy to inne słowa kluczowe. Przestań wysyłać wszędzie
             to samo CV.
           </p>
-          <Button
-            asChild
-            size="lg"
-            className="btn-label mt-8 h-12 px-10 text-sm font-bold hover:scale-[1.04] hover:bg-primary"
-          >
-            <Link href="/app">Otwórz aplikację</Link>
-          </Button>
         </section>
       </main>
 
