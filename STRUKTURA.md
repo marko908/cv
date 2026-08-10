@@ -843,6 +843,15 @@ nie mockupy — 6 z 9 szablonów) → `PricingSection` (`id="cennik"`, dane z
 `<details>/<summary>`, celowo bez biblioteki akordeonu — jedyne miejsce, które
 go potrzebuje) → CTA końcowe (bez zmian) → `Stopka`.
 
+**Plan treści: `scripts/blog/PLAN-TRESCI.md`** — 15 tematów w trzech falach
+publikacji, każdy z frazą główną, szkicem sekcji, linkowaniem wewnętrznym
+i **haczykiem sprzedażowym** (most między treścią a produktem). Zawiera też
+zasady wstawek sprzedażowych i twarde granice treści (zakaz obiecywania
+zatrudnienia — Regulamin § 3 ust. 13, zakaz opisywania nieistniejących funkcji).
+Skill `/blog-post` czyta ten plik na starcie. Kolejność fal jest celowa: świeża
+domena nie wygra frazy „jak napisać CV" z pracuj.pl, więc zaczynamy od wąskich
+pytań i budujemy autorytet, zanim sięgniemy po frazy główne.
+
 **Dlaczego brak sekcji „social proof"/liczników użycia (inspiracja: resumax.ai)
 — decyzja Marka 2026-08-10.** Aplikacja ma dziś ZERO użytkowników (patrz
 `WDROZENIE.md`), więc loga firm, cytaty klientów i liczniki „X CV

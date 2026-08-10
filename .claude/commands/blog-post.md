@@ -189,5 +189,20 @@ checklista SEO) oraz `scripts/blog/obrazki-[slug].md` (prompty do grafik).
    obrazków w panelu), oraz że status to `szkic` — publikacja jest ręczna.
 
 ## Argumenty
-`$ARGUMENTS` to temat. Pusty → zapytaj o temat. Krótki (np. „CV bez
-doświadczenia") → potraktuj jako frazę główną i zaproponuj tytuł oraz strukturę.
+`$ARGUMENTS` to temat albo NUMER z planu treści. Pusty → zapytaj o temat.
+Krótki (np. „CV bez doświadczenia") → potraktuj jako frazę główną i zaproponuj
+tytuł oraz strukturę.
+
+## Plan treści — sprawdź go ZAWSZE na starcie
+
+`scripts/blog/PLAN-TRESCI.md` zawiera 15 zaplanowanych tematów z frazą główną,
+szkicem sekcji, pomysłem na linkowanie wewnętrzne i — najważniejsze — polem
+**Haczyk**, czyli konkretnym mostem między treścią a produktem.
+
+Jeśli temat podany przez użytkownika odpowiada pozycji z planu (albo użytkownik
+podał numer), **użyj tego, co tam stoi**, zamiast wymyślać strukturę od nowa —
+plan niesie decyzje, które już zapadły. Po wygenerowaniu artykułu odhacz
+pozycję (`[ ]` → `[x]`) w tym pliku.
+
+W planie są też zasady wstawek sprzedażowych i twarde granice tego, czego
+w treści być nie może. Obowiązują tak samo, jak reguły wypisane wyżej.
