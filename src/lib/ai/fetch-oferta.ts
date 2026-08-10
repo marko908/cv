@@ -16,6 +16,11 @@
  */
 
 import { BladAdresu, pobierzBezpiecznie } from "@/lib/bezpieczenstwo/adresy";
+import {
+  czyPoprawnyLink as czyPoprawny,
+  czySerwisOfert,
+  KOMUNIKAT_NIEZNANY_SERWIS,
+} from "./serwisy-ofert";
 
 const LIMIT_ZNAKOW = 20000; // ogłoszenia bywają długie; więcej nie wnosi nic dla modelu
 const TIMEOUT_MS = 12000;
@@ -24,17 +29,13 @@ const MAX_BAJTOW_ODPOWIEDZI = 5 * 1024 * 1024;
 
 export class BladPobraniaOferty extends Error {}
 
-/** Czy tekst wygląda na sensowny adres http(s). */
-export function czyPoprawnyLink(url: string): boolean {
-  const t = url.trim();
-  if (!t) return false;
-  try {
-    const u = new URL(/^https?:\/\//i.test(t) ? t : `https://${t}`);
-    return !!u.hostname && u.hostname.includes(".");
-  } catch {
-    return false;
-  }
-}
+/*
+ * `czyPoprawnyLink` i lista serwisów mieszkają w `serwisy-ofert.ts` — module
+ * BEZ zależności od Node. Ten plik importuje `node:dns` (przez kontrolę SSRF),
+ * więc gdyby komponent kliencki sięgał po walidację tutaj, wciągałby moduły
+ * serwerowe do bundla przeglądarki.
+ */
+export { czyPoprawnyLink } from "./serwisy-ofert";
 
 function odkodujEncje(s: string): string {
   return s
@@ -142,8 +143,17 @@ function zJsonLd(html: string): string | null {
  * z komunikatem dla użytkownika, gdy się nie uda.
  */
 export async function pobierzTrescOferty(url: string): Promise<string> {
-  if (!czyPoprawnyLink(url)) {
+  if (!czyPoprawny(url)) {
     throw new BladPobraniaOferty("To nie wygląda na poprawny adres strony.");
+  }
+
+  /*
+   * Filtr JAKOŚCI wejścia, nie zabezpieczenie (patrz `serwisy-ofert.ts`):
+   * odsiewa przypadkowo wklejone adresy, które nie prowadzą do ogłoszenia.
+   * Odrzucenie kieruje do wklejenia treści ręcznie, więc nikogo nie blokuje.
+   */
+  if (!czySerwisOfert(url)) {
+    throw new BladPobraniaOferty(KOMUNIKAT_NIEZNANY_SERWIS);
   }
   const pelny = /^https?:\/\//i.test(url.trim())
     ? url.trim()

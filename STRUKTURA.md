@@ -891,8 +891,33 @@ te parsuje `unpdf`, który ma WŁASNĄ, wbudowaną kopię pdf.js bez zależnośc
 podglądu PDF-ów, które sami generujemy. Aktualizacja wymaga skoku majora
 (6.x) i przetestowania podglądu CV — otwarty punkt, nie pilny.
 
+**`src/lib/ai/serwisy-ofert.ts` — lista serwisów, z których przyjmujemy LINK**
+(decyzja Marka 2026-08-10). To filtr JAKOŚCI wejścia, NIE zabezpieczenie:
+ogranicza przypadkowe wklejenie adresu bez związku z ofertą (artykuł, strona
+główna firmy, dokument w chmurze), po którym model dostawał tekst bez wymagań
+i produkował dopasowanie do niczego. Od bezpieczeństwa jest `adresy.ts`.
+
+Odrzucenie NIE KOŃCZY DROGI — `/api/dopasuj` zwraca 422, a `tailor-flow` prosi
+o wklejenie treści ręcznie (ta sama ścieżka, co przy portalu renderowanym
+w przeglądarce). Dzięki temu lista może być niepełna, nikogo nie blokując.
+`tailor-flow` sprawdza to też po stronie klienta, żeby powiedzieć o tym OD RAZU
+w formularzu, zamiast po pełnym przebiegu analizy.
+
+Dopasowanie obejmuje poddomeny (`jobs.lever.co` pasuje do `lever.co`), ale nie
+domeny kończące się tym samym ciągiem (`nie-pracuj.pl` ≠ `pracuj.pl`) ani
+prefiksowe podszywanie (`pracuj.pl.zly-host.com`). Cztery grupy: polskie
+portale, zagraniczne, praca zdalna oraz **systemy rekrutacyjne (ATS)** — ta
+ostatnia jest równie ważna, bo coraz więcej ofert żyje wyłącznie pod adresem
+typu `jobs.lever.co/firma/…` albo `firma.myworkdayjobs.com`.
+
+⚠️ **Moduł NIE MOŻE importować niczego z `node:`** — sięga po niego komponent
+kliencki `tailor-flow.tsx`. Z tego samego powodu `czyPoprawnyLink` przeniesiono
+tu z `fetch-oferta.ts` (które przez kontrolę SSRF ciągnie `node:dns`);
+`fetch-oferta` re-eksportuje ją dla zgodności.
+
 Weryfikacja: `npx tsx scripts/probne-audyt.ts` (skrypt roboczy, poza repo —
-20 kontroli: odrzucanie adresów prywatnych, sygnatury plików, bomba zip).
+33 kontrole: odrzucanie adresów prywatnych, sygnatury plików, bomba zip, lista
+serwisów wraz z próbami podszycia się pod domenę).
 
 ## Blog (`/blog`, od 2026-08-10)
 
@@ -994,6 +1019,8 @@ API: `runtime nodejs`, `maxDuration 60`.
 - **Parsowanie oferty** → `job-offer.ts` · **wiedza branżowa/synonimy** → `slownik.ts`
 - **Import CV (ekstrakcja/mapowanie/linki)** → `parse-cv.ts` + `/api/parsuj-cv`
 - **Pobieranie oferty z linku** → `fetch-oferta.ts` (wpięte w `/api/dopasuj`; przy niepowodzeniu 422 `kod:"link-nieudany"` → UI prosi o wklejenie treści)
+- **Dopisanie serwisu z ogłoszeniami (portal / ATS)** → `src/lib/ai/serwisy-ofert.ts`, jedyne miejsce — moduł bez importów z `node:`, bo używa go też komponent kliencki
+- **Kontrola adresów pobieranych przez serwer (SSRF)** → `src/lib/bezpieczenstwo/adresy.ts` · **kontrola wgrywanych plików** → `src/lib/bezpieczenstwo/pliki.ts`
 - **Opis „co zmieniliśmy/dlaczego"** → `changes.ts`
 - **Model danych CV** → `cv-schema.ts` (zmiana schematu = zmiana w store, edytorze, PDF)
 - **Stan/persist/biblioteka CV** → `store.ts`

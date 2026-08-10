@@ -36,7 +36,11 @@ import {
   type PytanieWywiadu,
 } from "@/lib/ai/interview";
 import type { ParsedOferta } from "@/lib/ai/job-offer";
-import { czyPoprawnyLink } from "@/lib/ai/fetch-oferta";
+import {
+  czyPoprawnyLink,
+  czySerwisOfert,
+  KOMUNIKAT_NIEZNANY_SERWIS,
+} from "@/lib/ai/serwisy-ofert";
 import { czyAktywna } from "@/lib/subscription";
 import { pobierzUprawnienia, zuzyjDarmoweDopasowanie } from "@/lib/supabase/repo";
 import { PaywallDialog } from "./paywall-dialog";
@@ -349,7 +353,17 @@ function ConfigStep({
   // o ręczne wklejenie (komunikat `blad`).
   const maTresc = jobPosting.text.trim().length >= 40;
   const maLink = czyPoprawnyLink(jobPosting.url);
-  const canRun = maTresc || maLink;
+  /*
+   * Adres poprawny, ale spoza znanych serwisów z ogłoszeniami. Mówimy o tym
+   * OD RAZU w formularzu, zamiast pozwolić uruchomić analizę i odbić ją
+   * dopiero z serwera — użytkownik oszczędza pełny przebieg i widzi, co ma
+   * zrobić zamiast tego. Serwer sprawdza to i tak (`fetch-oferta.ts`), ta
+   * kontrola jest wyłącznie dla wygody.
+   */
+  const nieznanySerwis = maLink && !czySerwisOfert(jobPosting.url);
+  // Sam link spoza listy nie wystarczy do startu — ale z wklejoną treścią tak,
+  // bo wtedy niczego nie pobieramy.
+  const canRun = maTresc || (maLink && !nieznanySerwis);
   return (
     <>
       <DialogHeader>
@@ -375,7 +389,13 @@ function ConfigStep({
             value={jobPosting.url}
             onChange={(e) => setJobPosting({ url: e.target.value })}
             placeholder="https://www.pracuj.pl/praca/..."
+            aria-invalid={nieznanySerwis || undefined}
           />
+          {nieznanySerwis && (
+            <p className="text-xs text-muted-foreground">
+              {KOMUNIKAT_NIEZNANY_SERWIS}
+            </p>
+          )}
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="flow-text">
