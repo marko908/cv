@@ -859,6 +859,41 @@ JEDNORAZOWO skryptem `scripts/generuj-miniatury-marketing.ts` (ten sam
 komponent co eksport PDF, nie osobna implementacja) — nie stockowe zdjęcia
 z zewnętrznego CDN. `pointer-events-none`, czysto dekoracyjna.
 
+## Bezpieczeństwo wejść od użytkownika (audyt 2026-08-10)
+
+`src/lib/bezpieczenstwo/` — kontrole dla dwóch miejsc, w których dane obcego
+pochodzenia docierają do serwera: wgrany plik CV i adres ogłoszenia.
+
+**`adresy.ts` — SSRF.** `/api/dopasuj` pobiera ogłoszenie spod adresu podanego
+przez użytkownika i ODSYŁA MU jego treść. Dawna walidacja sprawdzała tylko, czy
+host zawiera kropkę — `127.0.0.1` też ją zawiera, więc każdy zalogowany mógł
+kazać serwerowi odpytać `localhost`, sieć prywatną albo punkt metadanych chmury
+(`169.254.169.254`) i odczytać wynik. `pobierzBezpiecznie` sprawdza schemat
+(tylko http/https), rozwiązuje host i weryfikuje IP względem zakresów
+prywatnych/pętli zwrotnej/link-local, powtarza kontrolę PRZY KAŻDYM
+przekierowaniu (`redirect: "manual"` — `follow` sprawdziłby wyłącznie pierwszy
+adres) i ucina odpowiedź na limicie rozmiaru. NIE chroni przed przepięciem DNS
+— świadomie, patrz komentarz w pliku.
+
+**`pliki.ts` — wgrywane CV.** Plik NIE JEST nigdzie zapisywany ani serwowany,
+więc ryzykiem nie jest roznoszenie wirusów, tylko wroga zawartość atakująca sam
+parser. Dwie kontrole przed oddaniem bajtów do pdf.js/mammoth: rozpoznanie
+formatu po SYGNATURZE (wcześniej decydowało samo rozszerzenie nazwy, czyli dana
+od wysyłającego) oraz kontrola współczynnika kompresji DOCX z katalogu
+centralnego ZIP-a, żeby bomba zip nie wywróciła funkcji na pamięci, zanim limit
+tekstu zdąży zadziałać. Do tego `przytnijDoModelu` w `parse-cv.ts` ogranicza
+tekst idący do modelu (koszt tokenów).
+
+**`pdfjs-dist` 5.6.205 ma podatność GHSA-hq66-cqwq-w95j** („arbitrary JS
+execution upon opening a malicious PDF"). NIE dotyczy plików od użytkowników:
+te parsuje `unpdf`, który ma WŁASNĄ, wbudowaną kopię pdf.js bez zależności od
+`pdfjs-dist` i bez `isEvalSupported` w bundlu. `pdfjs-dist` służy wyłącznie do
+podglądu PDF-ów, które sami generujemy. Aktualizacja wymaga skoku majora
+(6.x) i przetestowania podglądu CV — otwarty punkt, nie pilny.
+
+Weryfikacja: `npx tsx scripts/probne-audyt.ts` (skrypt roboczy, poza repo —
+20 kontroli: odrzucanie adresów prywatnych, sygnatury plików, bomba zip).
+
 ## Blog (`/blog`, od 2026-08-10)
 
 Kanał pozyskiwania ruchu organicznego. Treść pisze AI przez skille

@@ -3,8 +3,14 @@ import { czyAiDostepne } from "@/lib/ai/models";
 import {
   czyObslugiwanyPlik,
   parsujCvZTekstu,
+  przytnijDoModelu,
   wyodrebnijTekstZLinkami,
 } from "@/lib/ai/parse-cv";
+import {
+  BladPliku,
+  rozpoznajFormat,
+  sprawdzArchiwumDocx,
+} from "@/lib/bezpieczenstwo/pliki";
 
 /**
  * Import zewnętrznego CV: plik (PDF/DOCX/TXT) → ustrukturyzowane CV.
@@ -58,6 +64,15 @@ export async function POST(request: Request) {
 
   try {
     const bytes = new Uint8Array(await plik.arrayBuffer());
+
+    /*
+     * Kontrola ZAWARTOŚCI przed oddaniem bajtów parserowi. Sprawdzenie
+     * rozszerzenia wyżej jest tylko szybkim odsianiem — nazwa pliku pochodzi
+     * od wysyłającego, więc sama w sobie nie jest żadnym zabezpieczeniem.
+     */
+    const format = rozpoznajFormat(bytes, plik.name);
+    if (format === "docx") sprawdzArchiwumDocx(bytes);
+
     // Razem z tekstem zbieramy adresy ukryte pod hiperłączami (np. napis
     // „LinkedIn" podpięty pod prawdziwy adres profilu).
     const { tekst, linki } = await wyodrebnijTekstZLinkami(bytes, plik.name);
@@ -73,7 +88,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const wynik = await parsujCvZTekstu(tekst, linki);
+    const wynik = await parsujCvZTekstu(przytnijDoModelu(tekst), linki);
 
     // Diagnostyka tylko do logów serwera — pomaga oceniać jakość parsera.
     console.log("[parsuj-cv]", {
@@ -92,6 +107,12 @@ export async function POST(request: Request) {
       linki: linki.length,
     });
   } catch (e) {
+    // Odrzucenie z powodu formatu/rozmiaru to informacja DLA użytkownika
+    // (wgrał nie to, co trzeba), a nie awaria serwera — stąd 400 i własny
+    // komunikat zamiast ogólnego 500.
+    if (e instanceof BladPliku) {
+      return NextResponse.json({ ok: false, error: e.message }, { status: 400 });
+    }
     console.error("[parsuj-cv] błąd:", e);
     return NextResponse.json(
       {

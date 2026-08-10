@@ -28,6 +28,10 @@ import { APLIKACJA, FIRMA, SCIEZKI } from "@/lib/prawne/dane";
  * już nikt nie widzi.
  */
 const ODNOSNIKI = [
+  // Blog stoi PRZED dokumentami prawnymi: to jedyna pozycja, którą czytelnik
+  // realnie klika, a przy okazji daje wyszukiwarce link do bloga z każdej
+  // podstrony serwisu (najtańsze linkowanie wewnętrzne, jakie mamy).
+  { href: "/blog", etykieta: "Blog" },
   { href: SCIEZKI.regulamin, etykieta: "Regulamin" },
   { href: SCIEZKI.politykaPrywatnosci, etykieta: "Polityka prywatności" },
   { href: SCIEZKI.regulaminNewslettera, etykieta: "Regulamin newslettera" },

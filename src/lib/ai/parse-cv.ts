@@ -30,9 +30,30 @@ export type WynikImportu = {
 
 const OBSLUGIWANE = [".pdf", ".docx", ".txt"] as const;
 
+/**
+ * Wstępne odsianie po rozszerzeniu — TANIE, ale NIEWYSTARCZAJĄCE jako kontrola
+ * bezpieczeństwa: nazwa pliku pochodzi od wysyłającego. Prawdziwe rozpoznanie
+ * formatu robi `rozpoznajFormat` (sygnatura bajtów) w `bezpieczenstwo/pliki.ts`.
+ */
 export function czyObslugiwanyPlik(nazwa: string): boolean {
   const n = nazwa.toLowerCase();
   return OBSLUGIWANE.some((ext) => n.endsWith(ext));
+}
+
+/**
+ * Górny limit tekstu przekazywanego do modelu.
+ *
+ * CV mieści się w kilku tysiącach znaków; 200 tys. to zapas rzędu wielkości.
+ * Bez tego limitu gęsty plik w granicach dozwolonych 5 MB potrafi dać miliony
+ * znaków, a każdy z nich to token, za który płacimy — i to przy wywołaniu,
+ * które i tak zwróci śmieci.
+ */
+const MAX_ZNAKOW_DO_MODELU = 200_000;
+
+export function przytnijDoModelu(tekst: string): string {
+  return tekst.length > MAX_ZNAKOW_DO_MODELU
+    ? tekst.slice(0, MAX_ZNAKOW_DO_MODELU)
+    : tekst;
 }
 
 /**

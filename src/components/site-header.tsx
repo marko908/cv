@@ -19,6 +19,15 @@ export function SiteHeader() {
           </span>
         </Link>
         <nav className="flex items-center gap-4 sm:gap-6">
+          {/* Blog widoczny TAKŻE na telefonie (bez `hidden sm:inline-block`,
+              które ukrywa Cennik) — to wejście dla ruchu z wyszukiwarki,
+              a większość tego ruchu przychodzi z telefonu. */}
+          <Link
+            href="/blog"
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            Blog
+          </Link>
           <Link
             href="/#cennik"
             className="hidden text-sm text-muted-foreground hover:text-foreground sm:inline-block"

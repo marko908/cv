@@ -15,8 +15,12 @@
  * Bez AI — czysty kod, więc nic nie kosztuje i niczego nie zmyśla.
  */
 
+import { BladAdresu, pobierzBezpiecznie } from "@/lib/bezpieczenstwo/adresy";
+
 const LIMIT_ZNAKOW = 20000; // ogłoszenia bywają długie; więcej nie wnosi nic dla modelu
 const TIMEOUT_MS = 12000;
+/** Twardy limit pobieranej strony — ogłoszenie to kilkaset kB HTML-a, nie więcej. */
+const MAX_BAJTOW_ODPOWIEDZI = 5 * 1024 * 1024;
 
 export class BladPobraniaOferty extends Error {}
 
@@ -147,10 +151,23 @@ export async function pobierzTrescOferty(url: string): Promise<string> {
 
   let html: string;
   try {
-    const res = await fetch(pelny, {
-      redirect: "follow",
-      signal: AbortSignal.timeout(TIMEOUT_MS),
-      headers: {
+    /*
+     * OCHRONA PRZED SSRF (audyt 2026-08-10). Wcześniej szło tu zwykłe `fetch`
+     * z `redirect: "follow"` na adres wprost od użytkownika, a treść
+     * odpowiedzi wracała do niego jako „treść oferty". To znaczyło, że każdy
+     * zalogowany mógł kazać serwerowi odpytać `http://127.0.0.1:…`, adres
+     * w sieci prywatnej albo punkt metadanych chmury i przeczytać wynik —
+     * dawna walidacja przepuszczała je, bo sprawdzała tylko, czy host zawiera
+     * kropkę.
+     *
+     * `pobierzBezpiecznie` sprawdza schemat, rozwiązuje host i weryfikuje
+     * adres IP, powtarza tę kontrolę przy KAŻDYM przekierowaniu i ucina
+     * odpowiedź na limicie rozmiaru.
+     */
+    html = await pobierzBezpiecznie(pelny, {
+      timeoutMs: TIMEOUT_MS,
+      maxBajtow: MAX_BAJTOW_ODPOWIEDZI,
+      naglowki: {
         // Bez nagłówka przeglądarki część portali odsyła pustą stronę.
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Safari/537.36",
@@ -158,14 +175,11 @@ export async function pobierzTrescOferty(url: string): Promise<string> {
         Accept: "text/html,application/xhtml+xml",
       },
     });
-    if (!res.ok) {
-      throw new BladPobraniaOferty(
-        `Strona odpowiedziała błędem ${res.status}.`
-      );
-    }
-    html = await res.text();
   } catch (e) {
     if (e instanceof BladPobraniaOferty) throw e;
+    // Komunikat z kontroli adresu jest zrozumiały dla użytkownika i nie
+    // zdradza, co siedzi po drugiej stronie — przepuszczamy go dalej.
+    if (e instanceof BladAdresu) throw new BladPobraniaOferty(e.message);
     throw new BladPobraniaOferty(
       "Nie udało się połączyć ze stroną ogłoszenia."
     );
