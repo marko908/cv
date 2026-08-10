@@ -8,10 +8,15 @@
  * dopisek "5 z 9 kryteriów rubryki" zamiast twierdzenia, że te liczby sumują
  * się do całego wyniku.
  *
- * Przykład „przed/po" NIE dodaje żadnej nowej liczby ani umiejętności —
- * tylko przestawia i doprecyzowuje fakty, które kandydat już podał. To
- * najważniejsze zdanie na tej stronie: pokazujemy DOWÓD zasady „AI nie pisze
- * CV", nie tylko o niej mówimy (ta zasada ma własną sekcję niżej).
+ * Przykład „przed/po" (2026-08-10, druga wersja — pierwsza była zbyt płaska,
+ * „przed" i „po" różniły się tylko szykiem zdania) pokazuje realny mechanizm
+ * WYWIADU (`interview.ts`): AI dopytuje o brakującą liczbę/skalę przy zbyt
+ * ogólnym punkcie CV, a odpowiedź kandydata wplata w zdanie. „Przed" jest
+ * celowo ubogie i nieprecyzyjne (bez zespołu, skali, efektu), „po" konkretne —
+ * ale KAŻDY szczegół w „po" pochodzi z odpowiedzi kandydata, nie z fantazji
+ * modelu. To najważniejsze zdanie na tej stronie: pokazujemy DOWÓD zasady
+ * „AI nie pisze CV", nie tylko o niej mówimy (ta zasada ma własną sekcję
+ * niżej).
  */
 
 const KRYTERIA = [
@@ -83,8 +88,8 @@ export function ProofSection() {
             ))}
           </div>
           <p className="mt-4 text-xs text-muted-foreground">
-            5 z 9 kryteriów rubryki — pełny raport pokazuje wszystkie, z
-            uzasadnieniem przy każdym.
+            5 z 9 kryteriów rubryki - pełny raport pokazuje więcej pól
+            z wyjaśnieniem.
           </p>
         </div>
 
@@ -95,22 +100,22 @@ export function ProofSection() {
             <div className="rounded-lg border border-border p-3">
               <p className="eyebrow text-muted-foreground">Przed</p>
               <p className="mt-1.5 text-sm leading-relaxed">
-                Odpowiadałem za rozwój strony sklepu internetowego w zespole
-                frontendowym.
+                Zajmowałem się rozwojem strony internetowej sklepu.
               </p>
             </div>
             <div className="rounded-lg border border-primary/40 bg-primary/5 p-3">
               <p className="eyebrow text-primary">Po</p>
               <p className="mt-1.5 text-sm leading-relaxed">
-                Rozwijałem stronę sklepu internetowego w zespole
-                frontendowym, koncentrując się na optymalizacji wydajności i
-                SEO - kluczowych wymaganiach z tej oferty.
+                Rozwijałem stronę internetową sklepu w zespole 4 programistów,
+                wdrażając zmiany, które zwiększyły konwersję koszyka o 12%
+                w ciągu pół roku.
               </p>
             </div>
           </div>
           <p className="mt-4 flex-1 text-xs text-muted-foreground">
-            Żadna liczba ani umiejętność nie została dodana - AI tylko
-            uporządkowała fakty, które już były w Twoim CV.
+            Liczby i szczegóły pochodzą z Twojej odpowiedzi w krótkim
+            wywiadzie - AI tylko ułożyła je w zdanie. Nic nie zostało
+            zmyślone.
           </p>
         </div>
       </div>
