@@ -12,6 +12,12 @@ import { Button } from "@/components/ui/button";
 import { SiteHeader } from "@/components/site-header";
 import { Stopka } from "@/components/stopka";
 import { CvTemplateMarquee } from "@/components/cv-template-marquee";
+import { ProofSection } from "@/components/landing/proof-section";
+import { HowItWorksSection } from "@/components/landing/how-it-works-section";
+import { WhyDifferentSection } from "@/components/landing/why-different-section";
+import { TemplateShowcaseSection } from "@/components/landing/template-showcase-section";
+import { PricingSection } from "@/components/landing/pricing-section";
+import { FaqSection } from "@/components/landing/faq-section";
 
 const features = [
   {
@@ -76,6 +82,10 @@ export default function Home() {
           </div>
         </section>
 
+        <ProofSection />
+        <HowItWorksSection />
+        <WhyDifferentSection />
+
         {/* Dwie ścieżki — karty jak playlisty */}
         <section className="mx-auto grid w-full max-w-4xl gap-4 px-4 pb-20 sm:grid-cols-2">
           <Link href="/app/kreator" className="group">
@@ -130,6 +140,10 @@ export default function Home() {
             ))}
           </div>
         </section>
+
+        <TemplateShowcaseSection />
+        <PricingSection />
+        <FaqSection />
 
         {/* CTA */}
         <section className="mx-auto flex w-full max-w-4xl flex-col items-center px-4 pb-24 text-center">

@@ -805,6 +805,36 @@ odznaczone, „Odrzuć wszystkie" obok „Akceptuję wszystkie" — ten sam rozm
 rząd i jedno kliknięcie, baner BEZ krzyżyka (zamknięcie nie może uchodzić za
 zgodę). Odmowa niczego nie ogranicza.
 
+**Landing (`/`, od 2026-08-10) — sekcje w `src/components/landing/`, jedna
+na plik, złożone w `src/app/page.tsx`.** Kolejność: hero (z `CvTemplateMarquee`
+w tle, patrz niżej) → `ProofSection` (statyczny, ręcznie przygotowany przykład
+wyniku — NIE żywy `scoring.ts` liczony na serwerze; kategorie i wagi
+odpowiadają realnej rubryce, ale liczby są zmyślone na potrzeby przykładu,
+stąd dopisek „5 z 9 kryteriów") → `HowItWorksSection` → `WhyDifferentSection`
+(argument „AI nie pisze CV" jako osobna sekcja, nie dopisek) → „dwie ścieżki"
+i „cechy" (bez zmian) → `TemplateShowcaseSection` (prawdziwe `TemplateThumb`,
+nie mockupy — 6 z 9 szablonów) → `PricingSection` (`id="cennik"`, dane z
+`subscription.ts`, WYŁĄCZNIE informacyjna — wybór okresu i zakup żyją w
+`paywall-dialog.tsx` po zalogowaniu) → `FaqSection` (natywny
+`<details>/<summary>`, celowo bez biblioteki akordeonu — jedyne miejsce, które
+go potrzebuje) → CTA końcowe (bez zmian) → `Stopka`.
+
+**Dlaczego brak sekcji „social proof"/liczników użycia (inspiracja: resumax.ai)
+— decyzja Marka 2026-08-10.** Aplikacja ma dziś ZERO użytkowników (patrz
+`WDROZENIE.md`), więc loga firm, cytaty klientów i liczniki „X CV
+dopasowanych" byłyby zmyślone. Dodać dopiero, gdy będą prawdziwe dane.
+
+**`CvTemplateMarquee`** (`src/components/cv-template-marquee.tsx`) — diagonalna,
+bardzo przezroczysta (opacity kafelków 8%) karuzela PRAWDZIWYCH miniatur
+szablonów w tle hero, na całą szerokość strony (wyjęta z `max-w-4xl` treści do
+osobnej, nieograniczonej sekcji — treść stoi nad nią w `relative z-10`).
+Zanikanie na krawędziach przez dwa nakładające się gradienty do
+`var(--background)`, NIE `overflow-hidden` bez maski (twardo ucinało kafelki).
+Obrazki to statyczne PNG w `public/marketing/szablony/`, wygenerowane
+JEDNORAZOWO skryptem `scripts/generuj-miniatury-marketing.ts` (ten sam
+komponent co eksport PDF, nie osobna implementacja) — nie stockowe zdjęcia
+z zewnętrznego CDN. `pointer-events-none`, czysto dekoracyjna.
+
 **Trasy** (`src/app/`): `/` landing · `/rejestracja` · `/logowanie` ·
 `/reset-hasla` (wszystkie trzy = `StronaAuth`) · `/auth/callback` (powrót
 z logowania Google, trasa serwerowa) · `/dokoncz-rejestracje` (bramka zgody dla

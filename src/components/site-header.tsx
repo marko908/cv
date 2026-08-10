@@ -18,8 +18,16 @@ export function SiteHeader() {
             Aplikando
           </span>
         </Link>
-        <nav className="flex items-center gap-1 sm:gap-2">
-          <PrzyciskiKontaNaglowek />
+        <nav className="flex items-center gap-4 sm:gap-6">
+          <Link
+            href="/#cennik"
+            className="hidden text-sm text-muted-foreground hover:text-foreground sm:inline-block"
+          >
+            Cennik
+          </Link>
+          <div className="flex items-center gap-1 sm:gap-2">
+            <PrzyciskiKontaNaglowek />
+          </div>
         </nav>
       </div>
     </header>
