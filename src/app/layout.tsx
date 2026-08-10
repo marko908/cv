@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { DostawcaZgodCookies } from "@/components/cookies/kontekst-zgod";
 import { StoreHydration } from "@/components/store-hydration";
+import { APLIKACJA } from "@/lib/prawne/dane";
 
 // Figtree — najbliższy dostępny odpowiednik kroju Circular/SpotifyMix.
 const figtree = Figtree({
@@ -28,6 +29,14 @@ const lato = localFont({
 });
 
 export const metadata: Metadata = {
+  /*
+   * BEZ `metadataBase` Next renderuje `og:image` i `canonical` jako ścieżki
+   * WZGLĘDNE. Crawlery i podglądy linków (Facebook, LinkedIn, Slack, WhatsApp)
+   * wymagają adresów bezwzględnych — bez tego miniatura nie pokazuje się nigdzie,
+   * a canonical jest ignorowany. Dotyczy CAŁEJ strony, nie tylko bloga; brak
+   * tego pola był realnym błędem SEO od początku projektu.
+   */
+  metadataBase: new URL(APLIKACJA.adresWww),
   title: "Aplikando — CV dopasowane do oferty pracy",
   description:
     "Dopasuj lub stwórz CV pod konkretną ofertę pracy. AI wytrenowane pod polski rynek pracy: ATS, RODO, profesjonalna polszczyzna bez amerykańskiego hype'u.",

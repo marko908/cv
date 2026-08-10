@@ -73,7 +73,20 @@ export async function proxy(request: NextRequest) {
   // bramki serwerowej dałoby się wejść na `/app/kreator` wpisując adres
   // wprost, mimo że UI już nigdzie do niego nie prowadzi niezalogowanego.
   const { pathname, search } = request.nextUrl;
-  if (!uzytkownik && pathname.startsWith("/app")) {
+
+  /*
+   * PANEL REDAKCYJNY `/admin` — wymaga nie tylko konta, ale roli `admin`.
+   *
+   * Tu sprawdzamy WYŁĄCZNIE zalogowanie; samą rolę weryfikuje layout panelu
+   * (`app/admin/layout.tsx`) przez RPC `czy_admin()`. Podział jest celowy:
+   * `proxy` biegnie przy KAŻDYM żądaniu pasującym do matchera, więc dokładanie
+   * tu odpytania bazy o rolę obciążałoby cały ruch — również ten na blogu
+   * i landingu — żeby obsłużyć jedną osobę.
+   *
+   * Zalogowany bez roli dostaje 404 z layoutu, nie przekierowanie na logowanie:
+   * „nie ma takiej strony" nie zdradza, że panel istnieje.
+   */
+  if (!uzytkownik && (pathname.startsWith("/app") || pathname.startsWith("/admin"))) {
     const cel = new URL("/logowanie", request.url);
     cel.searchParams.set("wroc", pathname + search);
     const przekierowanie = NextResponse.redirect(cel);

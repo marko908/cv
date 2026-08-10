@@ -151,6 +151,7 @@ export type Database = {
         Row: {
           email: string | null
           id: string
+          rola: string
           stripe_customer_id: string | null
           updated_at: string
           utworzono: string
@@ -159,6 +160,7 @@ export type Database = {
         Insert: {
           email?: string | null
           id: string
+          rola?: string
           stripe_customer_id?: string | null
           updated_at?: string
           utworzono?: string
@@ -167,6 +169,7 @@ export type Database = {
         Update: {
           email?: string | null
           id?: string
+          rola?: string
           stripe_customer_id?: string | null
           updated_at?: string
           utworzono?: string
@@ -229,6 +232,72 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      wpis_bloga: {
+        Row: {
+          canonical_url: string | null
+          czas_czytania_min: number
+          faq: Json
+          id: string
+          kategoria: string
+          meta_opis: string | null
+          meta_tytul: string | null
+          okladka_alt: string | null
+          okladka_url: string | null
+          opublikowano_o: string | null
+          slug: string
+          status: string
+          tagi: string[]
+          token_podgladu: string | null
+          tresc: string
+          tytul: string
+          updated_at: string
+          utworzono: string
+          zajawka: string | null
+        }
+        Insert: {
+          canonical_url?: string | null
+          czas_czytania_min?: number
+          faq?: Json
+          id?: string
+          kategoria?: string
+          meta_opis?: string | null
+          meta_tytul?: string | null
+          okladka_alt?: string | null
+          okladka_url?: string | null
+          opublikowano_o?: string | null
+          slug: string
+          status?: string
+          tagi?: string[]
+          token_podgladu?: string | null
+          tresc: string
+          tytul: string
+          updated_at?: string
+          utworzono?: string
+          zajawka?: string | null
+        }
+        Update: {
+          canonical_url?: string | null
+          czas_czytania_min?: number
+          faq?: Json
+          id?: string
+          kategoria?: string
+          meta_opis?: string | null
+          meta_tytul?: string | null
+          okladka_alt?: string | null
+          okladka_url?: string | null
+          opublikowano_o?: string | null
+          slug?: string
+          status?: string
+          tagi?: string[]
+          token_podgladu?: string | null
+          tresc?: string
+          tytul?: string
+          updated_at?: string
+          utworzono?: string
+          zajawka?: string | null
+        }
+        Relationships: []
       }
       zakup: {
         Row: {
@@ -491,11 +560,42 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      czy_admin: { Args: never; Returns: boolean }
       eksportuj_moje_dane: { Args: never; Returns: Json }
       klucz_miesiaca: { Args: never; Returns: string }
       ma_aktywna_subskrypcje: { Args: never; Returns: boolean }
       ma_dostep_do: { Args: { p_dopasowanie: string }; Returns: boolean }
       usun_moje_konto: { Args: never; Returns: undefined }
+      wpis_po_tokenie: {
+        Args: { p_token: string }
+        Returns: {
+          canonical_url: string | null
+          czas_czytania_min: number
+          faq: Json
+          id: string
+          kategoria: string
+          meta_opis: string | null
+          meta_tytul: string | null
+          okladka_alt: string | null
+          okladka_url: string | null
+          opublikowano_o: string | null
+          slug: string
+          status: string
+          tagi: string[]
+          token_podgladu: string | null
+          tresc: string
+          tytul: string
+          updated_at: string
+          utworzono: string
+          zajawka: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "wpis_bloga"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       zuzyj_darmowe_dopasowanie: {
         Args: { p_dopasowanie: string }
         Returns: boolean

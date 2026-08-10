@@ -859,7 +859,79 @@ JEDNORAZOWO skryptem `scripts/generuj-miniatury-marketing.ts` (ten sam
 komponent co eksport PDF, nie osobna implementacja) — nie stockowe zdjęcia
 z zewnętrznego CDN. `pointer-events-none`, czysto dekoracyjna.
 
-**Trasy** (`src/app/`): `/` landing · `/rejestracja` · `/logowanie` ·
+## Blog (`/blog`, od 2026-08-10)
+
+Kanał pozyskiwania ruchu organicznego. Treść pisze AI przez skille
+(`.claude/commands/blog-*.md`), redakcję i publikację robi człowiek
+w `/admin/blog`.
+
+**Nazewnictwo POLSKIE, jak reszta schematu** — tabela `wpis_bloga`, nie
+`blog_posts`; kolumny `tytul`/`tresc`/`zajawka`. Skille są napisane pod te
+nazwy, więc nie ma dwóch konwencji do pogodzenia.
+
+**TRZY RZECZY, KTÓRE ŁATWO ZEPSUĆ:**
+
+1. **`grant select on public.wpis_bloga to anon` JEST OBOWIĄZKOWY.** Migracja
+   `20260802160403_rls_polityki.sql` kończy się `revoke all on all tables in
+   schema public from anon`. Sama polityka RLS „opublikowane widzą wszyscy" nic
+   nie da — brak grantu ucina dostęp, zanim RLS zostanie sprawdzone. Blog byłby
+   pusty dla całego ruchu z Google i przy `generateStaticParams` w buildzie.
+2. **Podgląd szkiców idzie przez `SECURITY DEFINER` RPC `wpis_po_tokenie()`,
+   NIE przez `service_role`.** `klient-admin.ts` zostaje wyłącznie w webhooku
+   Stripe'a.
+3. **`profil.rola`** jest bezpieczne tylko dlatego, że `20260802160403` robi
+   `revoke update on profil from authenticated` + `grant update
+   (zgoda_marketing)`. Grant jest KOLUMNOWY, więc nikt nie podniesie sobie roli.
+   Rozszerzenie tego grantu na całą tabelę natychmiast otworzyłoby dziurę.
+
+**Pliki:** `lib/blog/typy.ts` (kształt wpisu + `KATEGORIE_BLOGA`) ·
+`lib/blog/utils.ts` (slug z polskimi znakami, czas czytania, kotwice
+w nagłówkach, `usunPromptyObrazkow`, `przygotujTresc` = jedno wejście
+wymuszające właściwą kolejność) · `lib/blog/schema.ts` (Article z
+`dateModified`, FAQPage, BreadcrumbList) · `lib/blog/zapytania.ts` (odczyty) ·
+`lib/blog/kompresja-obrazka.ts` (WebP w przeglądarce przed uploadem) ·
+`lib/supabase/klient-publiczny.ts` (**nowy, czwarty klient** — bez sesji
+i bez `cookies()`, żeby strony bloga dało się generować statycznie i odpytywać
+w `sitemap.ts`; `klient-serwer` zdegradowałby je do renderowania na żądanie).
+
+**Komponenty** (`components/blog/`): `artykul.tsx` (korpus WSPÓLNY dla
+`/blog/[slug]` i podglądu — dwie kopie rozjechałyby się, a podgląd różniący się
+od publikacji nie spełnia swojego zadania) · `karta-wpisu.tsx` ·
+`tresc-wpisu.tsx` (CTA wstawiane po ~40% akapitów; przy ≤3 akapitach nie
+przerywa) · `faq-wpisu.tsx` · `cta-bloga.tsx` (jedno źródło adresu i tekstu
+CTA, też dla skilla) · `spis-tresci.tsx` · `postep-czytania.tsx` ·
+`udostepnij.tsx` (ikony marek jako wklejone SVG — ta wersja `lucide-react` ich
+nie eksportuje, a zewnętrzny obrazek to żądanie do obcego serwera mimo odmowy
+zgód) · `powiazane-wpisy.tsx` · `admin/` (formularz, edytor Tiptap, biblioteka
+obrazków, edytor FAQ, podgląd SEO, akcje wiersza).
+
+**SEO — rzeczy nieoczywiste:**
+- **`metadataBase` w `layout.tsx`**: bez niego Next renderuje `og:image`
+  i canonical jako ścieżki WZGLĘDNE, których crawlery i podglądy linków nie
+  rozwiązują. Dotyczy CAŁEJ strony; brakowało go od początku projektu.
+- **`sitemap.ts` MUSI mieć `revalidate`** — to Route Handler cache'owany
+  domyślnie na stałe, więc bez tego nowy wpis nie trafiłby do sitemapy aż do
+  kolejnego wdrożenia. `lastModified` bierzemy z `updated_at`, nie
+  `new Date()`: fałszywe sygnały świeżości Google szybko przestaje honorować.
+- **Paginacja `/blog?page=N`**: strony 2+ dostają `noindex, follow` (te same
+  zajawki w innej kolejności = duplicate content), ale linki muszą być
+  przechodzone, stąd `follow`.
+- **`/blog` jest trasą dynamiczną**, bo czyta `searchParams` (paginacja).
+  Artykuły są statyczne (SSG + ISR) i to one biorą ruch z wyszukiwarki.
+  Gdyby lista stała się wąskim gardłem, trzeba przenieść paginację na segment
+  (`/blog/strona/2`), a nie kombinować z cache'em.
+- **`next.config.ts` → `images.remotePatterns`**: obrazki bloga są na domenie
+  Supabase, a `next/image` domyślnie odmawia optymalizacji obcych adresów
+  (błąd 400, nie ciche pominięcie).
+
+**Panel `/admin`:** `proxy.ts` odsiewa niezalogowanych, `app/admin/layout.tsx`
+sprawdza rolę przez RPC `czy_admin()` i przy braku daje `notFound()` (komunikat
+o braku uprawnień potwierdzałby, że panel istnieje). Sprawdzanie roli NIE stoi
+w `proxy.ts` celowo — biegłoby przy każdym żądaniu, także na blogu i landingu.
+
+**Trasy** (`src/app/`): `/` landing · `/blog` lista · `/blog/[slug]` artykuł ·
+`/blog/podglad/[token]` podgląd szkicu · `/admin/blog` panel redakcyjny ·
+`/rejestracja` · `/logowanie` ·
 `/reset-hasla` (wszystkie trzy = `StronaAuth`) · `/auth/callback` (powrót
 z logowania Google, trasa serwerowa) · `/dokoncz-rejestracje` (bramka zgody dla
 kont OAuth bez wpisu w dzienniku) · `/regulamin` ·
