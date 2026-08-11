@@ -137,6 +137,17 @@ Dopiero po akceptacji pisz pełną treść.
     Typy: `photo` (fotorealistyczne), `infographic` (dane/porównania),
     `screenshot` (z aplikacji). Alt MUSI różnić się od podpisu.
 
+    **Jeśli grafika ma zawierać jakikolwiek czytelny tekst (etykiety,
+    nagłówki, liczby z podpisem) — ten tekst MUSI być po polsku.** Blog jest
+    po polsku; angielskie etykiety w infografice (albo losowa krzywizna
+    generatora zamiast realnego tekstu) wyglądają jak niedopracowany,
+    nielokalny content. Dotyczy głównie `infographic` i `screenshot` —
+    `photo` z reguły w ogóle nie potrzebuje tekstu w kadrze, więc bezpieczniej
+    jest go unikać tam, gdzie się da (dopisz w prompcie „no visible text").
+    Gdy tekst jest jednak potrzebny (np. etykiety słupków, nazwy sekcji
+    w diagramie CV), wypisz w prompcie DOKŁADNE polskie słowa/frazy, które
+    mają się pojawić — nie zostawiaj generatorowi wyboru języka.
+
     **Okładka (`okladka_url`) dostaje prompt TEŻ — nie tylko przypomnienie.**
     Kontener na stronie ma proporcje 2:1 (`aspect-[2/1]`), więc pisz prompt
     pod ten kadr (landscape, 1200×600 lub podobne). Zapisz go w

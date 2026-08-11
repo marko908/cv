@@ -23,7 +23,7 @@ A realistic photo of a young professional sitting at a wooden desk in a bright h
 **Podpis:** Klauzula RODO trafia do stopki, mniejszą czcionką niż reszta CV
 
 **Prompt:**
-A clean minimal infographic showing a single page CV layout as a wireframe with gray placeholder text blocks for header, experience, and skills sections, with the bottom footer area highlighted in a soft accent color and a small text line labeled clearly as the RODO consent clause, flat design, plenty of white space, professional blue and white color scheme, no real text, vector style
+A clean minimal infographic showing a single page CV layout as a wireframe, with Polish text labels rendered clearly and legibly in a modern sans-serif font: the top block labeled "Dane osobowe", a middle block labeled "Doświadczenie zawodowe", another block labeled "Umiejętności", and the bottom footer area highlighted in a soft accent color with a small text label reading "Klauzula RODO". Flat design, plenty of white space, professional blue and white color scheme, vector illustration style. All visible text must be in Polish exactly as specified above, no English words anywhere in the image.
 
 ---
 

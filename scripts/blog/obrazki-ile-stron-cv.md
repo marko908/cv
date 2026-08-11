@@ -15,7 +15,7 @@ A realistic wide photo of two printed CV page stacks side by side on a bright de
 **Podpis:** Jedna strona przy stażu do 5 lat, druga dopiero przy dłuższym dorobku
 
 **Prompt:**
-A clean flat-design infographic comparing two CV page mockups side by side, left one labeled as a single page with a short career timeline icon, right one labeled as two pages with a longer timeline icon, minimal wireframe text blocks in gray, soft blue accent color, plenty of white space, no real readable text, professional vector illustration style
+A clean flat-design infographic comparing two CV page mockups side by side, with Polish text labels rendered clearly and legibly in a modern sans-serif font. Left mockup labeled "1 strona" with a smaller caption below reading "Do 5 lat doświadczenia". Right mockup labeled "2 strony" with a smaller caption below reading "Ponad 10 lat doświadczenia". Minimal gray wireframe text blocks representing CV content inside each page, soft blue accent color, plenty of white space, professional vector illustration style. All visible text must be in Polish exactly as specified above, no English words anywhere in the image.
 
 ## Grafika 2 — photo — `ile-stron-cv-02.webp`
 
