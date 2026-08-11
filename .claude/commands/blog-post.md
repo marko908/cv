@@ -110,6 +110,12 @@ Dopiero po akceptacji pisz pełną treść.
      CTA (mniej trafione niż dopasowane do tego artykułu — to właśnie ten
      błąd ma nie wracać). Nigdy nie zostawiaj dwóch bloków obok siebie.
 
+     Link w tym bloku owiń w `<p>`:
+     `<div class="blog-cta-inline"><p>…</p><p><a href="/rejestracja">…</a></p></div>`.
+     Goły `<a>` bezpośrednio w `<div>` jest poprawnym HTML-em, ale edytor
+     w panelu i tak owinie go w akapit przy pierwszym zapisie — pisząc tak
+     od razu, unikasz zmiany treści, której nikt nie zamawiał.
+
      Kontekstowe CTA nie powtarza liczb (cena, limit dopasowań) — te żyją
      wyłącznie w bloku końcowym, żeby nie trzeba było ich pilnować w każdym
      artykule osobno przy zmianie cennika.
@@ -212,6 +218,12 @@ checklista SEO) oraz `scripts/blog/obrazki-[slug].md` (prompty do grafik).
 1. Uruchom insert samodzielnie:
    `npx tsx --env-file=.env.local scripts/blog/insert-[slug].ts`
    NIE uruchamiaj dwa razy na ten sam slug (unikalny indeks).
+1b. Sprawdź `npm run test:edytor` — przepuszcza treść KAŻDEGO `insert-*.ts`
+   przez schemat edytora z panelu i pilnuje, że otwarcie artykułu w `/admin/blog`
+   i zapisanie go niczego nie zepsuje (`<figure>`, klasy `image-prompt`
+   i `blog-cta-inline`, brak doklejonego `nofollow`). Jeśli test zgłosi błąd
+   na Twoim artykule, użyłeś znacznika, którego edytor nie zna — zamień go na
+   obsługiwany albo dopisz węzeł w `src/components/blog/admin/rozszerzenia-tiptap.ts`.
 2. Podaj id artykułu i link do edycji `/admin/blog/[id]/edytuj`.
 3. Przypomnij, że zostały: okładka i podmiana grafik w treści (biblioteka
    obrazków w panelu), oraz że status to `szkic` — publikacja jest ręczna.

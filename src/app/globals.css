@@ -194,3 +194,41 @@
 .tresc-wpisu .blog-cta-inline {
   @apply my-8 rounded-lg bg-secondary p-5;
 }
+
+/* Edytor w panelu zapisuje treść przez ProseMirror, a ten OWIJA zawartość
+   komórek tabeli i punktów listy w `<p>` (jego schemat nie dopuszcza tam
+   gołego tekstu — patrz `scripts/test-edytor-bloga.ts`). Bez tego zerowania
+   marginesów każdy artykuł po pierwszym zapisie w panelu dostawał wyższe
+   wiersze tabeli i rozstrzelone punkty list, choć treść się nie zmieniła. */
+.tresc-wpisu :is(td, th, li) > p {
+  @apply my-0;
+}
+
+/* ---- oznaczenia widoczne WYŁĄCZNIE w edytorze ----
+   `edytor-tresci` dokłada `EdytorTresci` obok `tresc-wpisu`, więc czytelnik
+   bloga nigdy tego nie zobaczy. */
+
+/* Akapit z promptem do generatora grafik. Na stronie publicznej wycina go
+   `usunPromptyObrazkow`, ale w panelu ma być widać, że to notatka redakcyjna
+   do skasowania po wgraniu obrazka, a nie treść artykułu. */
+.edytor-tresci .image-prompt {
+  @apply rounded border border-dashed border-border bg-secondary/50 p-3 text-xs;
+}
+
+/* Pusty alt = grafika do pominięcia przez czytnik ekranu. Bywa poprawny, ale
+   przy grafice niosącej treść jest błędem, którego NIE WIDAĆ — stąd wyraźne
+   obramowanie i podpowiedź w panelu. Publikację blokuje `FormularzWpisu`. */
+.edytor-tresci figure img[alt=""] {
+  @apply outline-2 outline-offset-2 outline-destructive;
+}
+.edytor-tresci figure img[alt=""] + figcaption::after {
+  content: " ⚠ brak opisu alternatywnego (alt)";
+  @apply text-destructive;
+}
+
+/* Podpis jest zwykłą, edytowalną treścią węzła obrazka — pusty wyglądałby na
+   uszkodzony układ, więc mówimy wprost, że można w niego kliknąć. */
+.edytor-tresci figcaption:empty::before {
+  content: "Podpis pod obrazkiem (kliknij, aby dodać)";
+  @apply text-muted-foreground;
+}

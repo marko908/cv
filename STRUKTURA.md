@@ -976,7 +976,49 @@ CTA, też dla skilla) · `spis-tresci.tsx` · `postep-czytania.tsx` ·
 `udostepnij.tsx` (ikony marek jako wklejone SVG — ta wersja `lucide-react` ich
 nie eksportuje, a zewnętrzny obrazek to żądanie do obcego serwera mimo odmowy
 zgód) · `powiazane-wpisy.tsx` · `admin/` (formularz, edytor Tiptap, biblioteka
-obrazków, edytor FAQ, podgląd SEO, akcje wiersza).
+obrazków, edytor FAQ, podgląd SEO, akcje wiersza, okno obrazka).
+
+**EDYTOR W PANELU NIE JEST NEUTRALNY DLA TREŚCI (2026-08-11).** Tiptap parsuje
+HTML do swojego schematu i przy zapisie WYRZUCA wszystko, czego w schemacie nie
+ma — cicho, bez błędu w `tsc`, w buildzie ani w konsoli. Skill `/blog-post`
+pisze konstrukcje, od których zależy zachowanie renderu, więc każda z nich musi
+mieć swój węzeł w `admin/rozszerzenia-tiptap.ts`. Cztery rzeczy, które ginęły
+przed tą poprawką (wszystkie złapane dopiero testem, nie okiem):
+`<figure>/<figcaption>` (podpis spadał do zwykłego akapitu i tracił oprawę
+`prose-figcaption`), `class="image-prompt"` (bez niej `usunPromptyObrazkow` nie
+rozpoznaje promptu → prompt do generatora grafik trafia do CZYTELNIKA),
+`class="blog-cta-inline"` (bez niej `TrescWpisu` dokłada drugie, generyczne CTA
+— potrafiło wylądować w środku tabeli) oraz brak `nofollow`: wtyczka linków
+domyślnie dokleja `target="_blank" rel="noopener noreferrer nofollow"` do
+KAŻDEGO linku, czyli `nofollow` na linkowaniu wewnętrznym, na którym stoi cała
+strategia z `PLAN-TRESCI.md`.
+
+**`admin/rozszerzenia-tiptap.ts` = JEDNO ŹRÓDŁO schematu** — bez `"use client"`
+i bez importów z `@tiptap/react`, żeby `npm run test:edytor` mógł sprawdzać
+DOKŁADNIE tę listę w Node (test na atrapie nie chroniłby przed niczym). Trzy
+węzły własne: `ObrazekZPodpisem`, `AkapitPromptu`, `BlokCta`. Link i podkreślenie
+konfiguruje się przez `StarterKit.configure({ link: … })` — w wersji 3 są jego
+CZĘŚCIĄ, a dopisanie ich osobno daje „Duplicate extension names" i po cichu
+ignoruje drugą konfigurację. Zerowanie domyślnych atrybutów wymaga jawnego
+`{ target: null, rel: null }`, bo `configure()` SCALA obiekty — puste `{}`
+zostawia domyślki nietknięte.
+
+**Czego NIE da się utrzymać co do znaku:** tabele i listy Tiptap normalizuje
+z założenia (`<thead>` wtapia się w `<tbody>`, treść komórek i punktów listy
+dostaje `<p>`, dochodzi `<colgroup>`). Nie ma na to opcji, więc test wymaga tu
+IDEMPOTENCJI (drugi zapis nie zmienia już nic) zamiast równości, a `globals.css`
+zeruje marginesy `:is(td, th, li) > p`, żeby po pierwszym zapisie w panelu
+tabele i listy nie zrobiły się luźniejsze.
+
+**ALT USTAWIA SIĘ W OKNIE `admin/dialog-obrazka.tsx`**, nie ukrytym
+`window.prompt` (tak było do 2026-08-11 — nic nie pokazywało, że obrazek alt
+w ogóle ma). Ten sam przycisk paska wstawia nowy obrazek i edytuje zaznaczony.
+PODPIS celowo NIE jest w oknie: to treść węzła, więc pisze się go wprost pod
+obrazkiem. `FormularzWpisu` BLOKUJE publikację, dopóki któryś obrazek w treści
+albo okładka nie ma alt-u (`obrazkiBezAltu` w `lib/blog/utils.ts`); zapis szkicu
+przechodzi, bo wpis powstaje etapami. Klasa `edytor-tresci` (dokładana obok
+`tresc-wpisu` tylko w panelu) niesie oznaczenia dla redaktora: obwódkę przy
+pustym alcie i oprawę akapitu z promptem — czytelnik bloga ich nie widzi.
 
 **SEO — rzeczy nieoczywiste:**
 - **`metadataBase` w `layout.tsx`**: bez niego Next renderuje `og:image`
@@ -1129,6 +1171,8 @@ Pliki generowane dla robotów (nie strony, ale trasy): `/robots.txt`
 - **Opis produktu dla modeli językowych (czym jest, ile kosztuje, czego NIE robi)** → `src/app/llms.txt/route.ts`
 - **Polityka wobec robotów AI (trenujące / wyszukiwarki AI) i ścieżki zamknięte dla robotów** → `src/app/robots.ts` (stałe `ZAMKNIETE`, `ROBOTY_WYSZUKIWANIA_AI`, `ROBOTY_TRENUJACE`)
 - **Tytuł, opis, Open Graph, karta Twittera dla całej witryny** → `src/app/layout.tsx` (stałe `TYTUL`/`OPIS`); canonical — ZAWSZE w konkretnej stronie, nigdy w layoucie
+- **Co edytor bloga wolno zapisać (nowy znacznik, klasa, atrybut w treści wpisu)** → `src/components/blog/admin/rozszerzenia-tiptap.ts` — czego nie ma w tym schemacie, to Tiptap kasuje przy zapisie BEZ ostrzeżenia; po każdej zmianie `npm run test:edytor`
+- **Pasek narzędzi / okno obrazka w panelu bloga** → `src/components/blog/admin/edytor.tsx` + `dialog-obrazka.tsx`; walidacja alt-u przed publikacją → `obrazkiBezAltu` w `src/lib/blog/utils.ts`, wywołanie w `formularz-wpisu.tsx`
 
 ## Konwencje i pułapki
 
@@ -1159,7 +1203,10 @@ Pliki generowane dla robotów (nie strony, ale trasy): `/robots.txt`
 
 Testy (tsx): `npm run test:walidator` (8) · `test:dopasowanie` (24) · `test:wywiad`
 (18) · `test:petla` (zbieżność pętli wywiadu + dedup) · `test:zmiany` (anty-fantomy
-w changes.ts) · `test:straz` (straż słów kluczowych + podłoga wyniku). Na żywo
+w changes.ts) · `test:straz` (straż słów kluczowych + podłoga wyniku) ·
+**`test:edytor`** (34 — wierność edytora bloga: czy zapis w panelu nie okrada
+treści z `<figure>`, klas `image-prompt`/`blog-cta-inline` i nie dokleja
+`nofollow`; wymaga `happy-dom`, bo buduje schemat ProseMirror poza przeglądarką). Na żywo
 (wymagają klucza, `--env-file=.env.local`): `test:oferta`, `test:pipeline`, `test:mail` (wysyłka Resend),
 `test-podloga-live.ts`, `test-koszt-live.ts` (pomiar tokenów/kosztu).
 Dane testowe (20 CV + 18 ofert + pary): `scripts/dane-testowe.ts`.

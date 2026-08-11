@@ -108,6 +108,24 @@ export function usunPromptyObrazkow(html: string): string {
 }
 
 /**
+ * Ile obrazków w treści nie ma opisu alternatywnego.
+ *
+ * Alt jest niewidoczny na stronie, więc jego brak nie rzuca się w oczy przy
+ * korekcie — a to jedyna treść, jaką z grafiki dostaje czytnik ekranu
+ * i wyszukiwarka. `FormularzWpisu` blokuje tym publikację; zapis szkicu
+ * przechodzi, żeby dało się pracować nad wpisem etapami.
+ *
+ * Liczy TYLKO obrazki w treści. Alt okładki to osobne pole (`okladka_alt`).
+ */
+export function obrazkiBezAltu(html: string): number {
+  const obrazki = html.match(/<img\b[^>]*>/gi) ?? [];
+  return obrazki.filter((img) => {
+    const alt = img.match(/\salt\s*=\s*"([^"]*)"/i);
+    return !alt || alt[1].trim() === "";
+  }).length;
+}
+
+/**
  * Jedno wejście dla strony artykułu: treść oczyszczona z promptów, z kotwicami
  * w nagłówkach, plus gotowy spis treści. Dzięki temu nie da się wywołać tych
  * funkcji w złej kolejności ani zapomnieć o filtrze promptów.

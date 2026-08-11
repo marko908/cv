@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { klientPrzegladarka } from "@/lib/supabase/klient-przegladarka";
 import type { Json } from "@/lib/supabase/typy-bazy";
-import { czasCzytania, zrobSlug } from "@/lib/blog/utils";
+import { czasCzytania, obrazkiBezAltu, zrobSlug } from "@/lib/blog/utils";
 import { KATEGORIE_BLOGA, type PozycjaFaq, type StatusWpisu, type WpisBloga } from "@/lib/blog/typy";
 import { EdytorTresci } from "./edytor";
 import { EdytorFaq } from "./edytor-faq";
@@ -64,6 +64,8 @@ export function FormularzWpisu({ wpis }: { wpis?: WpisBloga }) {
     if (!slugRecznie) setSlug(zrobSlug(v));
   };
 
+  const brakAltu = obrazkiBezAltu(tresc);
+
   const zapisz = async (e: React.FormEvent) => {
     e.preventDefault();
     setBlad("");
@@ -72,6 +74,28 @@ export function FormularzWpisu({ wpis }: { wpis?: WpisBloga }) {
       setBlad("Tytuł, adres i treść są wymagane.");
       return;
     }
+
+    /*
+     * Alt sprawdzamy dopiero przy PUBLIKACJI, nie przy każdym zapisie: szkic
+     * powstaje etapami (najpierw tekst z placeholderami grafik, potem
+     * prawdziwe obrazki), więc blokowanie zapisu szkicu uniemożliwiałoby samą
+     * pracę nad wpisem. Publikacja to moment, w którym braku alt-u nie da się
+     * już naprawić „później" — od tej chwili czyta go czytnik ekranu i Google.
+     */
+    if (status === "opublikowany") {
+      const bezAltu = obrazkiBezAltu(tresc);
+      if (bezAltu > 0) {
+        setBlad(
+          `${bezAltu} ${bezAltu === 1 ? "obrazek w treści nie ma" : "obrazki/obrazków w treści nie ma"} opisu alternatywnego (alt). Zaznacz obrazek w edytorze i uzupełnij go przyciskiem wstawiania obrazka.`
+        );
+        return;
+      }
+      if (okladka && !okladkaAlt.trim()) {
+        setBlad("Okładka nie ma opisu alternatywnego (alt).");
+        return;
+      }
+    }
+
     setZapisuje(true);
 
     const dane = {
@@ -185,6 +209,18 @@ export function FormularzWpisu({ wpis }: { wpis?: WpisBloga }) {
           <div className="grid gap-1.5">
             <Label>Treść</Label>
             <EdytorTresci wartosc={tresc} onZmiana={setTresc} />
+            {/* Ostrzegamy na bieżąco, a nie dopiero przy próbie publikacji —
+                inaczej redaktor dowiadywałby się o braku alt-u w momencie,
+                w którym uważa artykuł za skończony. */}
+            {brakAltu > 0 && (
+              <p className="text-xs text-destructive">
+                {brakAltu === 1
+                  ? "1 obrazek nie ma opisu alternatywnego (alt)."
+                  : `${brakAltu} obrazki/obrazków nie ma opisu alternatywnego (alt).`}{" "}
+                Zaznacz obrazek w edytorze i kliknij przycisk wstawiania
+                obrazka, żeby go uzupełnić. Bez tego nie opublikujesz artykułu.
+              </p>
+            )}
           </div>
 
           <div className="grid gap-1.5">
