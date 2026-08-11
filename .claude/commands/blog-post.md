@@ -136,6 +136,13 @@ Dopiero po akceptacji pisz pełną treść.
 
     Typy: `photo` (fotorealistyczne), `infographic` (dane/porównania),
     `screenshot` (z aplikacji). Alt MUSI różnić się od podpisu.
+
+    **Okładka (`okladka_url`) dostaje prompt TEŻ — nie tylko przypomnienie.**
+    Kontener na stronie ma proporcje 2:1 (`aspect-[2/1]`), więc pisz prompt
+    pod ten kadr (landscape, 1200×600 lub podobne). Zapisz go w
+    `obrazki-[slug].md` jako osobną sekcję „Okładka" na samej górze pliku,
+    z tym samym alt, co `okladka_alt` w insert-[slug].ts. `okladka_url`
+    w insercie zostaje `null` do czasu wgrania.
 11. **FAQ — 3–4 pytania.** Realne pytania z Google, odpowiedzi po 2–3 zdania.
     Generują schemat `FAQPage`.
 

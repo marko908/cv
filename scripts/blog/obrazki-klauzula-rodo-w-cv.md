@@ -1,5 +1,14 @@
 # Grafiki — Klauzula RODO w CV 2026
 
+## Okładka — `klauzula-rodo-w-cv-okladka.webp`
+
+Format 2:1 (np. 1200×600 px) — kontener na stronie ma `aspect-[2/1]`.
+
+**Alt:** Kandydat dopisujący klauzulę RODO w stopce swojego CV
+
+**Prompt:**
+A realistic wide photo of a printed CV document lying on a wooden desk, with a subtle visual emphasis on the footer area of the page where small legal text sits, a hand holding a pen resting nearby, soft natural daylight, shallow depth of field, warm professional tones, no visible readable text or logos, clean and trustworthy mood, shot in 2:1 landscape framing
+
 ## Grafika 1 — photo — `klauzula-rodo-w-cv-01.webp`
 
 **Alt:** Kandydat finalizujący CV przed wysłaniem zgłoszenia

@@ -1,5 +1,14 @@
 # Grafiki — Ile stron powinno mieć CV?
 
+## Okładka — `ile-stron-cv-okladka.webp`
+
+Format 2:1 (np. 1200×600 px) — kontener na stronie ma `aspect-[2/1]`.
+
+**Alt:** Kandydat porównujący jedną i dwie wersje swojego CV
+
+**Prompt:**
+A realistic wide photo of two printed CV page stacks side by side on a bright desk, one stack noticeably shorter than the other, a person's hand reaching to compare them, natural window light, neutral warm tones, shallow depth of field, no readable text or logos, professional and clean mood, shot in 2:1 landscape framing
+
 ## Grafika 1 — infographic — `ile-stron-cv-01.webp`
 
 **Alt:** Porównanie CV jednostronicowego i dwustronicowego w zależności od stażu pracy

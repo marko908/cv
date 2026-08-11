@@ -36,7 +36,7 @@ Pełna treść HTML: `scripts/blog/insert-ile-stron-cv.ts`.
 
 ## Do zrobienia przed publikacją
 
-- Dodać okładkę (`okladka_url`) — dziś `null`.
+- Dodać okładkę (`okladka_url`) — dziś `null`, prompt gotowy w `obrazki-ile-stron-cv.md`.
 - Wygenerować i wgrać 2 grafiki z `obrazki-ile-stron-cv.md`, podmienić `src` w treści, usunąć akapity `class="image-prompt"`.
 - Redakcja/korekta w panelu `/admin/blog`.
 - Zmienić status na `opublikowany`, gdy gotowe (publikacja jest ręczna).
