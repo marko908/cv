@@ -966,8 +966,12 @@ w `sitemap.ts`; `klient-serwer` zdegradowałby je do renderowania na żądanie).
 **Komponenty** (`components/blog/`): `artykul.tsx` (korpus WSPÓLNY dla
 `/blog/[slug]` i podglądu — dwie kopie rozjechałyby się, a podgląd różniący się
 od publikacji nie spełnia swojego zadania) · `karta-wpisu.tsx` ·
-`tresc-wpisu.tsx` (CTA wstawiane po ~40% akapitów; przy ≤3 akapitach nie
-przerywa) · `faq-wpisu.tsx` · `cta-bloga.tsx` (jedno źródło adresu i tekstu
+`tresc-wpisu.tsx` (generyczne CTA wstawiane automatycznie po ~40% akapitów;
+przy ≤3 akapitach nie przerywa; ALE jeśli treść już zawiera ręcznie napisany
+`<div class="blog-cta-inline">` — skill `/blog-post` pisze go z haczykiem
+konkretnego artykułu, bo kontekstowe CTA konwertuje lepiej niż generyczne —
+komponent wykrywa tę klasę i NIC nie dokłada, żeby nie dublować bloków)
+· `faq-wpisu.tsx` · `cta-bloga.tsx` (jedno źródło adresu i tekstu
 CTA, też dla skilla) · `spis-tresci.tsx` · `postep-czytania.tsx` ·
 `udostepnij.tsx` (ikony marek jako wklejone SVG — ta wersja `lucide-react` ich
 nie eksportuje, a zewnętrzny obrazek to żądanie do obcego serwera mimo odmowy
