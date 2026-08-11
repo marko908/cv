@@ -15,8 +15,11 @@
 - [x] Fraza główna „ile stron cv" / „strona CV" naturalnie kilka razy w treści
 - [x] Tabela: etap kariery → zalecana długość
 - [x] 2 miejsca na obrazki (infographic + photo) poza okładką
-- [x] Linkowanie wewnętrzne: 1x do `/blog/klauzula-rodo-w-cv`, 1x do `/` (produkt)
+- [x] Linkowanie wewnętrzne: 1x do `/blog/klauzula-rodo-w-cv`, 1x `/rejestracja` w CTA
 - [x] FAQ — 4 pytania w polu `faq`
+- [x] Środkowe CTA — kontekstowe, ręcznie napisane (`<div class="blog-cta-inline">`),
+      haczyk: dopasowanie treści do konkretnej oferty. Końcowe CTA — automatyczne
+      (`CtaBloga wariant="pelne"`, renderowane po FAQ), nie pisane ręcznie.
 - [x] Długość: ~840 słów
 - [x] Zero myślników `—`/`–`, zero fraz z czarnej listy
 

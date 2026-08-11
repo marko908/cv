@@ -98,15 +98,25 @@ Dopiero po akceptacji pisz pełną treść.
 8. **Linkowanie wewnętrzne (WYMAGANE):** 2–3 linki do innych artykułów bloga
    (jeśli istnieją) i przynajmniej 1 do strony produktu. To najtańszy sposób
    rozprowadzenia autorytetu po nowych wpisach.
-9. **CTA — dokładnie 2 bloki:**
-   - **środkowe**, po ~40% treści: 2–3 zdania nawiązujące do przeczytanego
-     fragmentu + konkretna wartość + link `/rejestracja`.
+9. **CTA — dokładnie 2 bloki w finalnym renderze, ale PISZESZ TYLKO JEDEN:**
+   - **środkowe, ok. 40% treści — piszesz sam, zawsze.** 2–3 zdania
+     nawiązujące do przeczytanego fragmentu (jeśli temat pochodzi z
+     `PLAN-TRESCI.md`, użyj jego pola **Haczyk**) + konkretna wartość + link
+     `/rejestracja`. Owiń go w `<div class="blog-cta-inline">...</div>`.
 
-     UWAGA: komponent `TrescWpisu` wstawia własne CTA po ~40% akapitów
-     automatycznie. Jeśli piszesz swoje, użyj `<div class="blog-cta-inline">`
-     — wtedy masz kontrolę nad treścią.
-   - **końcowe**, przed FAQ: H3 + 2–3 zdania o produkcie w kontekście artykułu
-     + 2–3 konkretne korzyści + link.
+     UWAGA: `TrescWpisu` sprawdza, czy treść zawiera klasę
+     `blog-cta-inline`. Jeśli tak — nic więcej nie dokłada. Jeśli nie
+     napiszesz własnego bloku, wstawi w to miejsce generyczne, uniwersalne
+     CTA (mniej trafione niż dopasowane do tego artykułu — to właśnie ten
+     błąd ma nie wracać). Nigdy nie zostawiaj dwóch bloków obok siebie.
+
+     Kontekstowe CTA nie powtarza liczb (cena, limit dopasowań) — te żyją
+     wyłącznie w bloku końcowym, żeby nie trzeba było ich pilnować w każdym
+     artykule osobno przy zmianie cennika.
+   - **końcowe, po FAQ — NIE piszesz go.** `Artykul` renderuje pełne CTA
+     (`CtaBloga wariant="pelne"`) automatycznie zaraz po sekcji FAQ, z ceną
+     i limitem wziętymi z `subscription.ts`. Nie dopisuj własnego H3 z CTA
+     przed FAQ — zdublowałby się z tym automatycznym blokiem.
 
    Bez nachalności („Kliknij tutaj!", „Nie czekaj!").
 10. **Obrazki — minimum 2 w treści, poza okładką.** Format placeholdera:

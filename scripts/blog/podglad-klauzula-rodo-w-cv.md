@@ -15,9 +15,12 @@
 - [x] Fraza główna „klauzula rodo" naturalnie kilka razy w treści
 - [x] Tabela porównawcza (stara vs aktualna klauzula)
 - [x] 2 miejsca na obrazki (photo + infographic) poza okładką
-- [x] Linkowanie wewnętrzne: 1x do `/blog/ile-stron-cv`, 1x do `/` (produkt)
+- [x] Linkowanie wewnętrzne: 1x do `/blog/ile-stron-cv`, 1x `/rejestracja` w CTA
 - [x] FAQ — 4 pytania w polu `faq`
-- [x] Długość: ~1000 słów
+- [x] Środkowe CTA — kontekstowe, ręcznie napisane (`<div class="blog-cta-inline">`),
+      haczyk: automatyczna aktualizacja klauzuli. Końcowe CTA — automatyczne
+      (`CtaBloga wariant="pelne"`, renderowane po FAQ), nie pisane ręcznie.
+- [x] Długość: ~1015 słów
 - [x] Zero myślników `—`/`–`, zero fraz z czarnej listy
 
 ## Treść (Markdown, skrót struktury)

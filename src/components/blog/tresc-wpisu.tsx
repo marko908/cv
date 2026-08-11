@@ -11,6 +11,13 @@ import { CtaBloga } from "./cta-bloga";
  * Przy krótkim wpisie (≤3 akapity) NIE przerywamy niczego - blok w połowie
  * trzyakapitowego tekstu czyta się jak reklama wklejona w zdanie.
  *
+ * **Jeśli treść już zawiera własny `<div class="blog-cta-inline">`** (skill
+ * `/blog-post` pisze go ręcznie, nawiązując do haczyka konkretnego artykułu -
+ * generyczny automat konwertuje gorzej niż CTA dopasowane do tego, co
+ * czytelnik właśnie przeczytał), NIE wstawiamy drugiego, automatycznego CTA
+ * obok - dublowałoby się z tym, co już jest w treści. Renderujemy wtedy HTML
+ * wprost, bez dzielenia.
+ *
  * Dzielenie po `</p>` (a nie parsowanie DOM) jest świadomie prymitywne: HTML
  * pochodzi od nas, nie od użytkownika, więc nie ma tu klasy wejść, których ten
  * podział by nie obsłużył. Gdyby CTA miało kiedyś trafiać po nagłówku sekcji,
@@ -18,8 +25,18 @@ import { CtaBloga } from "./cta-bloga";
  */
 const PROG_AKAPITOW = 3;
 const UDZIAL = 0.4;
+const MA_WLASNE_CTA = /class="[^"]*\bblog-cta-inline\b/;
 
 export function TrescWpisu({ html }: { html: string }) {
+  if (MA_WLASNE_CTA.test(html)) {
+    return (
+      <div
+        className="tresc-wpisu"
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+    );
+  }
+
   const czesci = html.split("</p>");
 
   if (czesci.length <= PROG_AKAPITOW + 1) {

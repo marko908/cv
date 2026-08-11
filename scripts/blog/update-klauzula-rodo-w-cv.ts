@@ -1,49 +1,21 @@
 import { createClient } from "@supabase/supabase-js";
 
+/**
+ * Jednorazowa aktualizacja szkicu wstawionego przez insert-klauzula-rodo-w-cv.ts:
+ * dopisanie kontekstowego CTA (<div class="blog-cta-inline">) w treści zamiast
+ * generycznego automatu. Treść tu i w insert-*.ts musi zostać zsynchronizowana
+ * ręcznie - insert nie da się odpalić drugi raz (unikalny indeks na slug).
+ */
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-async function wstaw() {
+async function aktualizuj() {
   const { data, error } = await supabase
     .from("wpis_bloga")
-    .insert({
-      tytul: "Klauzula RODO w CV 2026: aktualna treść i wzór",
-      slug: "klauzula-rodo-w-cv",
-      zajawka:
-        "Jaką klauzulę RODO wstawić do CV w 2026 roku? Gotowa treść do skopiowania, gdzie ją umieścić i błąd, przez który wygląda na nieaktualną.",
-      meta_tytul: "Klauzula RODO w CV 2026: aktualna treść i wzór",
-      meta_opis:
-        "Aktualna klauzula RODO do CV w 2026 roku - gotowa treść do skopiowania, miejsce w dokumencie i najczęstszy błąd, którego unikać.",
-      kategoria: "pisanie CV",
-      tagi: ["cv", "rodo", "dane osobowe"],
+    .update({
       czas_czytania_min: 6,
-      status: "szkic",
-      okladka_url: null,
-      okladka_alt: "Kandydat finalizujący CV przed wysłaniem zgłoszenia",
-      faq: [
-        {
-          pytanie: "Czy klauzula RODO w CV jest obowiązkowa?",
-          odpowiedz:
-            "Nie ma przepisu, który wprost nakazuje kandydatowi jej dopisanie, ale w praktyce większość polskich pracodawców jej oczekuje i bez niej może nie zapoznać się ze zgłoszeniem.",
-        },
-        {
-          pytanie: "Czy stara klauzula RODO unieważnia CV?",
-          odpowiedz:
-            "Nie, to nie unieważnia zgłoszenia, ale sugeruje nieaktualny szablon - lepiej zaktualizować podstawę prawną do RODO 2016/679 i ustawy z 10 maja 2018 r.",
-        },
-        {
-          pytanie: "Gdzie w CV wstawić klauzulę RODO?",
-          odpowiedz:
-            "W stopce dokumentu, czcionką mniejszą niż reszta treści, najlepiej 8-9 punktów. Nie trzeba jej umieszczać przy każdej sekcji.",
-        },
-        {
-          pytanie: "Czy klauzula RODO jest potrzebna, jeśli aplikuję za granicę?",
-          odpowiedz:
-            "W krajach UE ma prawne uzasadnienie, choć rzadko jest praktykowana poza Polską. Poza UE obowiązują inne przepisy i klauzula zwykle nie jest oczekiwana.",
-        },
-      ],
       tresc: `<p>Klauzula RODO w CV to zgoda na przetwarzanie Twoich danych osobowych przez pracodawcę na czas rekrutacji. Formalnie żaden przepis nie każe kandydatowi jej dopisywać, ale w praktyce jej brak bywa powodem, dla którego rekruter w ogóle nie otwiera zgłoszenia. Poniżej aktualna treść do skopiowania i miejsce, w którym powinna się znaleźć.</p>
 
 <h2>Czym jest klauzula RODO w CV i czy trzeba ją dodawać</h2>
@@ -100,6 +72,7 @@ async function wstaw() {
 <p>RODO obowiązuje w całej Unii Europejskiej i Europejskim Obszarze Gospodarczym, więc aplikując do firmy z siedzibą w UE, klauzula ma prawne uzasadnienie niezależnie od kraju. W praktyce jednak zwyczaj jej dopisywania jest silnie polski - w większości innych krajów UE kandydaci jej nie dodają, mimo że przepis obowiązuje wszystkich tak samo.</p>
 <p>Poza UE - w Wielkiej Brytanii, USA czy Kanadzie - obowiązują inne przepisy o ochronie danych, a CV pisane po angielsku pod te rynki zwykle w ogóle nie zawiera takiej klauzuli. Dodanie jej nie zaszkodzi, ale nie jest tam oczekiwane.</p>`,
     })
+    .eq("slug", "klauzula-rodo-w-cv")
     .select("id, slug")
     .single();
 
@@ -107,7 +80,7 @@ async function wstaw() {
     console.error("Błąd:", error.message);
     process.exit(1);
   }
-  console.log("Zapisano szkic:", data.id, data.slug);
+  console.log("Zaktualizowano:", data.id, data.slug);
 }
 
-wstaw();
+aktualizuj();

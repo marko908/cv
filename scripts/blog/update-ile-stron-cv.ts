@@ -1,49 +1,20 @@
 import { createClient } from "@supabase/supabase-js";
 
+/**
+ * Jednorazowa aktualizacja szkicu wstawionego przez insert-ile-stron-cv.ts:
+ * dopisanie kontekstowego CTA (<div class="blog-cta-inline">) w treści zamiast
+ * generycznego automatu. Treść tu i w insert-*.ts musi zostać zsynchronizowana
+ * ręcznie - insert nie da się odpalić drugi raz (unikalny indeks na slug).
+ */
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-async function wstaw() {
+async function aktualizuj() {
   const { data, error } = await supabase
     .from("wpis_bloga")
-    .insert({
-      tytul: "Ile stron powinno mieć CV? Zasady i wyjątki",
-      slug: "ile-stron-cv",
-      zajawka:
-        "Jedna strona czy dwie? Sprawdź, kiedy krótkie CV wystarczy, kiedy druga strona ma sens i co wyciąć najpierw, gdy tekstu jest za dużo.",
-      meta_tytul: "Ile stron powinno mieć CV? Zasady i wyjątki",
-      meta_opis:
-        "Ile stron powinno mieć CV - jedna czy dwie? Zasada dla większości kandydatów, wyjątki dla doświadczonych i jak skrócić CV bez utraty treści.",
-      kategoria: "pisanie CV",
-      tagi: ["cv", "długość cv", "ats"],
-      czas_czytania_min: 5,
-      status: "szkic",
-      okladka_url: null,
-      okladka_alt: "Kandydat porównujący jedną i dwie wersje swojego CV",
-      faq: [
-        {
-          pytanie: "Czy CV może mieć dwie strony?",
-          odpowiedz:
-            "Tak, jeśli masz odpowiednio dużo istotnego doświadczenia - zwykle powyżej 5-10 lat pracy albo rozbudowany dorobek projektowy. Przy krótszym stażu jedna strona zwykle wystarcza.",
-        },
-        {
-          pytanie: "Ile stron CV dla absolwenta bez doświadczenia?",
-          odpowiedz:
-            "Jedna strona. Przy braku doświadczenia zawodowego druga strona najczęściej oznacza wypełniacze, a nie realną treść dla rekrutera.",
-        },
-        {
-          pytanie: "Czy dłuższe CV zwiększa szanse na rozmowę?",
-          odpowiedz:
-            "Nie ma takiej zależności. Liczy się to, czy treść odpowiada wymaganiom konkretnej oferty, nie liczba stron dokumentu.",
-        },
-        {
-          pytanie: "Czy systemy ATS mają limit stron CV?",
-          odpowiedz:
-            "Nie, ATS skanuje cały plik tekstowy niezależnie od długości. Limit narzuca w praktyce czas, jaki rekruter poświęca na ręczny przegląd wyników.",
-        },
-      ],
+    .update({
       tresc: `<p>Dobre CV mieści się na jednej stronie, jeśli masz mniej niż 5 lat doświadczenia zawodowego - to najczęstsza rekomendacja rekruterów. Druga strona ma sens dopiero przy dłuższym stażu, wielu projektach albo gdy oferta wymaga precyzyjnego opisania konkretnych kompetencji.</p>
 
 <h2>Krótka odpowiedź: ile stron powinno mieć CV</h2>
@@ -105,6 +76,7 @@ async function wstaw() {
 <p>Tak - system ATS (Applicant Tracking System) skanuje cały plik, niezależnie od liczby stron, o ile dokument ma format tekstowy, a nie zeskanowany obraz. Długość CV nie wpływa na to, czy system je "przeczyta".</p>
 <p>Wpływa za to na to, co zobaczy rekruter, który przegląda wyniki z ATS ręcznie - a to on, nie system, podejmuje decyzję o zaproszeniu na rozmowę. Dlatego druga strona ma sens tylko wtedy, gdy realnie ułatwia mu tę decyzję, a nie tylko wtedy, gdy system technicznie ją odczyta.</p>`,
     })
+    .eq("slug", "ile-stron-cv")
     .select("id, slug")
     .single();
 
@@ -112,7 +84,7 @@ async function wstaw() {
     console.error("Błąd:", error.message);
     process.exit(1);
   }
-  console.log("Zapisano szkic:", data.id, data.slug);
+  console.log("Zaktualizowano:", data.id, data.slug);
 }
 
-wstaw();
+aktualizuj();
