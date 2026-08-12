@@ -119,9 +119,17 @@ export function MenuKonta({
 /**
  * Przyciski konta w nagłówku landingu.
  *
- * Niezalogowany widzi „Zaloguj się" obok głównego CTA — część odwiedzających
- * to wracający użytkownicy, a bez tego przycisku musieliby szukać logowania
- * przez wejście do aplikacji.
+ * JEDEN przycisk, nie dwa (decyzja Marka 2026-08-12): „Otwórz aplikację"
+ * zniknęło stąd na rzecz przekierowania w `proxy.ts` — zalogowany, który
+ * wejdzie na `/`, i tak ląduje od razu w aplikacji, więc osobny przycisk
+ * prowadził tam, dokąd samo wejście na stronę główną już prowadzi.
+ * Niezalogowany ma tu wyłącznie „Zaloguj się", bo `/app` i tak odbiłoby go
+ * na formularz logowania (bramka konta), czyli byłaby to ta sama droga pod
+ * dwoma nazwami.
+ *
+ * Dla zalogowanego zostaje samo „Wyloguj”. Drogą do aplikacji jest wtedy
+ * logo w nagłówku (`/` → przekierowanie na `/app`) — nagłówek widuje on już
+ * tylko na blogu i w dokumentach prawnych.
  */
 export function PrzyciskiKontaNaglowek() {
   const { uzytkownik, ladowanie } = useUzytkownik();
@@ -131,39 +139,23 @@ export function PrzyciskiKontaNaglowek() {
 
   if (!uzytkownik) {
     return (
-      <>
-        <Link
-          href="/logowanie"
-          className="rounded-full px-4 py-2 text-sm font-bold text-muted-foreground transition-colors hover:text-foreground"
-        >
-          Zaloguj się
-        </Link>
-        <Link
-          href="/app"
-          className="rounded-full bg-secondary px-4 py-2 text-sm font-bold text-foreground transition-colors hover:bg-accent"
-        >
-          Otwórz aplikację
-        </Link>
-      </>
+      <Link
+        href="/logowanie"
+        className="rounded-full bg-secondary px-4 py-2 text-sm font-bold text-foreground transition-colors hover:bg-accent"
+      >
+        Zaloguj się
+      </Link>
     );
   }
 
   return (
-    <>
-      <button
-        type="button"
-        onClick={wyloguj}
-        disabled={wTrakcie}
-        className="rounded-full px-4 py-2 text-sm font-bold text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
-      >
-        {wTrakcie ? "Wylogowuję…" : "Wyloguj"}
-      </button>
-      <Link
-        href="/app"
-        className="rounded-full bg-secondary px-4 py-2 text-sm font-bold text-foreground transition-colors hover:bg-accent"
-      >
-        Otwórz aplikację
-      </Link>
-    </>
+    <button
+      type="button"
+      onClick={wyloguj}
+      disabled={wTrakcie}
+      className="rounded-full px-4 py-2 text-sm font-bold text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
+    >
+      {wTrakcie ? "Wylogowuję…" : "Wyloguj"}
+    </button>
   );
 }

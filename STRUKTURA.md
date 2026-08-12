@@ -337,6 +337,20 @@ w `synchronizacja-konta.tsx` zostaje jako nieszkodliwa siatka bezpieczeństwa
 nie dotrze do kreatora bez sesji, więc go nie uruchomi. Regulamin § 3 ust. 7
 i § 4 ust. 5–6 zaktualizowane w tym samym duchu (wersja dokumentów 1.2).
 
+**ZALOGOWANY NIE OGLĄDA LANDINGU (decyzja Marka 2026-08-12).** Ten sam
+`proxy.ts` przekierowuje żądanie `/` z aktywną sesją na `/app`. Landing sprzedaje
+produkt komuś, kto go nie ma; kto ma konto, chce wejść do aplikacji. Dlatego
+z nagłówka zniknął przycisk „Otwórz aplikację" (`PrzyciskiKontaNaglowek`
+w `menu-konta.tsx`) — jego rolę pełni teraz samo wejście na stronę główną,
+a niezalogowanemu został tam wyłącznie „Zaloguj się" (`/app` i tak odbiłoby go
+na formularz, więc dwa przyciski były dwiema nazwami tej samej drogi).
+Przekierowanie jest SERWEROWE — zrobione w komponencie dawałoby błysk landingu
+po hydracji. **Konsekwencja: zalogowany nie dosięgnie `/#cennik` ani FAQ
+z landingu** (kotwica nie dociera do serwera, więc odbija się razem z całą
+stroną); cennik dla posiadacza konta żyje w `paywall-dialog.tsx`. Po zalogowaniu
+cel `/app` był ustawiony od zawsze — `wroc` domyśla się do niego w `strona-auth.tsx`
+i w `/auth/callback`.
+
 **`src/components/auth/`** — konto. `formularz-auth.tsx` (JEDEN komponent na
 wszystkie ekrany: `rejestracja` / `logowanie` / `kod-rejestracji` /
 `reset-prosba` / `reset-kod` / `reset-haslo`; `TEKSTY_AUTH` = tytuły per ekran,
@@ -520,7 +534,8 @@ raportowaniu przychodu i sprzątaniu po testach.
 
 **Stan konta w UI:** `menu-konta.tsx` (`MenuKonta` na dole sidebara — e-mail
 `truncate` + wylogowanie, dla niezalogowanego „Zaloguj się"; `PrzyciskiKontaNaglowek`
-na landingu — „Zaloguj się" obok CTA) · `karta-konta.tsx` (sekcja „Konto"
+w nagłówku landingu/bloga — JEDEN przycisk: „Zaloguj się" albo „Wyloguj", bez
+„Otwórz aplikację", patrz „ZALOGOWANY NIE OGLĄDA LANDINGU") · `karta-konta.tsx` (sekcja „Konto"
 w `/app/ustawienia`: e-mail, wylogowanie, usunięcie konta przez RPC
 `usun_moje_konto` z potwierdzeniem drugim kliknięciem). Po wylogowaniu UI
 przełącza się BEZ przeładowania — `useUzytkownik` słucha `onAuthStateChange`.

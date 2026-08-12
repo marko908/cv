@@ -74,6 +74,41 @@ export async function proxy(request: NextRequest) {
   // wprost, mimo że UI już nigdzie do niego nie prowadzi niezalogowanego.
   const { pathname, search } = request.nextUrl;
 
+  /**
+   * Przekierowanie zachowujące ciasteczka odświeżonej sesji.
+   *
+   * `NextResponse.redirect` buduje odpowiedź od zera, więc wszystko, co
+   * `setAll` zdążyło zapisać na `odpowiedz`, musi tu przejść ręcznie —
+   * inaczej odświeżony token ginie i użytkownik wylatuje z konta w chwili
+   * przekierowania.
+   */
+  function przekierujDo(cel: URL) {
+    const przekierowanie = NextResponse.redirect(cel);
+    for (const ciastko of odpowiedz.cookies.getAll()) {
+      przekierowanie.cookies.set(ciastko);
+    }
+    return przekierowanie;
+  }
+
+  /*
+   * ZALOGOWANY NIE OGLĄDA LANDINGU (decyzja Marka 2026-08-12). Strona główna
+   * sprzedaje produkt komuś, kto go jeszcze nie ma — kto ma konto, chce wejść
+   * do aplikacji, nie czytać oferty. Dlatego z nagłówka zniknął przycisk
+   * „Otwórz aplikację" (`menu-konta.tsx`), a jego rolę przejęło to
+   * przekierowanie: wejście na `/` prowadzi prosto do `/app`.
+   *
+   * Serwerowo, nie w komponencie — przekierowanie po hydracji dałoby błysk
+   * landingu przy każdym wejściu.
+   *
+   * Konsekwencja, o której trzeba pamiętać: zalogowany nie dosięgnie już
+   * `/#cennik` ani FAQ z landingu (kotwica nie dociera do serwera, więc
+   * odbija się razem z całą stroną). Cennik dla posiadacza konta żyje
+   * w `paywall-dialog.tsx`; blog i dokumenty prawne są nietknięte.
+   */
+  if (uzytkownik && pathname === "/") {
+    return przekierujDo(new URL("/app", request.url));
+  }
+
   /*
    * PANEL REDAKCYJNY `/admin` — wymaga nie tylko konta, ale roli `admin`.
    *
@@ -89,14 +124,7 @@ export async function proxy(request: NextRequest) {
   if (!uzytkownik && (pathname.startsWith("/app") || pathname.startsWith("/admin"))) {
     const cel = new URL("/logowanie", request.url);
     cel.searchParams.set("wroc", pathname + search);
-    const przekierowanie = NextResponse.redirect(cel);
-    // Ciasteczka odświeżonej sesji (jeśli `setAll` zdążyło coś zapisać na
-    // `odpowiedz` powyżej) muszą przejść na TĘ odpowiedź — inaczej
-    // przekierowanie zbudowane od zera by je zgubiło.
-    for (const ciastko of odpowiedz.cookies.getAll()) {
-      przekierowanie.cookies.set(ciastko);
-    }
-    return przekierowanie;
+    return przekierujDo(cel);
   }
 
   return odpowiedz;
