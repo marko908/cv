@@ -122,9 +122,25 @@ Projekt Aplikando: `smiling-matrix-504818-k7` (stan 2026-08-07).
    najczęstsza przyczyna „u mnie działa, u znajomego nie". Przy zakresach
    `email`, `profile`, `openid` (same nieszczególne) publikacja **nie wymaga
    weryfikacji Google**, jest natychmiastowa.
-7. **Branding**: nazwa aplikacji, e-mail wsparcia, linki do
+7. **Branding**: nazwa aplikacji, logo, e-mail wsparcia, linki do
    `/polityka-prywatnosci` i `/regulamin`. To widzi użytkownik na ekranie
    zgody Google, więc musi zgadzać się z dokumentami.
+
+   **Puste Brandingu widać gołym okiem i wygląda jak próba wyłudzenia**
+   (zgłoszone przez Marka 2026-08-13, gdy pola były jeszcze puste):
+   - bez **App name** ekran wyboru konta pisze „to continue to
+     `urjpluqutufsgkzysazq.supabase.co`" zamiast nazwy marki — surowy host
+     projektu Supabase, w niczym nieprzypominający Aplikando;
+   - bez **linków do Polityki i Regulaminu** znika adnotacja „By continuing,
+     you agree to …", którą użytkownicy znają z innych logowań. Dla nas to nie
+     kosmetyka: przy Google konto powstaje tym samym kliknięciem (Regulamin
+     § 4 ust. 19), więc odesłanie do dokumentów ma tam realnie stać.
+
+   ⚠️ **Sam host `…supabase.co` zostanie mimo wypełnionego Brandingu** —
+   Google pokazuje domenę, na którą wraca uwierzytelnienie, a ta należy do
+   Supabase. Usuwa to dopiero **Custom Domain w Supabase** (płatny dodatek),
+   które daje `auth.aplikando.pl`. Do rozważenia przed startem — nie zmienia
+   działania, zmienia zaufanie na jedynym ekranie, którego nie kontrolujemy.
 8. **Data access**: tylko `email`, `profile`, `openid` — **nie proś o więcej,
    niż opisują dokumenty** (art. 5 ust. 1 lit. c RODO, minimalizacja).
 
