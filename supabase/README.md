@@ -174,9 +174,27 @@ Projekt Aplikando: `smiling-matrix-504818-k7` (stan 2026-08-07).
       konfiguracja objawia się niedokończonym logowaniem zamiast cichego
       wpuszczenia bez zgód — ale **konfigurację i tak trzeba mieć dobrą**.
 
+    ⚠️ **`www` to osobny host.** `https://aplikando.pl/**` NIE obejmuje
+    `https://www.aplikando.pl/auth/callback` — a `redirectTo` budujemy
+    z `window.location.origin`, czyli z tego, co użytkownik ma w pasku.
+    Lista musi wymieniać oba warianty:
+
+    ```
+    https://www.aplikando.pl/**
+    https://aplikando.pl/**
+    https://*-marko908.vercel.app/**
+    http://localhost:3000/**
+    ```
+
     Kontrola po zmianie: kliknij „Kontynuuj z Google" i popatrz na pasek
     adresu. Ma tam mignąć `/auth/callback?code=…`. Cokolwiek innego (`/`,
     `/**`) znaczy, że Redirect URLs nie obejmuje callbacku.
+
+    Od 2026-08-13 taki zabłąkany kod nie przepada: `proxy.ts` przechwytuje
+    `?code=` pod `/` i odsyła go na `/auth/callback`, więc logowanie dochodzi
+    do skutku RAZEM z bramką zgody. Konfigurację i tak trzeba naprawić —
+    ratunek w proxy działa tylko dla adresu głównego, nie dla dowolnego
+    Site URL.
 
 ### C. Sprawdzenie
 

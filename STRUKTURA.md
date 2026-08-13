@@ -403,6 +403,14 @@ kończy — zamiast cichego wpuszczenia z pominięciem oświadczenia woli. Nic n
 tracimy: hasło i kody nie niosą nic w adresie, a Google i tak musi wymienić kod
 serwerowo, żeby zapisać ciasteczka.
 
+**A skoro kod potrafi wylądować pod `/`, `proxy.ts` go tam PRZECHWYTUJE i odsyła
+na `/auth/callback`** (z zachowaniem query). To nie obejście bramki, tylko
+doprowadzenie do niej — kod trafia do tej samej trasy, która sprawdza dziennik
+zgód. Wystarczy `www`, żeby powrót minął się z listą: dla Supabase
+`https://aplikando.pl/**` NIE obejmuje `https://www.aplikando.pl/auth/callback`.
+**Redirect URLs muszą wymieniać OBA warianty hosta**, bo `redirectTo` budujemy
+z `window.location.origin`, czyli z tego, co użytkownik ma w pasku.
+
 **Konta OAuth nie da się „nie założyć bez zgody"** — istnieje, zanim nasz kod
 cokolwiek zobaczy. Dlatego `/dokoncz-rejestracje` daje drogę wyjścia: zgoda albo
 usunięcie konta jednym kliknięciem.

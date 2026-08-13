@@ -91,6 +91,30 @@ export async function proxy(request: NextRequest) {
   }
 
   /*
+   * KOD OAUTH, KTÓRY TRAFIŁ POZA `/auth/callback` — odsyłamy go na właściwą
+   * trasę zamiast zostawiać człowieka na landingu z kodem w pasku adresu.
+   *
+   * Skąd się tam bierze: przy niepełnej liście Redirect URLs w panelu Supabase
+   * powrót z Google nie idzie pod adres, o który prosimy, tylko pod Site URL.
+   * Wystarczy do tego rzecz tak drobna jak `www` — `https://aplikando.pl/**`
+   * NIE obejmuje `https://www.aplikando.pl/auth/callback` (dla Supabase to inny
+   * host). Realny przebieg zgłoszony przez Marka 2026-08-13.
+   *
+   * To NIE JEST obejście bramki zgody, tylko doprowadzenie do niej: kod idzie
+   * do tej samej trasy serwerowej, która wymienia go na sesję i sprawdza
+   * dziennik zgód. Odwrotność `detectSessionInUrl`, które robiło z tego sesję
+   * po cichu, z pominięciem `/auth/callback` (patrz `klient-przegladarka.ts`).
+   *
+   * Zły albo zużyty kod nie jest problemem — `/auth/callback` odeśle wtedy na
+   * `/logowanie?blad=google`, czyli tam, gdzie i tak trzeba trafić.
+   */
+  if (pathname === "/" && request.nextUrl.searchParams.has("code")) {
+    const cel = new URL("/auth/callback", request.url);
+    cel.search = search;
+    return przekierujDo(cel);
+  }
+
+  /*
    * ZALOGOWANY NIE OGLĄDA LANDINGU (decyzja Marka 2026-08-12). Strona główna
    * sprzedaje produkt komuś, kto go jeszcze nie ma — kto ma konto, chce wejść
    * do aplikacji, nie czytać oferty. Dlatego z nagłówka zniknął przycisk
