@@ -93,6 +93,17 @@ export const SCIEZKI = {
  *   1.2 — 10 sierpnia 2026 — Konto obowiązkowe do korzystania z Aplikacji
  *         (dotąd kreator CV działał bez Konta): zmieniony § 3 ust. 7 oraz
  *         § 4 ust. 5–6 Regulaminu.
+ *   1.3 — 13 sierpnia 2026 — sprostowanie błędnego odesłania w § 4 ust. 9
+ *         Regulaminu: było „ust. 9 pkt 3 powyżej" (odesłanie do samego siebie,
+ *         a ust. 9 nie ma punktów), jest „ust. 8 pkt 3 powyżej" — czyli tam,
+ *         gdzie realnie stoją oba oświadczenia składane przy zakupie.
+ *         Zmiana wyłącznie redakcyjna: nie tworzy, nie znosi ani nie modyfikuje
+ *         żadnego obowiązku, a praktyka aplikacji była od początku zgodna
+ *         z prawidłowym odesłaniem (`paywall-dialog.tsx` wymaga obu zgód przy
+ *         Odblokowaniu Jednorazowym, `/api/platnosc/checkout` waliduje je
+ *         serwerowo). Data zmieniona we WSZYSTKICH trzech dokumentach, bo
+ *         `DATA_OBOWIAZYWANIA` jest wspólne — treść Polityki prywatności
+ *         i Regulaminu newslettera pozostała nietknięta.
  */
-export const DATA_OBOWIAZYWANIA = "10 sierpnia 2026";
-export const WERSJA_DOKUMENTOW = "1.2";
+export const DATA_OBOWIAZYWANIA = "13 sierpnia 2026";
+export const WERSJA_DOKUMENTOW = "1.3";
