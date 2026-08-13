@@ -341,12 +341,6 @@ export function PaywallDialog({
               </div>
             </div>
 
-            <div className="shrink-0 border-t border-border pt-3">
-              <p className="text-center text-xs text-muted-foreground">
-                Płatność kartą, BLIK-iem lub Przelewami24. Rezygnujesz
-                w każdej chwili — dostęp zostaje do końca opłaconego okresu.
-              </p>
-            </div>
           </>
         ) : widok === "potwierdzenie" ? (
           <>
@@ -380,6 +374,23 @@ export function PaywallDialog({
                   </p>
                   <p className="mt-3 text-sm font-bold">
                     {planDoPotwierdzenia.limit} dopasowań miesięcznie
+                  </p>
+                  {/*
+                    CZAS TRWANIA UMOWY I MINIMALNY CZAS ZOBOWIĄZAŃ — art. 17
+                    ust. 1 pkt 3–4 u.p.k. wymaga podania tego BEZPOŚREDNIO
+                    przed złożeniem zamówienia, więc zdanie musi stać przy
+                    przycisku zapłaty, a nie w cenniku (tam żadnego zamówienia
+                    się jeszcze nie składa). Reszta dawnej stopki — wyliczanka
+                    metod płatności — była wyłącznie zachętą i została usunięta
+                    (decyzja Marka 2026-08-13); metody i tak pokazuje Stripe
+                    na następnym ekranie.
+                  */}
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {okres === "rok"
+                      ? "Umowa na czas nieoznaczony, odnawia się co 12 miesięcy."
+                      : "Umowa na czas nieoznaczony, odnawia się co miesiąc."}{" "}
+                    Rezygnujesz w każdej chwili — dostęp zostaje do końca
+                    opłaconego okresu.
                   </p>
                 </div>
               )}
@@ -417,10 +428,6 @@ export function PaywallDialog({
               >
                 Wróć do planów
               </Button>
-              <p className="text-center text-xs text-muted-foreground">
-                Płatność kartą, BLIK-iem lub Przelewami24. Rezygnujesz
-                w każdej chwili — dostęp zostaje do końca opłaconego okresu.
-              </p>
             </div>
           </>
         ) : (
