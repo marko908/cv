@@ -158,6 +158,9 @@ pielęgniarka + krótka oferta spadała 82→66, teraz 82→82).
   `syncActiveCv`, `renameCv`, `deleteCv`, `setAiMeta`, `addTailoring`/`removeTailoring`,
   `resetReview`, **`aktywujSubskrypcje`/`anulujSubskrypcje`/`zliczDopasowanie`**.
   Persist `version: 3` — migracja v2→v3 przenosi dostęp z rekordów na konto.
+  **`wlascicielId`** (2026-08-13) — id konta, do którego należy stan lokalny;
+  bez bumpu wersji, bo brak podpisu w starym zapisie ma znaczyć „nie moje"
+  (patrz „WŁAŚCICIEL DANYCH LOKALNYCH").
   **Autosave NIE nadpisuje nazwy CV** (`nazwaPoZapisie`, 2026-07-31): `syncActiveCv`
   /`openCv`/`newCv`/`newCvFrom` ustawiały `name: defaultCvName(cv)` bezwarunkowo,
   więc CV utworzone jako „<oferta> — dopasowane" wracało do imienia kandydata pół
@@ -331,10 +334,10 @@ da się otworzyć nawet kreatora CV. Wymuszane SERWEROWO w `src/proxy.ts`: każd
 przekierowanie na `/logowanie?wroc=<ścieżka>` — wpisanie adresu wprost w pasku
 nic nie daje, bramka nie jest tylko kosmetyką w UI. Konsekwencja: anonimowa faza
 w `localStorage` (dane budowane PRZED kontem, migrowane jednorazowo po
-pierwszym logowaniu) już nie występuje w normalnym flow — kod migracji
-w `synchronizacja-konta.tsx` zostaje jako nieszkodliwa siatka bezpieczeństwa
-(np. dla danych z przeglądarki sprzed tej zmiany), ale nowy użytkownik nigdy
-nie dotrze do kreatora bez sesji, więc go nie uruchomi. Regulamin § 3 ust. 7
+pierwszym logowaniu) już nie występuje w normalnym flow. Kod migracji został
+w `synchronizacja-konta.tsx` jako „nieszkodliwa siatka bezpieczeństwa" —
+**i okazał się szkodliwy, więc go USUNIĘTO 2026-08-13, patrz „WŁAŚCICIEL DANYCH
+LOKALNYCH" niżej.** Regulamin § 3 ust. 7
 i § 4 ust. 5–6 zaktualizowane w tym samym duchu (wersja dokumentów 1.2).
 
 **ZALOGOWANY NIE OGLĄDA LANDINGU (decyzja Marka 2026-08-12).** Ten sam
@@ -439,18 +442,42 @@ redirect na podrobioną stronę logowania.
 (mapowanie `SavedCv`/`Tailoring` ↔ wiersze `cv`/`dopasowanie`; daty ms↔timestamptz,
 nazwy EN↔PL — jedno miejsce konwersji) + `src/components/auth/synchronizacja-konta.tsx`
 (montowana w `AppShell`). **Komponenty się NIE ZMIENIŁY** — dalej czytają store,
-tylko jego zawartość pochodzi z Postgresa. Trzy zadania: wciągnięcie danych po
-zalogowaniu, jednorazowa migracja tego, co powstało BEZ konta, i zapis kolejnych
-zmian (debounce 900 ms, diff po id → upsert + delete). Konflikty: wygrywa
-ostatni zapis, per rekord.
+tylko jego zawartość pochodzi z Postgresa. DWA zadania: wciągnięcie danych po
+zalogowaniu i zapis kolejnych zmian (debounce 900 ms, diff po id → upsert +
+delete). Konflikty: wygrywa ostatni zapis, per rekord.
+
+**WŁAŚCICIEL DANYCH LOKALNYCH — `store.wlascicielId` (2026-08-13).** Stan
+w `localStorage` jest podpisany id użytkownika, dla którego został wciągnięty
+z bazy. `synchronizacja-konta` porównuje ten podpis z id zalogowanego i przy
+RÓŻNICY (inne konto, albo brak podpisu w stanie sprzed tej zmiany) czyści stan
+lokalny NATYCHMIAST, przed odpytaniem bazy — cudze CV nie ma prawa nawet mignąć
+na ekranie. To jedyna kontrola po stronie przeglądarki: RLS pilnuje bazy, ale
+`localStorage` jest wspólny dla wszystkich osób korzystających z tego profilu
+przeglądarki i żadna polityka w Postgresie go nie dotyczy.
+
+**Zastąpiło to TRZECIE zadanie synchronizacji — migrację danych zbudowanych bez
+konta — które USUNIĘTO, bo przenosiło cudze rekordy na świeże konto.** Migracja
+brała każdy lokalny rekord nieobecny w bazie i wypychała go przez `zapiszCv`
+/`zapiszDopasowania`, a te stemplują wiersz id BIEŻĄCEGO użytkownika. Wystarczyło,
+że poprzednia sesja skończyła się bez kliknięcia „Wyloguj" (wygaśnięcie, zamknięta
+karta, czyszczenie ciasteczek bez czyszczenia `localStorage`) — kolejna osoba
+logowała się i zastawała w SWOJEJ bazie CV oraz dopasowania poprzednika. Od bramki
+konta (2026-08-10) migracja nie miała już czego ratować: bez sesji nie da się
+zbudować CV. Konsekwencja do zaakceptowania: dane wyłącznie lokalne, nigdy
+niezapisane do bazy, przepadają przy zmianie konta — baza jest źródłem prawdy.
+
+**Wciągnięcie z bazy ZASTĘPUJE stan lokalny, nie doklejane się do niego.**
+`cvs`/`tailorings` po hydracji to dokładnie zawartość konta. Jeśli odczyt padnie,
+`gotoweDoZapisu` zostaje `false` i nie zapisujemy NICZEGO — bez tego wyczyszczony
+stan lokalny mógłby po awarii sieci skasować konto w bazie.
 
 **Pułapka, która kosztowałaby użytkownika całą pracę:** rozróżniamy „sesji jeszcze
 nie znamy" (`undefined`) od „na pewno wylogowany" (`null`). Bez tego pierwszy
-render kogoś, kto NIGDY się nie logował, wyglądałby jak wylogowanie i czyściłby
-CV zbudowane anonimowo. Czyścimy WYŁĄCZNIE przy realnym przejściu
-zalogowany→wylogowany (i wtedy do zera — na wspólnym komputerze nikt nie może
-zobaczyć cudzych CV). Puste CV nie trafiają do bazy (`maTresc`), bo edytor tworzy
-je automatycznie i zaśmiecałyby bibliotekę.
+render kogoś, kto NIGDY się nie logował, wyglądałby jak wylogowanie. Czyścimy
+przy realnym przejściu zalogowany→wylogowany (do zera — na wspólnym komputerze
+nikt nie może zobaczyć cudzych CV) oraz przy niezgodnym `wlascicielId`. Puste CV
+nie trafiają do bazy (`maTresc`), bo edytor tworzy je automatycznie i zaśmiecałyby
+bibliotekę.
 
 **Uprawnienia czytamy z bazy, nigdy nie wypychamy** (`pobierzUprawnienia`):
 `subskrypcja`, opłacone `zakup` i `zuzycie_miesieczne` lądują w store, więc

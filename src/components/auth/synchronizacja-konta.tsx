@@ -27,14 +27,21 @@ import {
  * Dzięki temu KOMPONENTY SIĘ NIE ZMIENIAJĄ — dalej czytają store, tylko jego
  * zawartość pochodzi teraz z Postgresa.
  *
- * Trzy zadania:
- *  1. Po zalogowaniu wciągnij dane z bazy.
- *  2. Przy pierwszym logowaniu wypchnij to, co użytkownik zbudował BEZ konta
- *     (kreator jest otwarty, więc CV powstaje przed rejestracją).
- *  3. Zapisuj kolejne zmiany do bazy (z debounce).
+ * Dwa zadania:
+ *  1. Po zalogowaniu wciągnij dane z bazy (cudze/nieznane czyszcząc WCZEŚNIEJ).
+ *  2. Zapisuj kolejne zmiany do bazy (z debounce).
  *
  * Konflikty rozstrzygamy per rekord: wygrywa ostatni zapis. Przy jednym
  * użytkowniku na kilku urządzeniach to wystarcza, a nie wymaga wersjonowania.
+ *
+ * ZADANIA TRZECIEGO JUŻ NIE MA — była nim migracja danych zbudowanych BEZ
+ * konta (kreator bywał otwarty dla anonimowych). Wypychała do bazy każdy
+ * lokalny rekord, którego nie było na koncie, stemplując go id BIEŻĄCEGO
+ * użytkownika. Od bramki konta w `proxy.ts` (2026-08-10) nikt nie zbuduje CV
+ * bez sesji, więc migracja nie miała już czego ratować — miała za to co
+ * zepsuć: przy dwóch osobach na jednej przeglądarce (albo przy wygasłej sesji,
+ * gdy `wyczyscLokalne` nigdy się nie wykonało) świeże konto zastawało w bazie
+ * CV i dopasowania poprzednika. Dokładnie to zgłosił Marko 2026-08-13.
  */
 
 /** Debounce zapisu — edycja CV generuje zmianę na każdy znak. */
@@ -58,6 +65,7 @@ function wyczyscLokalne() {
     subscription: BRAK_SUBSKRYPCJI,
     usage: PUSTE_UZYCIE,
     odblokowaneDopasowania: [],
+    wlascicielId: null,
   });
 }
 
@@ -79,7 +87,7 @@ export function SynchronizacjaKonta() {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const userIdRef = useRef<string | null>(null);
 
-  // ---- 1 i 2: wciągnięcie z bazy + migracja lokalnych danych ----
+  // ---- 1: wciągnięcie danych konta z bazy ----
   useEffect(() => {
     if (ladowanie) return;
     const uid = uzytkownik?.id ?? null;
@@ -98,6 +106,19 @@ export function SynchronizacjaKonta() {
       return;
     }
 
+    /*
+     * CZYJE SĄ DANE W `localStorage`? Wszystko, co leży lokalnie, należy do
+     * `wlascicielId` — i tylko on ma prawo je zobaczyć. Przy każdej innej
+     * wartości (inne konto, brak wartości w stanie sprzed tej zmiany) czyścimy
+     * NATYCHMIAST, przed odpytaniem bazy: te dane i tak zaraz zastąpi zawartość
+     * konta, a do tego czasu nie mają prawa migać na ekranie kogoś innego.
+     *
+     * To jedyna linia obrony po stronie przeglądarki — RLS pilnuje bazy, ale
+     * `localStorage` jest wspólny dla wszystkich osób korzystających z tego
+     * profilu przeglądarki i żadna polityka w Postgresie go nie dotyczy.
+     */
+    if (useCvStore.getState().wlascicielId !== uid) wyczyscLokalne();
+
     void (async () => {
       try {
         const [zBazy, dopasowaniaZBazy, uprawnienia] = await Promise.all([
@@ -106,25 +127,12 @@ export function SynchronizacjaKonta() {
           pobierzUprawnienia(),
         ]);
 
+        // Stan lokalny NIE JEST doklejany do tego, co przyszło z bazy — baza
+        // jest źródłem prawdy, a doklejanie było właśnie tym mechanizmem,
+        // który przenosił cudze rekordy na świeże konto.
+        const cvs: SavedCv[] = zBazy;
+        const tailorings: Tailoring[] = dopasowaniaZBazy;
         const stan = useCvStore.getState();
-        const wBazie = new Set(zBazy.map((c) => c.id));
-        const wBazieDop = new Set(dopasowaniaZBazy.map((d) => d.id));
-
-        // Migracja: lokalne rekordy, których w bazie nie ma. Puste CV pomijamy —
-        // edytor tworzy je automatycznie i zaśmiecałyby bibliotekę na zawsze.
-        const doWyslania = stan.cvs.filter((c) => !wBazie.has(c.id) && maTresc(c));
-        const dopDoWyslania = stan.tailorings.filter((t) => !wBazieDop.has(t.id));
-
-        if (doWyslania.length > 0) await zapiszCv(uid, doWyslania);
-        if (dopDoWyslania.length > 0) await zapiszDopasowania(uid, dopDoWyslania);
-
-        const cvs: SavedCv[] = [...doWyslania, ...zBazy].sort(
-          (a, b) => b.updatedAt - a.updatedAt
-        );
-        const tailorings: Tailoring[] = [
-          ...dopDoWyslania,
-          ...dopasowaniaZBazy,
-        ].sort((a, b) => b.createdAt - a.createdAt);
 
         znaneCv.current = new Set(cvs.map((c) => c.id));
         znaneDopasowania.current = new Set(tailorings.map((t) => t.id));
@@ -140,6 +148,9 @@ export function SynchronizacjaKonta() {
           cvs,
           tailorings,
           activeCvId: aktywne,
+          // Od tej chwili stan lokalny jest podpisany właścicielem — kolejne
+          // wejście na tej przeglądarce wie, czyje to dane.
+          wlascicielId: uid,
           ...(aktywneCv
             ? {
                 cv: aktywneCv.cv,

@@ -217,6 +217,18 @@ interface CvState {
   usage: UzycieMiesieczne;
   /** Id dopasowań kupionych jednorazowo (bez subskrypcji). */
   odblokowaneDopasowania: string[];
+  /**
+   * CZYJE SĄ DANE LEŻĄCE W `localStorage` — id użytkownika, dla którego ten
+   * stan został wciągnięty z bazy (`null` = niczyje / jeszcze nieznane).
+   *
+   * Bez tego pola nie da się odróżnić „to moje CV, tylko jeszcze niezapisane"
+   * od „to CV poprzedniej osoby przy tym komputerze". `synchronizacja-konta`
+   * porównuje je z id zalogowanego i przy różnicy czyści stan lokalny, ZANIM
+   * cokolwiek pokaże albo zapisze. Wcześniej rozbieżność kończyła się
+   * przepisaniem cudzych CV na świeże konto (upsert stempluje wiersze id
+   * BIEŻĄCEGO użytkownika), co wyglądało jak „nowe konto ma już dane".
+   */
+  wlascicielId: string | null;
 
   setPath: (path: CvPath) => void;
   setTemplate: (template: TemplateId) => void;
@@ -333,6 +345,7 @@ export const useCvStore = create<CvState>()(
       subscription: BRAK_SUBSKRYPCJI,
       usage: PUSTE_UZYCIE,
       odblokowaneDopasowania: [],
+      wlascicielId: null,
 
       setPath: (path) => set({ path }),
       setTemplate: (template) => set({ template }),
@@ -725,6 +738,10 @@ export const useCvStore = create<CvState>()(
             (Array.isArray(p.tailorings)
               ? p.tailorings.filter((t) => t.aiMeta?.unlocked).map((t) => t.id)
               : []),
+          // Stan sprzed wprowadzenia tego pola nie wie, do kogo należy — a
+          // „nie wiem" musi znaczyć „nie moje": `synchronizacja-konta` wyczyści
+          // go i wciągnie dane z bazy, która i tak jest źródłem prawdy.
+          wlascicielId: p.wlascicielId ?? null,
         } as CvState;
       },
     }
