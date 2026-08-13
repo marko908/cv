@@ -138,8 +138,29 @@ Projekt Aplikando: `smiling-matrix-504818-k7` (stan 2026-08-07).
    komunikacja z klientem (potwierdzenia umów, faktury, reset hasła).
 10. **Authentication → URL Configuration**: Site URL = adres produkcyjny;
     w Redirect URLs dopisz wzorce obejmujące `/auth/callback` dla produkcji
-    i dla preview z Vercela. Bez wpisu Supabase odrzuci powrót z Google
-    („requested path is invalid").
+    i dla preview z Vercela.
+
+    ⚠️ **To jest najkosztowniejsze pole w całym panelu — dwie realne awarie
+    wyszły właśnie stąd (2026-08-13).** Wbrew temu, co tu wcześniej pisało,
+    Supabase przy niedozwolonym adresie powrotu **nie odrzuca** żądania
+    komunikatem „requested path is invalid" — po cichu **podmienia go na Site
+    URL**. Skutki zależą wtedy od tego, co stoi w Site URL:
+
+    - **Site URL z wzorcem** (`https://aplikando.pl/**` — pole przyjmuje
+      wyłącznie konkretny adres, wzorce należą do Redirect URLs): użytkownik
+      ląduje na `https://aplikando.pl/**?code=…` i widzi **404**.
+    - **Site URL poprawny** (`https://aplikando.pl`): użytkownik ląduje na
+      **landingu** z kodem w adresie — i to jest gorszy przypadek, bo wygląda
+      na sukces. Do 2026-08-13 klient przeglądarki wymieniał taki kod na sesję
+      sam z siebie (`detectSessionInUrl`), więc logowanie „działało", tyle że
+      z pominięciem `/auth/callback`, a więc i **bramki zgody na Regulamin**.
+      Dziś ta opcja jest wyłączona w `klient-przegladarka.ts`, przez co błędna
+      konfiguracja objawia się niedokończonym logowaniem zamiast cichego
+      wpuszczenia bez zgód — ale **konfigurację i tak trzeba mieć dobrą**.
+
+    Kontrola po zmianie: kliknij „Kontynuuj z Google" i popatrz na pasek
+    adresu. Ma tam mignąć `/auth/callback?code=…`. Cokolwiek innego (`/`,
+    `/**`) znaczy, że Redirect URLs nie obejmuje callbacku.
 
 ### C. Sprawdzenie
 

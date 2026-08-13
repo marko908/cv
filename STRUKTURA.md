@@ -313,7 +313,8 @@ wynik pokrycia, werdykt) · `slownik.ts` (wiedza branżowa, synonimy, rdzenie PL
 
 **`src/lib/supabase/`** — warstwa dostępu do bazy. `klient-przegladarka.ts`
 (`createBrowserClient`, klucz publishable — jawny, całe bezpieczeństwo stoi na
-RLS) · `klient-serwer.ts` (`klientSerwer()` + `zalogowanyUzytkownik()`; `cookies()`
+RLS; **`detectSessionInUrl: false`** — sesja ma powstawać wyłącznie
+w `/auth/callback`, patrz „LOGOWANIE GOOGLE") · `klient-serwer.ts` (`klientSerwer()` + `zalogowanyUzytkownik()`; `cookies()`
 jest ASYNCHRONICZNE w tej wersji Next) · `klient-admin.ts` (`service_role`, OMIJA
 RLS — wolno TYLKO w webhooku Stripe'a; rzuca wyjątkiem, jeśli zawoła się go
 w przeglądarce) · `typy-bazy.ts` (generowany).
@@ -385,6 +386,22 @@ Server Components nie zapisują ciasteczek).
    ekranie LOGOWANIA, konto powstaje, a checkboxa nikt nie pokazał. Strona
    sprawdza to jeszcze raz serwerowo, więc nie da się jej ominąć wpisaniem
    adresu docelowego w pasku.
+
+**OBIE BRAMKI STOJĄ NA JEDNYM ZAŁOŻENIU: że sesja może powstać WYŁĄCZNIE
+w `/auth/callback`. Domyślnie to nieprawda — stąd `detectSessionInUrl: false`
+w `klient-przegladarka.ts` (2026-08-13).** Klient przeglądarki ma tę opcję
+domyślnie WŁĄCZONĄ: przy starcie ogląda adres strony i znalazłszy `?code=`,
+sam wymienia go na sesję. Wystarczy więc, że powrót z Google trafi gdziekolwiek
+indziej niż na naszą trasę — przy niepełnej liście Redirect URLs Supabase odsyła
+na **Site URL**, czyli na landing — a nagłówek landingu montuje `useUzytkownik`,
+tworzy klienta i ten po cichu kończy logowanie. Użytkownik jest w środku, trasa
+callbacku nie została odwiedzona, `maZgodeRegulaminowa` nigdy się nie wykonała,
+zgód nie widział nikt. Zgłoszone przez Marka 2026-08-13 (ta sama zła
+konfiguracja panelu dała wcześniej 404 na `aplikando.pl/**?code=…`).
+Po wyłączeniu opcji błędna konfiguracja daje objaw WIDOCZNY — logowanie się nie
+kończy — zamiast cichego wpuszczenia z pominięciem oświadczenia woli. Nic nie
+tracimy: hasło i kody nie niosą nic w adresie, a Google i tak musi wymienić kod
+serwerowo, żeby zapisać ciasteczka.
 
 **Konta OAuth nie da się „nie założyć bez zgody"** — istnieje, zanim nasz kod
 cokolwiek zobaczy. Dlatego `/dokoncz-rejestracje` daje drogę wyjścia: zgoda albo
