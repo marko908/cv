@@ -110,26 +110,54 @@ Billing Portal: konfiguracja domyślna `bpc_1U0idOPjJXWcd3IySDp2eBSi`, aktywna.
 razu, tylko z końcem opłaconego okresu. `subscription_update` wyłączone (zmianę
 planu robi się u nas przez nowy zakup, nie przez portal).
 
-## Plan dla LIVE (do wykonania)
+## Stan LIVE (założony 2026-08-17)
 
-Konto live nie było jeszcze konfigurowane. Kolejność:
+Konto: **Aplikando**, `acct_1U01iuBhUmkXSl9P`, `livemode: true`. Katalog i webhook
+założone przez API; kwoty wzięte z `subscription.ts`, nazwy, opisy i klucze
+`metadata.aplikando` **identyczne z tym, co generuje `scripts/stripe-produkty.ts`**
+— dzięki temu skrypt rozpoznaje te wpisy jako swoje i pozostaje idempotentny
+(kolejne `npm run stripe:produkty -- --produkcja` niczego nie zduplikuje, tylko
+wypisze istniejące identyfikatory).
 
-1. Wstaw tymczasowo live'owy `STRIPE_SECRET_KEY` do `.env.local`.
-2. `npm run stripe:produkty -- --produkcja`
-   Skrypt sam sprawdza, czy klucz i flaga zgadzają się co do trybu — odmówi
-   działania na kluczu live bez flagi ORAZ z flagą na kluczu testowym.
-   Na wyjściu dostaniesz pięć linii `STRIPE_CENA_*=price_…`.
-3. Te pięć wartości → Vercel, scope **Production**.
-4. `STRIPE_SECRET_KEY` (live) → Vercel, scope **Production**.
-5. W Stripe live utwórz endpoint webhooka:
-   `https://www.aplikando.pl/api/platnosc/webhook`
-   z pięcioma zdarzeniami z sekcji wyżej. **Host z `www`** — to on jest
-   kanoniczny (apex przekierowuje), a webhook nie ma się odbijać po 308.
-   Skopiuj `whsec_…` → `STRIPE_WEBHOOK_SECRET`, scope **Production**.
-6. Sprawdź Billing Portal w trybie live: `subscription_cancel` = `at_period_end`.
-   Portal wymaga jednorazowego włączenia w ustawieniach Stripe'a.
-7. Przywróć w `.env.local` klucz sandboxowy.
-8. Redeploy `main`.
+Produkty: `prod_V5cG3HaMPdkr0e` (start), `prod_V5cGDtew1Gwl3g` (pro),
+`prod_V5cHJRC1TjvFw4` (jednorazowo).
+
+| Zmienna (scope Production) | Price ID | Kwota |
+|---|---|---|
+| `STRIPE_CENA_START_MIES` | `price_1U5R2nBhUmkXSl9PaDhLcBdR` | 29 zł / mies. |
+| `STRIPE_CENA_START_ROK` | `price_1U5R2qBhUmkXSl9PsZnIkW2u` | 290 zł / rok |
+| `STRIPE_CENA_PRO_MIES` | `price_1U5R35BhUmkXSl9PELPJwGaf` | 49 zł / mies. |
+| `STRIPE_CENA_PRO_ROK` | `price_1U5R38BhUmkXSl9PoqsXsL20` | 490 zł / rok |
+| `STRIPE_CENA_JEDNORAZOWA` | `price_1U5R3HBhUmkXSl9PsGmATvUq` | 12 zł |
+
+Webhook: `we_1U5R3UBhUmkXSl9P05tXqrSk`, `status: enabled`,
+`https://www.aplikando.pl/api/platnosc/webhook`, pięć zdarzeń.
+**Host z `www`** — to on jest kanoniczny (apex przekierowuje), a webhook nie ma
+odbijać się po 308.
+
+### Zostało do zrobienia RĘCZNIE (czego nie da się zrobić przez API)
+
+1. **`STRIPE_SECRET_KEY`** (live) → Vercel, scope Production.
+2. **`STRIPE_WEBHOOK_SECRET`** → Vercel, scope Production. Wartość `whsec_…`
+   odsłania się w panelu Stripe'a przy endpoincie `we_1U5R3U…`. API zwraca ją
+   TYLKO w chwili tworzenia endpointu, więc później jest to jedyna droga.
+3. **Pięć `STRIPE_CENA_*`** z tabeli wyżej → Vercel, scope Production.
+4. **Billing Portal** — Settings → Billing → Customer portal, skonfigurować
+   i zapisać. MCP Stripe'a udostępnia dla konfiguracji portalu wyłącznie
+   operacje GET, a `/api/platnosc/portal` nie podaje `configuration`, więc
+   używa DOMYŚLNEJ konfiguracji konta — a ta powstaje dopiero przy zapisaniu
+   ustawień w panelu. Ustawienia jak w sandboxie: anulowanie
+   **z końcem okresu rozliczeniowego** (nie natychmiast — `czyAktywna` zakłada
+   dostęp do końca opłaconego okresu), historia faktur i zmiana metody
+   płatności włączone, zmiana planu wyłączona.
+5. **Metody płatności** — Settings → Payment methods: włączyć **BLIK**
+   i **Przelewy24**. Checkout nie podaje `payment_method_types`, więc pokazuje
+   to, co jest włączone na koncie; bez tego polski klient zobaczy samą kartę.
+6. **Aktywacja konta** — Stripe musi mieć zakończoną weryfikację (dane firmy,
+   konto bankowe), inaczej `charges_enabled` jest `false` i live nie przyjmie
+   ani złotówki. Do sprawdzenia w panelu; przez to API nie widać.
+7. **Redeploy `main`** — bez tego nowe zmienne nie wejdą do działającego
+   wdrożenia.
 
 ### ⚠️ Blokery, które muszą być zamknięte PRZED pierwszą prawdziwą płatnością
 
