@@ -658,6 +658,21 @@ i wystawia ją do KSeF. Dlatego w `/api/platnosc/checkout` świadomie NIE MA
 `invoice_creation`. ⚠️ Oba maile zakupowe zapowiadają fakturę — ta integracja
 musi działać, zanim pójdzie pierwsza płatność live.
 
+**ALE DANE DO FAKTURY MUSI ZEBRAĆ NASZ CHECKOUT** (`DANE_DO_FAKTURY`
+w `/api/platnosc/checkout`, 2026-08-17). Faktura wymaga imienia, nazwiska
+i ADRESU nabywcy — również przy sprzedaży konsumentowi (art. 106e ust. 1 pkt 3
+ustawy o VAT). Bez `billing_address_collection: "required"` Stripe przekazywał
+dalej sam adres e-mail i Fakturownia nie miałaby czym wypełnić dokumentu.
+Do tego `customer_update: { address: "auto", name: "auto" }` — **to nie jest
+ozdobnik**: przy sesji z przekazanym `customer` (a przekazujemy zawsze, bo
+`stripe_customer_id` żyje w `profil`) Stripe domyślnie NIE zapisuje zebranych
+danych na obiekcie klienta. Sesja by je miała, klient dalej byłby pusty,
+a integracja fakturowa czyta klienta — najczęstszy sposób, w jaki taka
+konfiguracja wygląda na działającą i nie działa.
+**`tax_id_collection` świadomie NIE MA** (decyzja Marka 2026-08-17: sprzedaż
+B2C). Przy sprzedaży firmom trzeba je włączyć — bez NIP-u nabywca-firma nie
+odliczy VAT-u, a Regulamin przewiduje Usługobiorców będących Przedsiębiorcami.
+
 **NIE dotyczy maili autoryzacyjnych**
 — kody aktywacyjne i resety hasła wysyła Supabase przez SMTP Resendu
 (konfiguracja w panelu, ten sam klucz `re_...` jako hasło SMTP). Env:

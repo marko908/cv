@@ -26,6 +26,30 @@ export const maxDuration = 60;
  *    WYŁĄCZNIE z webhooka. Powrót z płatności to tylko przekierowanie
  *    w przeglądarce i nie jest żadnym dowodem.
  */
+
+/**
+ * DANE POTRZEBNE DO WYSTAWIENIA FAKTURY — wspólne dla obu rodzajów zakupu.
+ *
+ * Faktura musi zawierać imię, nazwisko i ADRES nabywcy (art. 106e ust. 1 pkt 3
+ * ustawy o VAT) — również ta wystawiana konsumentowi. Bez `billing_address_collection`
+ * Stripe przekazywał nam sam adres e-mail, więc Fakturownia nie miała czym
+ * wypełnić dokumentu, który Regulamin § 5 ust. 4 i oba maile zakupowe obiecują
+ * klientowi.
+ *
+ * `customer_update` NIE JEST ozdobnikiem: gdy do sesji przekazujemy istniejącego
+ * `customer` (a przekazujemy zawsze, bo `stripe_customer_id` trzymamy w `profil`),
+ * Stripe domyślnie NIE zapisuje zebranych danych na obiekcie klienta. Sesja by je
+ * miała, obiekt klienta dalej byłby pusty — a integracja fakturowa czyta klienta.
+ * To najczęstszy sposób, w jaki ta konfiguracja wygląda na działającą, a nie działa.
+ *
+ * `tax_id_collection` świadomie NIE MA (decyzja Marka 2026-08-17: sprzedaż B2C).
+ * Gdyby doszła sprzedaż firmom, trzeba je włączyć — bez NIP-u nabywca-firma nie
+ * odliczy VAT-u, a Regulamin przewiduje Usługobiorców będących Przedsiębiorcami.
+ */
+const DANE_DO_FAKTURY = {
+  billing_address_collection: "required",
+  customer_update: { address: "auto", name: "auto" },
+} as const;
 export async function POST(request: Request) {
   if (!czyStripeDostepny()) {
     return NextResponse.json(
@@ -125,6 +149,7 @@ export async function POST(request: Request) {
         customer: customerId,
         line_items: [{ price: idCenySubskrypcji(plan, okres), quantity: 1 }],
         locale: "pl",
+        ...DANE_DO_FAKTURY,
         // Metadane trafiają też do subskrypcji, bo webhook `customer.subscription.*`
         // nie widzi metadanych sesji checkoutu.
         subscription_data: { metadata: { user_id: user.id, plan, okres } },
@@ -188,6 +213,7 @@ export async function POST(request: Request) {
         customer: customerId,
         line_items: [{ price: idCenyJednorazowej(), quantity: 1 }],
         locale: "pl",
+        ...DANE_DO_FAKTURY,
         payment_intent_data: {
           metadata: { user_id: user.id, dopasowanie_id: korzen },
         },
