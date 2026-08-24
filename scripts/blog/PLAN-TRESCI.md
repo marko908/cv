@@ -91,7 +91,7 @@ Planer słów kluczowych i przestawić kolejność, jeśli dane powiedzą co inn
   konkretnej oferty** — dokładnie to liczy nasza rubryka.
 - **Linkuj do:** 6, 7, 15
 
-### [ ] 3. Czy w CV umieszczać zdjęcie? Realia polskiego rynku
+### [x] 3. Czy w CV umieszczać zdjęcie? Realia polskiego rynku
 - **Fraza:** `zdjęcie w cv` · wsparcie: `czy zdjęcie w cv jest obowiązkowe`
 - **Intencja:** rozstrzygnięcie sporu; treść zagraniczna odpowiada na inne
   realia niż polskie.
@@ -101,7 +101,7 @@ Planer słów kluczowych i przestawić kolejność, jeśli dane powiedzą co inn
   decyzją wizualną, nie technicznym ryzykiem.
 - **Linkuj do:** 6, 15
 
-### [ ] 4. Paski poziomu umiejętności w CV — czy mają sens?
+### [x] 4. Paski poziomu umiejętności w CV — czy mają sens?
 - **Fraza:** `paski umiejętności cv` · wsparcie: `poziom umiejętności w cv`, `jak oceniać umiejętności w cv`
 - **Intencja:** wąskie, prawie nietknięte po polsku. Łatwa pierwsza pozycja.
 - **Szkic:** co rekruter naprawdę z nich odczytuje (nic) → dlaczego „Excel 80%"
@@ -111,7 +111,7 @@ Planer słów kluczowych i przestawić kolejność, jeśli dane powiedzą co inn
   jest to opinia, tylko reguła w kodzie. Mocny, konkretny dowód.
 - **Linkuj do:** 9, 6
 
-### [ ] 5. Podsumowanie zawodowe w CV — jak napisać (z przykładami)
+### [x] 5. Podsumowanie zawodowe w CV — jak napisać (z przykładami)
 - **Fraza:** `podsumowanie zawodowe cv` · wsparcie: `o mnie w cv`, `profil zawodowy cv przykłady`
 - **Intencja:** czytelnik chce wzoru do przerobienia.
 - **Szkic:** po co to rekruterowi → struktura w trzech zdaniach → 4–5
