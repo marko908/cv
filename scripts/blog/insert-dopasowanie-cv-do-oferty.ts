@@ -54,7 +54,7 @@ async function wstaw() {
 <h2>Jak czytać ogłoszenie</h2>
 <p>Zanim ruszysz CV, rozłóż ogłoszenie na części. Zajmuje to kilka minut i decyduje o całej reszcie pracy.</p>
 <ol>
-<li><strong>Rozdziel wymagania obowiązkowe od mile widzianych.</strong> Zwykle są w osobnych blokach, czasem trzeba je rozpoznać po sformułowaniach: „wymagamy" i „konieczne" kontra „mile widziane", „dodatkowym atutem będzie".</li>
+<li><strong>Rozdziel wymagania obowiązkowe od mile widzianych.</strong> Zwykle są w osobnych blokach, czasem trzeba je rozpoznać po sformułowaniach: „wymagamy” i „konieczne” kontra „mile widziane”, „dodatkowym atutem będzie”.</li>
 <li><strong>Wypisz nazwy własne.</strong> Narzędzia, technologie, metodyki, systemy, certyfikaty. Zapisz je dokładnie w brzmieniu z ogłoszenia.</li>
 <li><strong>Znajdź powtórzenia.</strong> To, co pojawia się w opisie stanowiska, w wymaganiach i jeszcze w zakresie obowiązków, jest dla pracodawcy najważniejsze.</li>
 <li><strong>Zwróć uwagę na kolejność.</strong> Pierwsze trzy wymagania z listy zwykle nie znalazły się tam przypadkiem.</li>

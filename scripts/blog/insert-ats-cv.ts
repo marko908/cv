@@ -68,7 +68,7 @@ async function wstaw() {
 <p class="image-prompt">📷 <strong>GRAFIKA 1 (infographic)</strong> - prompt: A clean minimal infographic split into two halves with an arrow pointing from left to right, flat vector illustration style. The left half shows a two column CV page wireframe with a narrow sidebar and a wider main column, labelled in Polish above as "Co widzi człowiek". The right half shows the same content flattened into a single vertical list of stacked text lines, labelled in Polish above as "Co dostaje system". All visible text must be in Polish exactly as specified above, no English words anywhere in the image, professional blue and white colour scheme, plenty of white space. <strong>Alt:</strong> "Układ CV widziany przez człowieka zestawiony z kolejnością tekstu w pliku". <strong>Podpis:</strong> "System nie widzi kolumn, dostaje tekst w kolejności zapisu". Plik: <code>ats-cv-01.webp</code>. <strong>Po wgraniu obrazka usuń ten akapit.</strong></p>
 
 <h2>Trzy mity, które warto odłożyć</h2>
-<p>Wokół systemów rekrutacyjnych narosło sporo strachu, często podsycanego przez firmy sprzedające „optymalizację pod ATS". Poniżej trzy twierdzenia, które powtarzają się najczęściej, i to, jak wygląda rzeczywistość.</p>
+<p>Wokół systemów rekrutacyjnych narosło sporo strachu, często podsycanego przez firmy sprzedające „optymalizację pod ATS”. Poniżej trzy twierdzenia, które powtarzają się najczęściej, i to, jak wygląda rzeczywistość.</p>
 <table>
 <thead><tr><th>Mit</th><th>Jak jest naprawdę</th></tr></thead>
 <tbody>
@@ -85,11 +85,11 @@ async function wstaw() {
 <li><strong>Tekst zapisany jako obrazek.</strong> Skan CV albo eksport do PDF w postaci grafiki jest dla systemu pustą stroną. To najpoważniejszy z tych błędów.</li>
 <li><strong>Dane kontaktowe w nagłówku lub stopce strony.</strong> Część parserów pomija te obszary, więc numer telefonu potrafi zniknąć.</li>
 <li><strong>Rozbudowane tabele.</strong> Treść z komórek bywa sklejana w przypadkowej kolejności, zwłaszcza przy tabelach zagnieżdżonych.</li>
-<li><strong>Nietypowe nazwy sekcji.</strong> „Moja droga zawodowa" zamiast „Doświadczenie" utrudnia przypisanie treści do właściwego pola.</li>
+<li><strong>Nietypowe nazwy sekcji.</strong> „Moja droga zawodowa” zamiast „Doświadczenie” utrudnia przypisanie treści do właściwego pola.</li>
 <li><strong>Egzotyczne czcionki i znaki ozdobne.</strong> Symbole zamiast myślników czy ikony zamiast etykiet potrafią wyjść jako znaki zapytania.</li>
 <li><strong>Panel boczny zapisany w pliku przed treścią główną.</strong> Rekruter zobaczy poprawny układ, a system dostanie najpierw listę umiejętności, a dopiero potem nazwisko.</li>
 </ul>
-<p>Dwie rzeczy, które w tej liście nie występują, to zdjęcie i paski poziomu przy umiejętnościach. Oba bywają odradzane właśnie „ze względu na ATS", choć system po prostu je pomija. Powody, żeby ich unikać, są inne i opisaliśmy je osobno: przy <a href="/blog/zdjecie-w-cv">zdjęciu w CV</a> chodzi o zwyczaj rynkowy, a przy <a href="/blog/paski-umiejetnosci-cv">paskach umiejętności</a> o to, że nic nie znaczą dla czytającego człowieka.</p>
+<p>Dwie rzeczy, które w tej liście nie występują, to zdjęcie i paski poziomu przy umiejętnościach. Oba bywają odradzane właśnie „ze względu na ATS”, choć system po prostu je pomija. Powody, żeby ich unikać, są inne i opisaliśmy je osobno: przy <a href="/blog/zdjecie-w-cv">zdjęciu w CV</a> chodzi o zwyczaj rynkowy, a przy <a href="/blog/paski-umiejetnosci-cv">paskach umiejętności</a> o to, że nic nie znaczą dla czytającego człowieka.</p>
 
 <figure data-image-id="2" data-image-type="photo" data-image-brief="Rekruter przy komputerze przeglądający listę zgłoszeń w systemie rekrutacyjnym, ekran z listą wpisów, biuro w naturalnym świetle.">
   <img src="/blog/obrazki/ats-cv-02.webp" alt="Rekruter filtrujący listę zgłoszeń w systemie rekrutacyjnym" width="800" height="450" loading="lazy" />

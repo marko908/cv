@@ -41,7 +41,7 @@ async function wstaw() {
         {
           pytanie: "Czy w pierwszym CV umieszczać sekcję zainteresowań?",
           odpowiedz:
-            "Tylko jeśli mają związek ze stanowiskiem albo są na tyle konkretne, że staną się tematem rozmowy. „Muzyka, sport, podróże" to wypełniacz, który nie mówi nic.",
+            "Tylko jeśli mają związek ze stanowiskiem albo są na tyle konkretne, że staną się tematem rozmowy. „Muzyka, sport, podróże” to wypełniacz, który nie mówi nic.",
         },
       ],
       tresc: `<p>Brak etatu za sobą nie oznacza braku doświadczenia. Oznacza, że doświadczenie nazywa się inaczej: projekt zaliczeniowy, praktyka, wolontariat, praca dorywcza, własna strona zrobiona wieczorami. Pierwsze CV polega głównie na tym, żeby to nazwać i ułożyć w kolejności, która ma sens. Poniżej jak to zrobić i czego przy okazji nie robić.</p>
@@ -87,7 +87,7 @@ async function wstaw() {
 <p class="image-prompt">📷 <strong>GRAFIKA 1 (infographic)</strong> - prompt: A clean minimal infographic showing two CV page wireframes side by side, flat vector illustration style, each built from stacked labelled section blocks. The left page is labelled in Polish above as "Z doświadczeniem" with blocks in order reading "Dane osobowe", "Doświadczenie", "Wykształcenie", "Umiejętności". The right page is labelled in Polish above as "Pierwsze CV" with blocks in order reading "Dane osobowe", "Wykształcenie", "Projekty", "Umiejętności", and the "Wykształcenie" and "Projekty" blocks are highlighted in a soft accent colour. All visible text must be in Polish exactly as specified above, no English words anywhere in the image, professional blue and white colour scheme, plenty of white space. <strong>Alt:</strong> "Porównanie układu sekcji w CV z doświadczeniem i bez niego". <strong>Podpis:</strong> "Przy pierwszym CV kolejność sekcji wygląda inaczej". Plik: <code>cv-bez-doswiadczenia-01.webp</code>. <strong>Po wgraniu obrazka usuń ten akapit.</strong></p>
 
 <h2>Jak opisać projekt, żeby brzmiał jak praca</h2>
-<p>Projekt zaliczeniowy opisany jako „projekt na zaliczenie z baz danych" nie mówi nic. Ten sam projekt opisany jak zadanie zawodowe wygląda zupełnie inaczej, a nie wymaga to żadnej przesady.</p>
+<p>Projekt zaliczeniowy opisany jako „projekt na zaliczenie z baz danych” nie mówi nic. Ten sam projekt opisany jak zadanie zawodowe wygląda zupełnie inaczej, a nie wymaga to żadnej przesady.</p>
 <p>Użyj tej samej konstrukcji, co przy opisie pracy: czasownik, co dokładnie, efekt albo skala. Dopisz rolę w zespole i narzędzia.</p>
 <table>
 <thead><tr><th>Zapis słaby</th><th>Zapis, który działa</th></tr></thead>
@@ -104,7 +104,7 @@ async function wstaw() {
 <p>Trzy błędy powtarzają się w pierwszych CV najczęściej i wszystkie wynikają z tego samego: z próby ukrycia, że doświadczenia jest mało.</p>
 <p><strong>Zawyżanie.</strong> Wpisywanie miesięcznych praktyk jako rocznego stażu albo znajomości narzędzia po jednym szkoleniu jako umiejętności. Wychodzi przy pierwszym pytaniu o szczegóły i kosztuje więcej niż szczery brak.</p>
 <p><strong>Wypełniacze.</strong> Rozciąganie CV do dwóch stron listą zainteresowań, kursów z pierwszego roku i szkolnych osiągnięć. Jedna strona z konkretem czyta się lepiej niż dwie z watą.</p>
-<p><strong>Przepraszanie.</strong> Zdania w rodzaju „mimo braku doświadczenia zawodowego jestem chętny do nauki" osłabiają dokument. Rekruter wie, na jakie stanowisko rekrutuje. Nie musisz się tłumaczyć z etapu kariery, na którym jesteś.</p>
+<p><strong>Przepraszanie.</strong> Zdania w rodzaju „mimo braku doświadczenia zawodowego jestem chętny do nauki” osłabiają dokument. Rekruter wie, na jakie stanowisko rekrutuje. Nie musisz się tłumaczyć z etapu kariery, na którym jesteś.</p>
 
 <figure data-image-id="2" data-image-type="photo" data-image-brief="Młoda osoba przy laptopie w domowym otoczeniu, pracująca nad dokumentem, obok notatnik z listą. Skupienie, spokojna atmosfera pierwszych przygotowań do rekrutacji.">
   <img src="/blog/obrazki/cv-bez-doswiadczenia-02.webp" alt="Absolwentka przygotowująca swoje pierwsze CV" width="800" height="450" loading="lazy" />

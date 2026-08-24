@@ -12,7 +12,7 @@
 - [x] meta_opis ≤ 155 znaków (128), z frazą główną
 - [x] zajawka ≤ 160 znaków (136)
 - [x] Wstęp odpowiada na pytanie w pierwszych 2-3 zdaniach
-- [x] Fraza główna „klauzula rodo" naturalnie kilka razy w treści
+- [x] Fraza główna „klauzula rodo” naturalnie kilka razy w treści
 - [x] Tabela porównawcza (stara vs aktualna klauzula)
 - [x] 2 miejsca na obrazki (photo + infographic) poza okładką
 - [x] Linkowanie wewnętrzne: 1x do `/blog/ile-stron-cv`, 1x `/rejestracja` w CTA

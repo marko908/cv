@@ -3,7 +3,7 @@
 - **Slug:** `podsumowanie-zawodowe-cv`
 - **Temat z planu:** 5 (fala 1)
 - **Kategoria:** pisanie CV · **Tagi:** cv, podsumowanie zawodowe, profil zawodowy
-- **Status:** szkic — insert jeszcze NIE uruchomiony (patrz „Do zrobienia")
+- **Status:** szkic — insert jeszcze NIE uruchomiony (patrz „Do zrobienia”)
 
 ## Checklista SEO
 
@@ -12,7 +12,7 @@
 - [x] meta_opis ≤ 155 znaków (131), z frazą główną
 - [x] zajawka ≤ 160 znaków (139)
 - [x] Wstęp odpowiada na pytanie w pierwszych 2 zdaniach
-- [x] Fraza główna „podsumowanie zawodowe" naturalnie kilka razy w treści
+- [x] Fraza główna „podsumowanie zawodowe” naturalnie kilka razy w treści
 - [x] Tabela porównawcza (frazes vs konkret)
 - [x] 2 miejsca na obrazki (infographic + photo) poza okładką
 - [x] Linkowanie wewnętrzne: 2x do bloga (`paski-umiejetnosci-cv`, `ile-stron-cv`), 1x `/rejestracja` w CTA
@@ -26,9 +26,9 @@
 ## Weryfikacja twierdzenia o produkcie
 
 Zdanie w CTA („jedyne pole przepisywane w całości, reszta CV chroniona przed
-zmianami") jest zgodne z architekturą opisaną w `STRUKTURA.md`, sekcja
+zmianami”) jest zgodne z architekturą opisaną w `STRUKTURA.md`, sekcja
 **STRAŻ POKRYCIA**: „Podsumowanie jest jedynym polem przepisywanym w całości -
-punkty są chronione pojedynczo w `zlozCv`". Dane twarde (firmy, stanowiska,
+punkty są chronione pojedynczo w `zlozCv`”. Dane twarde (firmy, stanowiska,
 okresy, edukacja, języki) w ogóle nie idą do modelu.
 
 ## Treść (skrót struktury)

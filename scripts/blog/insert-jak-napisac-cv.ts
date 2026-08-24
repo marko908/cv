@@ -60,7 +60,7 @@ async function wstaw() {
 
 <h3>Doświadczenie zawodowe</h3>
 <p>Od najnowszego stanowiska. Przy każdym: nazwa stanowiska, firma, okres, a pod tym trzy do pięciu punktów przy ostatniej roli i dwa, trzy przy wcześniejszych.</p>
-<p>Punkty zaczynaj czasownikiem i dopisuj efekt albo skalę. „Byłem odpowiedzialny za obsługę klienta" opisuje zakres stanowiska, a nie Twoją pracę. Jak to przepisać, pokazuje tekst o tym, <a href="/blog/jak-opisac-doswiadczenie-w-cv">jak opisać doświadczenie w CV</a>, a jeśli blokuje Cię brak twardych wyników, sposoby na to zbiera artykuł o <a href="/blog/liczby-w-cv">liczbach w CV</a>.</p>
+<p>Punkty zaczynaj czasownikiem i dopisuj efekt albo skalę. „Byłem odpowiedzialny za obsługę klienta” opisuje zakres stanowiska, a nie Twoją pracę. Jak to przepisać, pokazuje tekst o tym, <a href="/blog/jak-opisac-doswiadczenie-w-cv">jak opisać doświadczenie w CV</a>, a jeśli blokuje Cię brak twardych wyników, sposoby na to zbiera artykuł o <a href="/blog/liczby-w-cv">liczbach w CV</a>.</p>
 
 <h3>Umiejętności</h3>
 <p>Osiem do dwunastu twardych, najwyżej trzy albo cztery miękkie, i tylko takie, które mają pokrycie w opisie doświadczenia. Wymagane w ogłoszeniu ustaw na początku listy.</p>
@@ -84,7 +84,7 @@ async function wstaw() {
 <h2>Format pliku i nazwa</h2>
 <p>Wysyłaj PDF, chyba że ogłoszenie wprost prosi o inny format. PDF wygląda tak samo u każdego odbiorcy, a plik DOCX potrafi rozjechać się na innym komputerze.</p>
 <p>Jeden warunek: PDF musi zawierać prawdziwy tekst. Otwórz plik, spróbuj zaznaczyć i skopiować treść. Jeśli się nie da, masz obrazek, którego system rekrutacyjny nie odczyta w ogóle. Jak wygląda ten odczyt po drugiej stronie i co go realnie psuje, wyjaśnia tekst o <a href="/blog/ats-cv">systemach ATS</a>.</p>
-<p>Nazwa pliku: imię, nazwisko i stanowisko, na przykład <code>Anna-Kowalska-CV-analityk.pdf</code>. Bez „wersja ostateczna 3" i bez samego „cv.pdf", bo w skrzynce rekrutera takich plików jest kilkadziesiąt.</p>
+<p>Nazwa pliku: imię, nazwisko i stanowisko, na przykład <code>Anna-Kowalska-CV-analityk.pdf</code>. Bez „wersja ostateczna 3” i bez samego „cv.pdf”, bo w skrzynce rekrutera takich plików jest kilkadziesiąt.</p>
 
 <h2>Ile stron</h2>
 <p>Jedna strona przy stażu do pięciu lat, dwie przy dłuższym dorobku. Trzy strony to prawie zawsze znak, że w dokumencie zostało coś, co można skrócić.</p>

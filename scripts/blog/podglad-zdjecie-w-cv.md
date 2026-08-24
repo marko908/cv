@@ -3,7 +3,7 @@
 - **Slug:** `zdjecie-w-cv`
 - **Temat z planu:** 3 (fala 1)
 - **Kategoria:** pisanie CV · **Tagi:** cv, zdjęcie, rodo
-- **Status:** szkic — insert jeszcze NIE uruchomiony (patrz „Do zrobienia")
+- **Status:** szkic — insert jeszcze NIE uruchomiony (patrz „Do zrobienia”)
 
 ## Checklista SEO
 
@@ -12,7 +12,7 @@
 - [x] meta_opis ≤ 155 znaków (139), z frazą główną
 - [x] zajawka ≤ 160 znaków (140)
 - [x] Wstęp odpowiada na pytanie w pierwszych 2 zdaniach
-- [x] Fraza główna „zdjęcie w cv" naturalnie kilka razy w treści
+- [x] Fraza główna „zdjęcie w cv” naturalnie kilka razy w treści
 - [x] Tabela porównawcza (argumenty za i przeciw)
 - [x] 2 miejsca na obrazki (photo + infographic) poza okładką
 - [x] Linkowanie wewnętrzne: 2x do bloga (`klauzula-rodo-w-cv`, `ile-stron-cv`), 1x `/rejestracja` w CTA

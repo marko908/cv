@@ -3,7 +3,7 @@
 - **Slug:** `liczby-w-cv`
 - **Temat z planu:** 8 (fala 2)
 - **Kategoria:** pisanie CV · **Tagi:** cv, osiągnięcia, doświadczenie
-- **Status:** szkic — insert jeszcze NIE uruchomiony (patrz „Do zrobienia")
+- **Status:** szkic — insert jeszcze NIE uruchomiony (patrz „Do zrobienia”)
 
 ## Checklista SEO
 
@@ -12,7 +12,7 @@
 - [x] meta_opis ≤ 155 znaków (152), z frazą główną
 - [x] zajawka ≤ 160 znaków (151)
 - [x] Wstęp odpowiada na pytanie w pierwszych 2 zdaniach
-- [x] Fraza główna „liczby w cv" naturalnie kilka razy w treści
+- [x] Fraza główna „liczby w cv” naturalnie kilka razy w treści
 - [x] Dwie tabele (pięć źródeł liczby, pozorny konkret vs dlaczego nie działa)
 - [x] 2 miejsca na obrazki (infographic + photo) poza okładką
 - [x] Linkowanie wewnętrzne: 2x do bloga (`jak-opisac-doswiadczenie-w-cv`, `podsumowanie-zawodowe-cv`), 1x `/rejestracja` w CTA
@@ -31,18 +31,18 @@ ze `STRUKTURA.md`:
 
 - `interview.ts` → `zbudujPytaniaOMetryki` buduje pytania z punktów bez liczby,
   a `cytat` przycina do 220 znaków na granicy słowa (dawne 60 znaków gubiło sens)
-- „WYWIAD UZUPEŁNIA, NIGDY NIE NADPISUJE" (decyzja Marka 2026-08-02): odpowiedź
+- „WYWIAD UZUPEŁNIA, NIGDY NIE NADPISUJE” (decyzja Marka 2026-08-02): odpowiedź
   jest doklejana w znaczniku `⟦uzupełnienie kandydata: …⟧`, a model scala oba
   fakty w jedno zdanie
 - `maJuzKonkret` odsiewa punkty, które liczbę już mają, więc pytania nie
   dotyczą wszystkiego jak leci
 
 Sformułowanie w CTA jest celowo ostrożne („nic z dotychczasowej treści nie
-ginie") i nie obiecuje, że wynik zawsze wzrośnie.
+ginie”) i nie obiecuje, że wynik zawsze wzrośnie.
 
 ## Treść (skrót struktury)
 
-1. Wstęp — blokada „u mnie nic nie było mierzone" myli wynik ze skalą
+1. Wstęp — blokada „u mnie nic nie było mierzone” myli wynik ze skalą
 2. Dlaczego liczba działa mocniej niż przymiotnik
 3. Pięć źródeł liczby — tabela: skala, częstotliwość, zespół, budżet, czas
 4. Przykłady dla stanowisk bez twardych metryk (nauczyciel, pielęgniarka, asystentka, magazynier, grafik)

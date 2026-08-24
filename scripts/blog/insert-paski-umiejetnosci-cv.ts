@@ -31,7 +31,7 @@ async function wstaw() {
         {
           pytanie: "Czym zastąpić paski poziomu umiejętności?",
           odpowiedz:
-            "Konkretem: nazwą narzędzia razem z tym, co w nim robiłeś, i skalą działania. Zamiast „Excel 80%" napisz, że budujesz w nim raporty sprzedażowe z tabel przestawnych dla zespołu 12 osób.",
+            "Konkretem: nazwą narzędzia razem z tym, co w nim robiłeś, i skalą działania. Zamiast „Excel 80%” napisz, że budujesz w nim raporty sprzedażowe z tabel przestawnych dla zespołu 12 osób.",
         },
         {
           pytanie: "Czy przy językach obcych też nie używać skali?",
@@ -44,14 +44,14 @@ async function wstaw() {
             "Nie. Pasek to grafika, a system wyciąga z pliku tekst. Odczyta samą nazwę umiejętności, jeśli jest zapisana tekstem obok. Sam poziom przepada niezależnie od tego, jak wygląda.",
         },
       ],
-      tresc: `<p>Paski postępu i procenty przy umiejętnościach nie działają, bo nie niosą żadnej informacji, którą dałoby się zweryfikować. Rekruter patrzący na „Excel 80%" nie wie, czy to poziom tabel przestawnych, czy makr w VBA. Jedyny wyjątek to języki obce, ale i tam liczy się konkretna skala, nie grafika. Poniżej dlaczego tak jest i czym te paski zastąpić.</p>
+      tresc: `<p>Paski postępu i procenty przy umiejętnościach nie działają, bo nie niosą żadnej informacji, którą dałoby się zweryfikować. Rekruter patrzący na „Excel 80%” nie wie, czy to poziom tabel przestawnych, czy makr w VBA. Jedyny wyjątek to języki obce, ale i tam liczy się konkretna skala, nie grafika. Poniżej dlaczego tak jest i czym te paski zastąpić.</p>
 
 <h2>Co rekruter naprawdę odczytuje z paska</h2>
 <p>Pasek wypełniony w trzech czwartych mówi tyle, że sam siebie oceniłeś na trzy czwarte. Brakuje w nim wszystkiego, co pozwoliłoby ten wynik zinterpretować: skali, punktu odniesienia i tego, kto oceniał.</p>
 <p>Dwie osoby o identycznej wiedzy zaznaczą różne wartości, bo jedna porównuje się do zespołu, a druga do najlepszego specjalisty w branży. Osoba na początku drogi często zaznacza więcej niż ekspert, który wie, ile jeszcze nie umie. Rekruter, który przejrzał setki takich CV, dawno przestał traktować te wartości jako dane.</p>
 <p>W praktyce pasek pełni funkcję dekoracyjną. Wypełnia miejsce, dodaje koloru i sprawia, że dokument wygląda nowocześnie, ale w ocenie merytorycznej jest przezroczysty.</p>
 
-<h2>Dlaczego „Excel 80%" jest bez znaczenia</h2>
+<h2>Dlaczego „Excel 80%” jest bez znaczenia</h2>
 <p>Procent sugeruje pomiar, którego nikt nie przeprowadził. Żeby liczba coś znaczyła, musiałaby istnieć znana obu stronom skala od zera do stu. Przy programach biurowych czy językach programowania taka skala nie istnieje.</p>
 <p>Porównaj dwa zapisy tej samej kompetencji:</p>
 <table>
@@ -79,14 +79,14 @@ async function wstaw() {
 <p>Zamiast oceniać siebie w skali, opisz zakres. Trzy elementy wystarczą i mieszczą się w jednej linii.</p>
 <ul>
 <li><strong>Nazwa narzędzia</strong> dokładnie tak, jak nazywa je branża i jak pojawia się w ogłoszeniach.</li>
-<li><strong>Co w nim robisz</strong> - konkretne zastosowanie, nie ogólnik typu „obsługa".</li>
+<li><strong>Co w nim robisz</strong> - konkretne zastosowanie, nie ogólnik typu „obsługa”.</li>
 <li><strong>Skala albo kontekst</strong>, jeśli je znasz: wielkość zespołu, liczba klientów, rozmiar bazy, częstotliwość.</li>
 </ul>
 <p>Jeśli nie masz czym uzupełnić drugiego i trzeciego punktu, zostaw samą nazwę. Czysta lista narzędzi jest lepsza niż lista z doklejonymi procentami, bo nie udaje precyzji, której nie ma. Więcej o doborze samych pozycji do tej sekcji znajdziesz w tekście o tym, <a href="/blog/ile-stron-cv">ile stron powinno mieć CV</a> - przy jednej stronie każda linia musi na siebie zarabiać.</p>
 
 <h2>Wyjątek: języki obce i skala A1-C2</h2>
 <p>Przy językach obcych skala ma sens, bo istnieje ustalona i niezależna od Ciebie: poziomy A1-C2 według Europejskiego Systemu Opisu Kształcenia Językowego. B2 znaczy to samo dla Ciebie i dla rekrutera, bo definicja jest publiczna i opisuje konkretne umiejętności.</p>
-<p>Dlatego przy językach pisz „angielski - C1", nie „angielski - 85%" ani „angielski - cztery gwiazdki". Jeśli masz certyfikat, dopisz go razem z rokiem. Jeśli nie masz, sam poziom według skali wystarczy.</p>
+<p>Dlatego przy językach pisz „angielski - C1”, nie „angielski - 85%” ani „angielski - cztery gwiazdki”. Jeśli masz certyfikat, dopisz go razem z rokiem. Jeśli nie masz, sam poziom według skali wystarczy.</p>
 <p>Ta sama zasada tłumaczy, dlaczego reszta umiejętności skali nie dostaje: dla Excela ani dla Pythona nikt takiej skali nie ustalił.</p>
 
 <figure data-image-id="2" data-image-type="photo" data-image-brief="Osoba przy laptopie porządkująca sekcję umiejętności w CV, obok notatnik z odręczną listą. Spokojna praca nad dokumentem, naturalne światło.">
@@ -99,7 +99,7 @@ async function wstaw() {
 <p>Czasem poziom faktycznie ma znaczenie, na przykład przy narzędziu, które jest sednem stanowiska. Są trzy sposoby, żeby go pokazać bez sięgania po skalę, której nikt nie ustalił.</p>
 <ul>
 <li><strong>Certyfikat z rokiem.</strong> Egzamin ma ustalony zakres i próg zdawalności, więc mówi więcej niż jakikolwiek pasek. Wpisz pełną nazwę i rok uzyskania.</li>
-<li><strong>Staż użycia w konkretnym kontekście.</strong> „Cztery lata pracy w SAP w module MM" niesie informację, której nie da żadna liczba procent.</li>
+<li><strong>Staż użycia w konkretnym kontekście.</strong> „Cztery lata pracy w SAP w module MM” niesie informację, której nie da żadna liczba procent.</li>
 <li><strong>Najtrudniejsze zadanie, jakie w tym narzędziu wykonałeś.</strong> Rekruter techniczny odczyta poziom z samego opisu zadania, bo zna skalę trudności w swojej dziedzinie.</li>
 </ul>
 <p>Wszystkie trzy mają wspólną cechę: dają się sprawdzić. Pasek nie daje się sprawdzić w żaden sposób, i to jest cała różnica.</p>

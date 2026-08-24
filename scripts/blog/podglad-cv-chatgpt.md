@@ -3,7 +3,7 @@
 - **Slug:** `cv-chatgpt`
 - **Temat z planu:** 10 (fala 2) — **najmocniejszy wyróżnik produktu**
 - **Kategoria:** pisanie CV · **Tagi:** cv, ai, chatgpt
-- **Status:** szkic — insert jeszcze NIE uruchomiony (patrz „Do zrobienia")
+- **Status:** szkic — insert jeszcze NIE uruchomiony (patrz „Do zrobienia”)
 
 ## Checklista SEO
 
@@ -12,7 +12,7 @@
 - [x] meta_opis ≤ 155 znaków (140), z frazą główną
 - [x] zajawka ≤ 160 znaków (156)
 - [x] Wstęp odpowiada na pytanie w pierwszych 2 zdaniach
-- [x] Fraza główna „cv chatgpt" naturalnie kilka razy w treści
+- [x] Fraza główna „cv chatgpt” naturalnie kilka razy w treści
 - [x] Tabela porównawcza (co robi model vs jak to wygląda w CV)
 - [x] 2 miejsca na obrazki (infographic + photo) poza okładką
 - [x] Linkowanie wewnętrzne: 2x do bloga (`liczby-w-cv`, `jak-opisac-doswiadczenie-w-cv`), 1x `/rejestracja` w CTA
@@ -38,7 +38,7 @@ CTA opisuje trzy mechanizmy naraz. Wszystkie są w kodzie, nie w prompcie:
    poziom języka i frazesy, a `pipeline.naprawCv()` cofa do oryginału
    **tylko odrzucone fragmenty**, nie całe CV.
 
-Sformułowanie „nie ma jak dopisać nic od siebie" jest więc opisem architektury,
+Sformułowanie „nie ma jak dopisać nic od siebie” jest więc opisem architektury,
 nie obietnicą marketingową. Zasada naczelna produktu ze `STRUKTURA.md`: gwarancją
 nie jest prompt, tylko kod.
 

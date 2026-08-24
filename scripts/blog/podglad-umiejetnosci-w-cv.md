@@ -3,7 +3,7 @@
 - **Slug:** `umiejetnosci-w-cv`
 - **Temat z planu:** 9 (fala 2)
 - **Kategoria:** pisanie CV · **Tagi:** cv, umiejętności, kompetencje
-- **Status:** szkic — insert jeszcze NIE uruchomiony (patrz „Do zrobienia")
+- **Status:** szkic — insert jeszcze NIE uruchomiony (patrz „Do zrobienia”)
 
 ## Checklista SEO
 
@@ -12,7 +12,7 @@
 - [x] meta_opis ≤ 155 znaków (139), z frazą główną
 - [x] zajawka ≤ 160 znaków (134)
 - [x] Wstęp odpowiada na pytanie w pierwszych 2 zdaniach
-- [x] Fraza główna „umiejętności w cv" naturalnie kilka razy w treści
+- [x] Fraza główna „umiejętności w cv” naturalnie kilka razy w treści
 - [x] Tabela porównawcza (frazes vs potwierdzenie w doświadczeniu)
 - [x] 2 miejsca na obrazki (infographic + photo) poza okładką
 - [x] Linkowanie wewnętrzne: 3x do bloga (`klauzula-rodo-w-cv`, `paski-umiejetnosci-cv`, `ats-cv`), 1x `/rejestracja` w CTA

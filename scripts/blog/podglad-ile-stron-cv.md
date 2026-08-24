@@ -12,7 +12,7 @@
 - [x] meta_opis ≤ 155 znaków (140), z frazą główną
 - [x] zajawka ≤ 160 znaków (133)
 - [x] Wstęp odpowiada na pytanie w pierwszych 2-3 zdaniach
-- [x] Fraza główna „ile stron cv" / „strona CV" naturalnie kilka razy w treści
+- [x] Fraza główna „ile stron cv” / „strona CV” naturalnie kilka razy w treści
 - [x] Tabela: etap kariery → zalecana długość
 - [x] 2 miejsca na obrazki (infographic + photo) poza okładką
 - [x] Linkowanie wewnętrzne: 1x do `/blog/klauzula-rodo-w-cv`, 1x `/rejestracja` w CTA

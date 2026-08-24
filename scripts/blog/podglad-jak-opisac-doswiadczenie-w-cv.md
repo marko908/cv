@@ -3,7 +3,7 @@
 - **Slug:** `jak-opisac-doswiadczenie-w-cv`
 - **Temat z planu:** 7 (fala 2)
 - **Kategoria:** pisanie CV · **Tagi:** cv, doświadczenie, osiągnięcia
-- **Status:** szkic — insert jeszcze NIE uruchomiony (patrz „Do zrobienia")
+- **Status:** szkic — insert jeszcze NIE uruchomiony (patrz „Do zrobienia”)
 
 ## Checklista SEO
 
@@ -12,7 +12,7 @@
 - [x] meta_opis ≤ 155 znaków (150), z frazą główną
 - [x] zajawka ≤ 160 znaków (146)
 - [x] Wstęp odpowiada na pytanie w pierwszych 2 zdaniach
-- [x] Fraza główna „opisać doświadczenie" naturalnie kilka razy w treści
+- [x] Fraza główna „opisać doświadczenie” naturalnie kilka razy w treści
 - [x] Tabela porównawcza (8 par przed/po)
 - [x] 2 miejsca na obrazki (infographic + photo) poza okładką
 - [x] Linkowanie wewnętrzne: 2x do bloga (`podsumowanie-zawodowe-cv`, `ats-cv`), 1x `/rejestracja` w CTA
@@ -41,7 +41,7 @@ dane kontaktowe i RODO 2. Przy zmianie wag trzeba poprawić CTA w tym artykule.
 ## Treść (skrót struktury)
 
 1. Wstęp — problem: CV opisuje stanowisko, nie osobę
-2. Dlaczego „byłem odpowiedzialny za" nic nie mówi
+2. Dlaczego „byłem odpowiedzialny za” nic nie mówi
 3. Wzór: czasownik, co, efekt — lista numerowana
 4. Osiem przykładów przed i po — tabela z ośmiu branż
 5. Czasowniki, od których warto zaczynać — pogrupowana lista

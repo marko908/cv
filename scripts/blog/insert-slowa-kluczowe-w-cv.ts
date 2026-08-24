@@ -55,9 +55,9 @@ async function wstaw() {
 <p>Nie każde słowo z ogłoszenia jest słowem kluczowym. Szukasz nazw, nie przymiotników.</p>
 <ol>
 <li><strong>Wypisz wszystkie nazwy własne.</strong> Programy, technologie, systemy, metodyki, certyfikaty, normy. To trzon listy.</li>
-<li><strong>Dopisz nazwy obszarów odpowiedzialności.</strong> „Rozliczanie VAT", „obsługa reklamacji", „planowanie produkcji". To one opisują, czym się zajmujesz.</li>
+<li><strong>Dopisz nazwy obszarów odpowiedzialności.</strong> „Rozliczanie VAT”, „obsługa reklamacji”, „planowanie produkcji”. To one opisują, czym się zajmujesz.</li>
 <li><strong>Zaznacz nazwę stanowiska</strong> w brzmieniu, którego używa pracodawca.</li>
-<li><strong>Odrzuć przymiotniki i frazesy.</strong> „Samodzielność", „zaangażowanie" i „umiejętność pracy pod presją" to nie są słowa kluczowe. Nikt ich nie wyszukuje i niczego nie różnicują.</li>
+<li><strong>Odrzuć przymiotniki i frazesy.</strong> „Samodzielność”, „zaangażowanie” i „umiejętność pracy pod presją” to nie są słowa kluczowe. Nikt ich nie wyszukuje i niczego nie różnicują.</li>
 <li><strong>Podziel listę na dwie części:</strong> te, które faktycznie masz, i te, których nie masz. Pracujesz tylko na pierwszej.</li>
 </ol>
 <p>Zwykle zostaje kilkanaście pozycji, z czego realnie Twoich jest osiem, dziesięć. To jest materiał na resztę pracy.</p>
@@ -101,12 +101,12 @@ async function wstaw() {
 <p class="image-prompt">📷 <strong>GRAFIKA 2 (photo)</strong> - prompt: A realistic photo of a person at a desk writing a short list on a paper notepad while looking at a laptop screen, pen in hand, soft natural daylight from a window, shallow depth of field, warm neutral tones, screen content blurred and unreadable, no visible readable text or logos, focused analytical mood, shot on a 50mm lens. <strong>Alt:</strong> "Kandydat wypisujący frazy z ogłoszenia na kartce". <strong>Podpis:</strong> "Lista fraz powstaje raz, potem wraca przy każdej podobnej ofercie". Plik: <code>slowa-kluczowe-w-cv-02.webp</code>. <strong>Po wgraniu obrazka usuń ten akapit.</strong></p>
 
 <h2>Odmiana i skróty: na co uważać po polsku</h2>
-<p>Polska fleksja komplikuje wyszukiwanie bardziej niż angielska. „Zarządzanie projektami" i „zarządzał projektami" to dla wyszukiwarki dwie różne frazy, choć dla człowieka jedna.</p>
-<p>Bezpieczna praktyka jest taka: nazwę własną zapisz w mianowniku przynajmniej raz, na liście umiejętności, a w opisie doświadczenia używaj jej naturalnie, w dowolnej formie. Przy skrótach podaj obie wersje przy pierwszym użyciu, na przykład „Google Analytics 4 (GA4)". Kosztuje to trzy znaki, a pokrywa oba warianty wyszukiwania.</p>
+<p>Polska fleksja komplikuje wyszukiwanie bardziej niż angielska. „Zarządzanie projektami” i „zarządzał projektami” to dla wyszukiwarki dwie różne frazy, choć dla człowieka jedna.</p>
+<p>Bezpieczna praktyka jest taka: nazwę własną zapisz w mianowniku przynajmniej raz, na liście umiejętności, a w opisie doświadczenia używaj jej naturalnie, w dowolnej formie. Przy skrótach podaj obie wersje przy pierwszym użyciu, na przykład „Google Analytics 4 (GA4)”. Kosztuje to trzy znaki, a pokrywa oba warianty wyszukiwania.</p>
 
 <h2>Jak sprawdzić pokrycie</h2>
 <p>Najprostsza metoda ręczna zajmuje pięć minut. Weź swoją listę fraz z ogłoszenia, otwórz CV i użyj wyszukiwania w dokumencie, przechodząc pozycja po pozycji.</p>
-<p>Przy każdej frazie odpowiedz sobie na trzy pytania: czy w ogóle występuje, czy występuje w brzmieniu z ogłoszenia i czy stoi w miejscu, na które pada wzrok w pierwszych sekundach. Trzy razy „tak" znaczy, że ta fraza działa.</p>
+<p>Przy każdej frazie odpowiedz sobie na trzy pytania: czy w ogóle występuje, czy występuje w brzmieniu z ogłoszenia i czy stoi w miejscu, na które pada wzrok w pierwszych sekundach. Trzy razy „tak” znaczy, że ta fraza działa.</p>
 <p>Nie oczekuj stu procent. Pełne pokrycie wymagań zdarza się rzadko i nie jest warunkiem aplikowania. Sensowny cel to większość wymagań obowiązkowych, przy czym te powtórzone w ogłoszeniu kilka razy powinny znaleźć się w CV na pewno.</p>
 <p>Jeśli w trakcie tego przeglądu okaże się, że brakuje nie fraz, tylko całych obszarów doświadczenia, to nie jest problem do rozwiązania edycją słów. Wtedy wracasz o krok wcześniej, do <a href="/blog/dopasowanie-cv-do-oferty">dopasowania CV do oferty</a>, a przy samej sekcji umiejętności pomoże tekst o tym, <a href="/blog/umiejetnosci-w-cv">co wpisać, a czego nie</a>. Techniczne tło całego procesu, czyli to, jak plik jest odczytywany po drugiej stronie, opisuje artykuł o <a href="/blog/ats-cv">systemach ATS</a>.</p>`,
     })

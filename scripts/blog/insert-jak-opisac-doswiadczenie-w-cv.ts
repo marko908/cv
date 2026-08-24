@@ -36,7 +36,7 @@ async function wstaw() {
         {
           pytanie: "Czy pisać w pierwszej osobie?",
           odpowiedz:
-            "W CV punkty zaczyna się czasownikiem, bez zaimka: „Wdrożyłem", nie „Ja wdrożyłem". Trzymaj jedną formę w obrębie stanowiska, najlepiej dokonaną, bo opisujesz rzeczy zakończone.",
+            "W CV punkty zaczyna się czasownikiem, bez zaimka: „Wdrożyłem”, nie „Ja wdrożyłem”. Trzymaj jedną formę w obrębie stanowiska, najlepiej dokonaną, bo opisujesz rzeczy zakończone.",
         },
         {
           pytanie: "Czy przepisywać obowiązki z ogłoszenia, na które aplikuję?",
@@ -44,9 +44,9 @@ async function wstaw() {
             "Nie. Możesz użyć nazewnictwa z ogłoszenia dla tych samych czynności, które faktycznie wykonywałeś, ale przepisanie cudzego zakresu obowiązków tworzy CV opisujące pracę, której nie było.",
         },
       ],
-      tresc: `<p>Najczęstszy problem z sekcją doświadczenia jest taki, że opisuje stanowisko, a nie osobę, która je zajmowała. „Byłem odpowiedzialny za obsługę klienta" mógłby napisać każdy, kto siedział na tym krześle przez ostatnie dziesięć lat. Poniżej wzór na punkt, który mówi coś o Tobie, osiem przykładów przed i po oraz lista czasowników, od których warto zaczynać.</p>
+      tresc: `<p>Najczęstszy problem z sekcją doświadczenia jest taki, że opisuje stanowisko, a nie osobę, która je zajmowała. „Byłem odpowiedzialny za obsługę klienta” mógłby napisać każdy, kto siedział na tym krześle przez ostatnie dziesięć lat. Poniżej wzór na punkt, który mówi coś o Tobie, osiem przykładów przed i po oraz lista czasowników, od których warto zaczynać.</p>
 
-<h2>Dlaczego „byłem odpowiedzialny za" nic nie mówi</h2>
+<h2>Dlaczego „byłem odpowiedzialny za” nic nie mówi</h2>
 <p>Zwrot opisuje przydzielone zadanie, nie jego wykonanie. Rekruter dowiaduje się z niego, jaki był zakres stanowiska, co zwykle wie już z nazwy roli. Nie dowiaduje się, czy robiłeś to dobrze, na jaką skalę i co się dzięki temu zmieniło.</p>
 <p>Druga słabość jest praktyczna: takie punkty są nierozróżnialne. Jeśli dziesięciu kandydatów na to samo stanowisko przepisze swój zakres obowiązków, dostaniesz dziesięć niemal identycznych CV. Wybór między nimi przestaje zależeć od treści.</p>
 <p>Nie chodzi o to, żeby każdy punkt kończył się spektakularnym sukcesem. Chodzi o to, żeby dało się z niego wyczytać, co konkretnie robiłeś i w jakiej skali.</p>
@@ -61,7 +61,7 @@ async function wstaw() {
 <p>Trzeci element bywa najtrudniejszy i to on decyduje o różnicy. Jeśli nie masz twardego wyniku, wstaw skalę: ilu klientów, ile transakcji, jak często, dla jak dużego zespołu. Skala też jest informacją.</p>
 
 <div class="blog-cta-inline">
-<p><strong>To nie jest kwestia stylu, tylko mierzalne kryterium.</strong> W rubryce, według której Aplikando ocenia CV w skali 0-100, „Osiągnięcia zamiast obowiązków" to osobna pozycja warta 12 punktów, a „Konkretne liczby i metryki" kolejne 10. Po analizie widzisz, ile z nich zebrałeś i przy których punktach brakuje efektu.</p>
+<p><strong>To nie jest kwestia stylu, tylko mierzalne kryterium.</strong> W rubryce, według której Aplikando ocenia CV w skali 0-100, „Osiągnięcia zamiast obowiązków” to osobna pozycja warta 12 punktów, a „Konkretne liczby i metryki” kolejne 10. Po analizie widzisz, ile z nich zebrałeś i przy których punktach brakuje efektu.</p>
 <p><a href="/rejestracja">Załóż darmowe konto</a></p>
 </div>
 
@@ -96,7 +96,7 @@ async function wstaw() {
 <li><strong>Prowadzenie i koordynacja:</strong> kierowałem, koordynowałem, prowadziłem, nadzorowałem, przejąłem, rozliczałem</li>
 <li><strong>Praca z ludźmi:</strong> przeszkoliłem, wdrożyłem do pracy, negocjowałem, doradzałem, obsługiwałem</li>
 </ul>
-<p>Trzymaj jedną formę w obrębie stanowiska. Mieszanie „wdrożyłem" z „wdrażałem" w tych samych punktach czyta się jak niedokończona redakcja, a przy okazji obniża ocenę spójności językowej.</p>
+<p>Trzymaj jedną formę w obrębie stanowiska. Mieszanie „wdrożyłem” z „wdrażałem” w tych samych punktach czyta się jak niedokończona redakcja, a przy okazji obniża ocenę spójności językowej.</p>
 
 <figure data-image-id="2" data-image-type="photo" data-image-brief="Osoba przy biurku z wydrukowanym CV, robiąca odręczne notatki na marginesie przy punktach doświadczenia. Praca redakcyjna nad dokumentem, naturalne światło.">
   <img src="/blog/obrazki/jak-opisac-doswiadczenie-w-cv-02.webp" alt="Kandydat nanoszący poprawki na wydrukowanym CV" width="800" height="450" loading="lazy" />

@@ -36,7 +36,7 @@ async function wstaw() {
         {
           pytanie: "Czy wpisywać znajomość pakietu MS Office?",
           odpowiedz:
-            "Ogólne „MS Office" nic nie wnosi, bo zakłada się je domyślnie. Wpisz konkretny program i zastosowanie, na przykład Excel z tabelami przestawnymi, jeśli faktycznie z nich korzystasz.",
+            "Ogólne „MS Office” nic nie wnosi, bo zakłada się je domyślnie. Wpisz konkretny program i zastosowanie, na przykład Excel z tabelami przestawnymi, jeśli faktycznie z nich korzystasz.",
         },
         {
           pytanie: "W jakiej kolejności ustawić umiejętności w CV?",
@@ -52,7 +52,7 @@ async function wstaw() {
 <p>Jeśli lista rozrasta się powyżej piętnastu pozycji, przestaje być wyborem i staje się spisem wszystkiego, co kiedykolwiek widziałeś na ekranie. Rekruter czytający szybko i tak zatrzyma się na pierwszych kilku, więc długość działa przeciwko Tobie.</p>
 
 <h2>Frazesy, które osłabiają sekcję</h2>
-<p>Największy problem miękkich umiejętności polega na tym, że wszyscy wpisują te same. Zestaw „komunikatywność, praca w zespole, zaangażowanie, dyspozycyjność" pojawia się w takiej liczbie CV, że przestał cokolwiek różnicować.</p>
+<p>Największy problem miękkich umiejętności polega na tym, że wszyscy wpisują te same. Zestaw „komunikatywność, praca w zespole, zaangażowanie, dyspozycyjność” pojawia się w takiej liczbie CV, że przestał cokolwiek różnicować.</p>
 <table>
 <thead><tr><th>Zamiast frazesu</th><th>Pokaż to w doświadczeniu</th></tr></thead>
 <tbody>
@@ -83,7 +83,7 @@ async function wstaw() {
 <li><strong>Stan cywilny, liczba dzieci, data urodzenia</strong> - nie mają związku z kwalifikacjami, a otwierają drogę do decyzji, których prawo zabrania.</li>
 <li><strong>Wyznanie, poglądy polityczne, przynależność związkowa</strong> - to dane szczególnej kategorii według RODO. W CV nie mają czego szukać.</li>
 <li><strong>Stan zdrowia, orzeczenia</strong> - wyjątkiem jest sytuacja, gdy sam chcesz je ujawnić, na przykład aplikując na stanowisko z puli dla osób z orzeczeniem.</li>
-<li><strong>Zainteresowania wpisane dla zapełnienia miejsca</strong> - „muzyka, podróże, sport" nie mówi nic. Zostaw tylko te, które łączą się ze stanowiskiem albo są nietypowe na tyle, że staną się tematem rozmowy.</li>
+<li><strong>Zainteresowania wpisane dla zapełnienia miejsca</strong> - „muzyka, podróże, sport” nie mówi nic. Zostaw tylko te, które łączą się ze stanowiskiem albo są nietypowe na tyle, że staną się tematem rozmowy.</li>
 </ul>
 <p>Jeśli w CV zostają dane wykraczające poza podstawowy zakres, tym bardziej zadbaj o <a href="/blog/klauzula-rodo-w-cv">aktualną klauzulę RODO</a>, bo to ona porządkuje kwestię zgody.</p>
 
@@ -96,7 +96,7 @@ async function wstaw() {
 <li>Uzupełnij listę pozostałymi twardymi umiejętnościami, które mają związek ze stanowiskiem.</li>
 <li>Na końcu dopisz najwyżej trzy miękkie, mające potwierdzenie w opisie doświadczenia.</li>
 </ol>
-<p>Punkt trzeci bywa niedoceniany. Jeśli ogłoszenie mówi o „Google Analytics 4", a Ty masz w CV „GA4", człowiek zrozumie, ale wyszukiwarka w systemie rekrutacyjnym szukająca pełnej frazy już niekoniecznie. Nie kombinuj z synonimami tam, gdzie branża ma ustaloną nazwę.</p>
+<p>Punkt trzeci bywa niedoceniany. Jeśli ogłoszenie mówi o „Google Analytics 4”, a Ty masz w CV „GA4”, człowiek zrozumie, ale wyszukiwarka w systemie rekrutacyjnym szukająca pełnej frazy już niekoniecznie. Nie kombinuj z synonimami tam, gdzie branża ma ustaloną nazwę.</p>
 
 <figure data-image-id="2" data-image-type="photo" data-image-brief="Osoba przy laptopie z otwartym ogłoszeniem o pracę na jednym ekranie i dokumentem CV na drugim, zaznaczająca wymagania. Praca porównawcza nad dwoma dokumentami.">
   <img src="/blog/obrazki/umiejetnosci-w-cv-02.webp" alt="Kandydat zestawiający wymagania z ogłoszenia ze swoim CV" width="800" height="450" loading="lazy" />
@@ -106,7 +106,7 @@ async function wstaw() {
 
 <h2>Jak grupować, gdy lista jest długa</h2>
 <p>Przy dziesięciu i więcej pozycjach sama lista przestaje się czytać. Wtedy pomaga podział na dwie albo trzy nazwane grupy, na przykład narzędzia, technologie i uprawnienia, albo obszary tematyczne właściwe dla Twojej branży.</p>
-<p>Grupy mają być krótkie, po trzy do pięciu pozycji, i nazwane językiem branży, nie własnymi wymysłami. Podział na „umiejętności twarde" i „umiejętności miękkie" jest poprawny, ale nic nie wnosi, bo rekruter i tak rozpozna jedno od drugiego.</p>
+<p>Grupy mają być krótkie, po trzy do pięciu pozycji, i nazwane językiem branży, nie własnymi wymysłami. Podział na „umiejętności twarde” i „umiejętności miękkie” jest poprawny, ale nic nie wnosi, bo rekruter i tak rozpozna jedno od drugiego.</p>
 
 <h2>Kolejność ma znaczenie</h2>
 <p>Rekruter przeglądający kilkadziesiąt CV dziennie nie czyta listy umiejętności do końca. Zatrzymuje wzrok na pierwszych kilku pozycjach i na tej podstawie wyrabia sobie zdanie o profilu kandydata.</p>

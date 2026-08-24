@@ -34,9 +34,9 @@ async function wstaw() {
             "Od dwóch do czterech, w sumie 40-60 słów. Dłuższy tekst przestaje być podsumowaniem i zaczyna konkurować z sekcją doświadczenia, którą i tak przeczyta rekruter zainteresowany szczegółami.",
         },
         {
-          pytanie: "Czym różni się podsumowanie zawodowe od sekcji „O mnie"?",
+          pytanie: "Czym różni się podsumowanie zawodowe od sekcji „O mnie”?",
           odpowiedz:
-            "To ta sama sekcja pod inną nazwą. „Podsumowanie zawodowe" brzmi bardziej konkretnie i lepiej pasuje do CV z doświadczeniem, „O mnie" częściej pojawia się w CV absolwentów.",
+            "To ta sama sekcja pod inną nazwą. „Podsumowanie zawodowe” brzmi bardziej konkretnie i lepiej pasuje do CV z doświadczeniem, „O mnie” częściej pojawia się w CV absolwentów.",
         },
         {
           pytanie: "Czy podsumowanie trzeba zmieniać przy każdej aplikacji?",
@@ -90,7 +90,7 @@ async function wstaw() {
 <blockquote><p>Przez siedem lat prowadziłem zespół w obsłudze klienta, ostatnie dwa lata odpowiadając za raportowanie wskaźników jakości. Równolegle ukończyłem kurs analizy danych i pracuję w SQL oraz Power BI. Szukam roli analityka, w której doświadczenie w kontakcie z klientem będzie atutem.</p></blockquote>
 
 <h2>Frazesy, które kasują wartość podsumowania</h2>
-<p>Najczęstszy błąd to opisanie cech zamiast faktów. Zdania w rodzaju „jestem osobą komunikatywną, zaangażowaną i zorientowaną na cel" pojawiają się w takiej liczbie CV, że rekruter przestaje je czytać. Nie da się ich sprawdzić i nie odróżniają Cię od nikogo.</p>
+<p>Najczęstszy błąd to opisanie cech zamiast faktów. Zdania w rodzaju „jestem osobą komunikatywną, zaangażowaną i zorientowaną na cel” pojawiają się w takiej liczbie CV, że rekruter przestaje je czytać. Nie da się ich sprawdzić i nie odróżniają Cię od nikogo.</p>
 <table>
 <thead><tr><th>Frazes</th><th>Co napisać zamiast</th></tr></thead>
 <tbody>

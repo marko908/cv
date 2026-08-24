@@ -31,7 +31,7 @@ async function wstaw() {
         {
           pytanie: "Czy mogę zaokrąglać liczby w CV?",
           odpowiedz:
-            "Rozsądne zaokrąglenie jest w porządku, na przykład „ponad 200 zgłoszeń miesięcznie" zamiast 214. Nie zaokrąglaj w górę tak, żeby zmienić rząd wielkości, i nie podawaj liczby, której nie obronisz na rozmowie.",
+            "Rozsądne zaokrąglenie jest w porządku, na przykład „ponad 200 zgłoszeń miesięcznie” zamiast 214. Nie zaokrąglaj w górę tak, żeby zmienić rząd wielkości, i nie podawaj liczby, której nie obronisz na rozmowie.",
         },
         {
           pytanie: "Ile liczb powinno być w CV?",
@@ -41,14 +41,14 @@ async function wstaw() {
         {
           pytanie: "Czy procent bez punktu odniesienia coś daje?",
           odpowiedz:
-            "Niewiele. „Wzrost o 30 procent" bez informacji, z czego na co i w jakim czasie, brzmi jak dane, ale niczego nie mówi. Dopisz bazę albo zamień procent na wartość bezwzględną.",
+            "Niewiele. „Wzrost o 30 procent” bez informacji, z czego na co i w jakim czasie, brzmi jak dane, ale niczego nie mówi. Dopisz bazę albo zamień procent na wartość bezwzględną.",
         },
       ],
-      tresc: `<p>Blokada przy pisaniu CV brzmi zwykle tak: „u mnie nic nie było mierzone, nie mam czego wpisać". Prawie zawsze jest nieprawdziwa, bo myli wynik ze skalą. Nawet jeśli nikt nie liczył efektów Twojej pracy, wiesz, ilu klientów obsługiwałeś, jak duży był zespół i jak często wykonywałeś dane zadanie. To też są liczby i działają.</p>
+      tresc: `<p>Blokada przy pisaniu CV brzmi zwykle tak: „u mnie nic nie było mierzone, nie mam czego wpisać”. Prawie zawsze jest nieprawdziwa, bo myli wynik ze skalą. Nawet jeśli nikt nie liczył efektów Twojej pracy, wiesz, ilu klientów obsługiwałeś, jak duży był zespół i jak często wykonywałeś dane zadanie. To też są liczby i działają.</p>
 
 <h2>Dlaczego liczba działa mocniej niż przymiotnik</h2>
 <p>Przymiotnik jest oceną, którą wystawiasz sam sobie. Liczba jest faktem, który da się sprawdzić i o który można dopytać na rozmowie. To druga rzecz jest tu ważniejsza: konkret zaprasza do rozmowy, ogólnik ją zamyka.</p>
-<p>Porównaj „obsługiwałem dużą bazę klientów" z „obsługiwałem 180 klientów biznesowych w regionie południowym". Pierwsze zdanie rekruter przeczyta i zapomni, bo nie wie, czy duża baza to pięćdziesiąt firm, czy pięć tysięcy. Drugie daje mu punkt odniesienia i podstawę do pytania.</p>
+<p>Porównaj „obsługiwałem dużą bazę klientów” z „obsługiwałem 180 klientów biznesowych w regionie południowym”. Pierwsze zdanie rekruter przeczyta i zapomni, bo nie wie, czy duża baza to pięćdziesiąt firm, czy pięć tysięcy. Drugie daje mu punkt odniesienia i podstawę do pytania.</p>
 <p>Liczba pełni też funkcję porządkującą przy szybkim przeglądzie. Wzrok zatrzymuje się na cyfrach, więc punkt z konkretem zostaje przeczytany nawet wtedy, gdy reszta zostanie przejrzana pobieżnie.</p>
 
 <h2>Pięć źródeł liczby, gdy nikt nic nie mierzył</h2>
@@ -88,8 +88,8 @@ async function wstaw() {
 <p>Żadna z tych liczb nie jest wynikiem w sensie biznesowym. Wszystkie mówią jednak rekruterowi, w jakiej skali pracowałeś, a to zwykle jest pytanie, na które faktycznie szuka odpowiedzi.</p>
 
 <h2>Czego nie zaokrąglać i czego nie wymyślać</h2>
-<p>Zasada jest jedna: każdą liczbę w CV musisz umieć obronić w rozmowie. Nie chodzi o pamiętanie jej co do jednego, tylko o to, żeby po pytaniu „skąd ta liczba?" nie zapadła cisza.</p>
-<p>Bezpieczne zaokrąglenie to takie, które nie zmienia rzędu wielkości i nie idzie zawsze w Twoją stronę. „Około 200 zgłoszeń miesięcznie" przy realnych 214 jest w porządku. „Ponad 500" przy 214 nie jest.</p>
+<p>Zasada jest jedna: każdą liczbę w CV musisz umieć obronić w rozmowie. Nie chodzi o pamiętanie jej co do jednego, tylko o to, żeby po pytaniu „skąd ta liczba?” nie zapadła cisza.</p>
+<p>Bezpieczne zaokrąglenie to takie, które nie zmienia rzędu wielkości i nie idzie zawsze w Twoją stronę. „Około 200 zgłoszeń miesięcznie” przy realnych 214 jest w porządku. „Ponad 500” przy 214 nie jest.</p>
 <p>Nie przenoś też cudzych wyników na siebie. Jeśli zespół obniżył koszty o 200 tys. zł, a Ty odpowiadałeś za jeden z pięciu obszarów, napisz o swoim udziale, nie o całości. Rekruterzy sprawdzają takie rzeczy pytaniem o szczegóły, a rozbieżność między CV a odpowiedzią kosztuje więcej niż skromniejsza liczba.</p>
 
 <figure data-image-id="2" data-image-type="photo" data-image-brief="Odręczne notatki w notesie z wypisanymi liczbami i punktami, obok laptop z otwartym dokumentem. Etap zbierania danych przed przepisaniem CV.">
@@ -99,7 +99,7 @@ async function wstaw() {
 <p class="image-prompt">📷 <strong>GRAFIKA 2 (photo)</strong> - prompt: A realistic photo of an open paper notebook on a desk filled with handwritten notes and numbers, a pen lying across the page, a laptop open and slightly out of focus in the background, soft natural daylight, shallow depth of field, warm neutral tones, no visible readable text or logos, thoughtful preparation mood, shot on a 50mm lens. <strong>Alt:</strong> "Odręczna lista liczb przygotowana przed poprawą CV". <strong>Podpis:</strong> "Zanim przepiszesz punkty, wypisz liczby, które pamiętasz". Plik: <code>liczby-w-cv-02.webp</code>. <strong>Po wgraniu obrazka usuń ten akapit.</strong></p>
 
 <h2>Skąd wziąć dane, których już nie pamiętasz</h2>
-<p>Przy pracy sprzed kilku lat liczby rozmywają się w pamięci. Nie zgaduj i nie wpisuj wartości „mniej więcej takiej", jeśli nie masz jak jej sprawdzić.</p>
+<p>Przy pracy sprzed kilku lat liczby rozmywają się w pamięci. Nie zgaduj i nie wpisuj wartości „mniej więcej takiej”, jeśli nie masz jak jej sprawdzić.</p>
 <p>Trzy miejsca, w których dane zwykle wciąż są: stare raporty i podsumowania roczne, jeśli masz do nich dostęp; korespondencja mailowa z okresu, w którym coś rozliczałeś; oraz ogłoszenie o pracę na Twoje własne stanowisko, jeśli firma je publikowała, bo często podaje wielkość zespołu albo skalę działania. Jeśli nic z tego nie zadziała, opisz zakres słowami zamiast wstawiać liczbę na wyczucie.</p>
 
 <h2>Określenia, które tylko udają konkret</h2>

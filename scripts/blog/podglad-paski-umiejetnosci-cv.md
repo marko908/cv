@@ -3,7 +3,7 @@
 - **Slug:** `paski-umiejetnosci-cv`
 - **Temat z planu:** 4 (fala 1)
 - **Kategoria:** pisanie CV · **Tagi:** cv, umiejętności, formatowanie
-- **Status:** szkic — insert jeszcze NIE uruchomiony (patrz „Do zrobienia")
+- **Status:** szkic — insert jeszcze NIE uruchomiony (patrz „Do zrobienia”)
 
 ## Checklista SEO
 
@@ -12,7 +12,7 @@
 - [x] meta_opis ≤ 155 znaków (134), z frazą główną
 - [x] zajawka ≤ 160 znaków (146)
 - [x] Wstęp odpowiada na pytanie w pierwszych 2 zdaniach
-- [x] Fraza główna „paski umiejętności" naturalnie kilka razy w treści
+- [x] Fraza główna „paski umiejętności” naturalnie kilka razy w treści
 - [x] Tabela porównawcza (zapis z paskiem vs zapis konkretny)
 - [x] 2 miejsca na obrazki (infographic + photo) poza okładką
 - [x] Linkowanie wewnętrzne: 2x do bloga (`ile-stron-cv`, `zdjecie-w-cv`), 1x `/rejestracja` w CTA
@@ -26,9 +26,9 @@
 ## Weryfikacja twierdzenia o produkcie
 
 Zdanie w CTA („paski i procenty realnie obniżają wynik, dwa wpisy ścinają
-połowę punktów w tej kategorii") **zostało sprawdzone w kodzie**, nie przepisane
+połowę punktów w tej kategorii”) **zostało sprawdzone w kodzie**, nie przepisane
 z planu. Źródło: `src/lib/ai/scoring.ts`, kryterium **RUB-10 „Spójny format
-i język", waga 6 punktów**:
+i język”, waga 6 punktów**:
 
 - wykrywanie: `/\d+\s*%|\d\s*\/\s*10|★|●|▮/` na `skills.technical` i `skills.soft_and_tools`
 - kara: `Math.min(0.5, paskiSkill * 0.25)` — czyli 2 wpisy dają maksymalną karę 0.5,
@@ -42,7 +42,7 @@ Jeśli ta reguła kiedyś się zmieni, trzeba poprawić CTA w tym artykule.
 
 1. Wstęp — odpowiedź od razu: nie działają, jeden wyjątek to języki
 2. Co rekruter naprawdę odczytuje z paska (brak punktu odniesienia)
-3. Dlaczego „Excel 80%" jest bez znaczenia — tabela zapis z paskiem vs konkret
+3. Dlaczego „Excel 80%” jest bez znaczenia — tabela zapis z paskiem vs konkret
 4. Co wpisać zamiast pasków — nazwa + zastosowanie + skala
 5. Wyjątek: języki obce i skala A1-C2 według ESOKJ
 6. Jak systemy rekrutacyjne traktują grafikę poziomu

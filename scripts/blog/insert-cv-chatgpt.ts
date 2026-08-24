@@ -44,26 +44,26 @@ async function wstaw() {
             "Przejdź punkt po punkcie i przy każdym zadaj pytanie, czy to się wydarzyło i czy obronisz to na rozmowie. Każdą liczbę i nazwę narzędzia, której nie rozpoznajesz jako swojej, usuń.",
         },
       ],
-      tresc: `<p>ChatGPT dobrze radzi sobie z językiem CV i fatalnie z faktami. Poprawi składnię, skróci rozwlekłe zdania i zaproponuje układ, ale poproszony o „mocniejszy" opis doświadczenia dopisze obowiązki i liczby, których nigdy nie było. Poniżej, gdzie ogólny model pomaga, gdzie kosztuje i jak z niego korzystać, nie tracąc wiarygodności.</p>
+      tresc: `<p>ChatGPT dobrze radzi sobie z językiem CV i fatalnie z faktami. Poprawi składnię, skróci rozwlekłe zdania i zaproponuje układ, ale poproszony o „mocniejszy” opis doświadczenia dopisze obowiązki i liczby, których nigdy nie było. Poniżej, gdzie ogólny model pomaga, gdzie kosztuje i jak z niego korzystać, nie tracąc wiarygodności.</p>
 
 <h2>Co ogólny model robi dobrze</h2>
 <p>Jest kilka zadań, w których pomoc modelu jest realna i bezpieczna, bo dotyczą formy, nie treści.</p>
 <ul>
 <li><strong>Redakcja językowa.</strong> Rozbicie zdania na dwa, usunięcie powtórzeń, ujednolicenie form czasownika.</li>
 <li><strong>Skracanie.</strong> Zmieszczenie tej samej treści w krótszym punkcie bez gubienia sensu.</li>
-<li><strong>Podpowiadanie czasowników.</strong> Zamiana „zajmowałem się" na czasownik opisujący konkretne działanie.</li>
+<li><strong>Podpowiadanie czasowników.</strong> Zamiana „zajmowałem się” na czasownik opisujący konkretne działanie.</li>
 <li><strong>Sprawdzenie struktury.</strong> Wskazanie, że w opisie stanowiska brakuje efektu albo skali.</li>
 <li><strong>Tłumaczenie.</strong> Przygotowanie wersji angielskiej z zachowaniem terminologii branżowej.</li>
 </ul>
 <p>We wszystkich tych zadaniach model pracuje na materiale, który już masz. Nie musi niczego zgadywać, więc nie ma jak zmyślić.</p>
 
 <h2>Gdzie zawodzi</h2>
-<p>Problem zaczyna się przy poleceniach typu „napisz mi CV na stanowisko specjalisty do spraw marketingu" albo „popraw ten opis, żeby brzmiał lepiej". Model uzupełnia wtedy luki tym, co statystycznie pasuje do kontekstu, bo do tego został zbudowany.</p>
+<p>Problem zaczyna się przy poleceniach typu „napisz mi CV na stanowisko specjalisty do spraw marketingu” albo „popraw ten opis, żeby brzmiał lepiej”. Model uzupełnia wtedy luki tym, co statystycznie pasuje do kontekstu, bo do tego został zbudowany.</p>
 <table>
 <thead><tr><th>Co robi model</th><th>Jak to wygląda w CV</th></tr></thead>
 <tbody>
 <tr><td>Dopisuje typowe obowiązki stanowiska</td><td>W opisie pojawia się raportowanie do zarządu, którego nigdy nie robiłeś</td></tr>
-<tr><td>Wstawia prawdopodobnie brzmiące liczby</td><td>„Zwiększyłem sprzedaż o 25 procent" przy zerowej wiedzy o Twoich wynikach</td></tr>
+<tr><td>Wstawia prawdopodobnie brzmiące liczby</td><td>„Zwiększyłem sprzedaż o 25 procent” przy zerowej wiedzy o Twoich wynikach</td></tr>
 <tr><td>Dokłada narzędzia typowe dla roli</td><td>Na liście umiejętności ląduje Jira i Tableau, których nie otwierałeś</td></tr>
 <tr><td>Podnosi poziom języka</td><td>B2 zmienia się w C1, bo tak wygląda większość CV na to stanowisko</td></tr>
 <tr><td>Wygładza wszystko do tego samego tonu</td><td>Trzy różne stanowiska opisane identycznym rytmem zdań</td></tr>
@@ -85,7 +85,7 @@ async function wstaw() {
 <h2>Dlaczego rekruter to wyłapuje</h2>
 <p>Nie ma narzędzia, które z pewnością wskaże tekst napisany przez model, i rekruterzy takich narzędzi zwykle nie używają. Wyłapują co innego: powtarzalność.</p>
 <p>Osoba czytająca setki CV na to samo stanowisko widzi te same konstrukcje u wielu kandydatów naraz. Identyczny rytm zdań, ten sam zestaw przymiotników, ta sama struktura punktu. Pojedyncze CV nie budzi podejrzeń, ale dziesiąte z rzędu już tak.</p>
-<p>Druga rzecz to rozjazd między CV a rozmową. Jeśli w dokumencie stoi wzrost sprzedaży o 25 procent, pierwsze pytanie brzmi, z czego na co i w jakim okresie. Odpowiedź „nie pamiętam dokładnie" kończy temat, ale zostawia ślad, którego nie da się cofnąć.</p>
+<p>Druga rzecz to rozjazd między CV a rozmową. Jeśli w dokumencie stoi wzrost sprzedaży o 25 procent, pierwsze pytanie brzmi, z czego na co i w jakim okresie. Odpowiedź „nie pamiętam dokładnie” kończy temat, ale zostawia ślad, którego nie da się cofnąć.</p>
 <p>Trzecia to konkret, którego nie ma. Model produkuje zdania gładkie i puste, bo nie zna Twojej pracy. Rekruter szukający wyróżnika nie znajduje go, mimo że tekst jest poprawny.</p>
 
 <h2>Jak używać AI bezpiecznie</h2>

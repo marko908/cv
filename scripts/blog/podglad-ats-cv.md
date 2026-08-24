@@ -3,7 +3,7 @@
 - **Slug:** `ats-cv`
 - **Temat z planu:** 6 (fala 2) — **artykuł filarowy dla pozycjonowania produktu**
 - **Kategoria:** ATS i rekrutacja · **Tagi:** ats, cv, rekrutacja
-- **Status:** szkic — insert jeszcze NIE uruchomiony (patrz „Do zrobienia")
+- **Status:** szkic — insert jeszcze NIE uruchomiony (patrz „Do zrobienia”)
 
 ## Checklista SEO
 
@@ -12,7 +12,7 @@
 - [x] meta_opis ≤ 155 znaków (137), z frazą główną
 - [x] zajawka ≤ 160 znaków (147)
 - [x] Wstęp odpowiada na pytanie w pierwszych 2 zdaniach
-- [x] Fraza główna „ats" naturalnie kilka razy w treści
+- [x] Fraza główna „ats” naturalnie kilka razy w treści
 - [x] Tabela porównawcza (mit vs rzeczywistość)
 - [x] 2 miejsca na obrazki (infographic + photo) poza okładką
 - [x] Linkowanie wewnętrzne: 2x do bloga (`zdjecie-w-cv`, `paski-umiejetnosci-cv`), 1x `/rejestracja` w CTA
