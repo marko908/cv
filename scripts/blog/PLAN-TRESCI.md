@@ -125,7 +125,7 @@ Planer słów kluczowych i przestawić kolejność, jeśli dane powiedzą co inn
 
 ## FALA 2 — rdzeń tematyczny (budujemy autorytet)
 
-### [ ] 6. Co to jest ATS i jak naprawdę czyta Twoje CV
+### [x] 6. Co to jest ATS i jak naprawdę czyta Twoje CV
 - **Fraza:** `ats cv` · wsparcie: `system ats rekrutacja`, `cv przyjazne ats`
 - **Intencja:** zrozumienie mechanizmu; obalenie mitów.
 - **Szkic:** czym jest ATS i kto go używa w Polsce → co system faktycznie
@@ -137,7 +137,7 @@ Planer słów kluczowych i przestawić kolejność, jeśli dane powiedzą co inn
   a nie brak zdjęcia, decyduje o poprawnym odczycie.
 - **Linkuj do:** 3, 12, 15 — i z niego linkuje większość pozostałych
 
-### [ ] 7. Osiągnięcia zamiast obowiązków — jak opisać doświadczenie
+### [x] 7. Osiągnięcia zamiast obowiązków — jak opisać doświadczenie
 - **Fraza:** `jak opisać doświadczenie w cv` · wsparcie: `obowiązki w cv`, `czasowniki do cv`
 - **Intencja:** czytelnik ma listę obowiązków i wie, że brzmi słabo.
 - **Szkic:** dlaczego „byłem odpowiedzialny za" nic nie mówi → wzór:
@@ -147,7 +147,7 @@ Planer słów kluczowych i przestawić kolejność, jeśli dane powiedzą co inn
   da się zmierzyć, a nie tylko „poczuć".
 - **Linkuj do:** 8, 5, 15
 
-### [ ] 8. Liczby w CV: jak kwantyfikować, gdy nie masz danych
+### [x] 8. Liczby w CV: jak kwantyfikować, gdy nie masz danych
 - **Fraza:** `liczby w cv` · wsparcie: `jak opisać osiągnięcia w cv`, `mierzalne efekty w cv`
 - **Intencja:** najczęstsza blokada przy pisaniu — „ja nic nie mierzyłem".
 - **Szkic:** dlaczego liczba działa mocniej niż przymiotnik → skąd ją wziąć,
@@ -159,7 +159,7 @@ Planer słów kluczowych i przestawić kolejność, jeśli dane powiedzą co inn
   przykładzie przed/po.
 - **Linkuj do:** 7, 11
 
-### [ ] 9. Umiejętności w CV — co wpisać, a czego nie
+### [x] 9. Umiejętności w CV — co wpisać, a czego nie
 - **Fraza:** `umiejętności w cv` · wsparcie: `umiejętności miękkie w cv`, `jakie umiejętności wpisać do cv`
 - **Intencja:** szeroka fraza, wchodzimy konkretem.
 - **Szkic:** twarde vs miękkie i proporcja → frazesy, które szkodzą
@@ -171,7 +171,7 @@ Planer słów kluczowych i przestawić kolejność, jeśli dane powiedzą co inn
   wrażenie.
 - **Linkuj do:** 4, 12, 6
 
-### [ ] 10. Czy pisać CV przez ChatGPT? Co się przy tym psuje
+### [x] 10. Czy pisać CV przez ChatGPT? Co się przy tym psuje
 - **Fraza:** `cv chatgpt` · wsparcie: `czy warto pisać cv przez ai`, `ai do cv`
 - **Intencja:** rosnąca fraza, czytelnik waha się i szuka rozstrzygnięcia.
 - **Szkic:** co ogólny model robi dobrze (język, struktura) → gdzie zawodzi
