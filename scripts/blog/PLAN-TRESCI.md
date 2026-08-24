@@ -187,7 +187,7 @@ Planer słów kluczowych i przestawić kolejność, jeśli dane powiedzą co inn
 
 ## FALA 3 — frazy sprzedażowe i filar
 
-### [ ] 11. Jak dopasować CV do oferty pracy — instrukcja krok po kroku
+### [x] 11. Jak dopasować CV do oferty pracy — instrukcja krok po kroku
 - **Fraza:** `dopasowanie cv do oferty` · wsparcie: `cv pod konkretną ofertę`, `jak dostosować cv`
 - **Intencja:** **fraza pieniężna** — najbliżej produktu, najwyższa konwersja.
 - **Szkic:** dlaczego jedno CV do wszystkiego nie działa → jak czytać
@@ -199,7 +199,7 @@ Planer słów kluczowych i przestawić kolejność, jeśli dane powiedzą co inn
   aplikacji chce to zrobić szybciej. Tu CTA jest najsilniejsze w całym blogu.
 - **Linkuj do:** 12, 6, 8, 15
 
-### [ ] 12. Słowa kluczowe w CV — jak wyciągnąć je z ogłoszenia
+### [x] 12. Słowa kluczowe w CV — jak wyciągnąć je z ogłoszenia
 - **Fraza:** `słowa kluczowe w cv` · wsparcie: `jakie słowa kluczowe w cv`, `cv słowa kluczowe ats`
 - **Intencja:** druga fraza pieniężna, naturalne przedłużenie tematu 11.
 - **Szkic:** czym są dla ATS, a czym dla rekrutera → jak je znaleźć
@@ -209,7 +209,7 @@ Planer słów kluczowych i przestawić kolejność, jeśli dane powiedzą co inn
   pokaż zrzut z rubryką. To najbardziej „namacalna" część produktu.
 - **Linkuj do:** 11, 6, 9
 
-### [ ] 13. CV bez doświadczenia — co wpisać, gdy nie masz co wpisać
+### [x] 13. CV bez doświadczenia — co wpisać, gdy nie masz co wpisać
 - **Fraza:** `cv bez doświadczenia` · wsparcie: `pierwsze cv`, `cv studenta`
 - **Intencja:** duży wolumen, absolwenci i osoby zmieniające sytuację.
 - **Szkic:** co się liczy jako doświadczenie (projekty, wolontariat, koła,
@@ -219,7 +219,7 @@ Planer słów kluczowych i przestawić kolejność, jeśli dane powiedzą co inn
   pierwsze CV, to realna wartość jeszcze przed dopasowaniem.
 - **Linkuj do:** 5, 7, 15
 
-### [ ] 14. Zmiana branży — jak przepisać CV, żeby doświadczenie się liczyło
+### [x] 14. Zmiana branży — jak przepisać CV, żeby doświadczenie się liczyło
 - **Fraza:** `cv zmiana branży` · wsparcie: `przebranżowienie cv`, `jak napisać cv przy zmianie zawodu`
 - **Intencja:** konkretna, wysoka intencja; mało dobrej treści po polsku.
 - **Szkic:** kompetencje przenoszalne — jak je nazwać językiem nowej branży →
@@ -230,7 +230,7 @@ Planer słów kluczowych i przestawić kolejność, jeśli dane powiedzą co inn
   najbardziej.
 - **Linkuj do:** 5, 11, 7
 
-### [ ] 15. Jak napisać CV w 2026 — kompletny przewodnik
+### [x] 15. Jak napisać CV w 2026 — kompletny przewodnik
 - **Fraza:** `jak napisać cv` · wsparcie: `cv wzór`, `co powinno zawierać cv`
 - **Intencja:** **filar.** Publikowany na końcu, bo linkuje do czternastu
   poprzednich i dopiero wtedy ma czym przyciągnąć.

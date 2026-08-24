@@ -100,7 +100,7 @@ async function wstaw() {
 <h2>Czy zdjęcie psuje odczyt CV w ATS</h2>
 <p>To najczęstszy argument przeciw zdjęciom i w większości przypadków nietrafiony. Systemy rekrutacyjne wyciągają z pliku tekst. Zdjęcie tekstem nie jest, więc zostaje po prostu pominięte i niczego nie obniża.</p>
 <p>Problem pojawia się gdzie indziej, w układzie dokumentu. CV, w którym dane kontaktowe albo nazwy stanowisk siedzą wewnątrz grafiki, zostanie odczytane wybiórczo, bo z obrazka nie ma czego wyciągnąć. Podobnie działają rozbudowane tabele i tekst wrzucony do nagłówka strony.</p>
-<p>Ryzykiem nie jest więc zdjęcie, tylko sposób zbudowania całego układu. Dobrze przygotowany szablon ze zdjęciem odczyta się poprawnie, a źle zbudowany szablon bez zdjęcia potrafi zgubić połowę treści. Jeśli zastanawiasz się przy okazji, <a href="/blog/ile-stron-cv">ile stron powinno mieć Twoje CV</a>, zdjęcie warto wliczyć w budżet miejsca na pierwszej stronie.</p>`,
+<p>Ryzykiem nie jest więc zdjęcie, tylko sposób zbudowania całego układu. Dobrze przygotowany szablon ze zdjęciem odczyta się poprawnie, a źle zbudowany szablon bez zdjęcia potrafi zgubić połowę treści. Przy planowaniu miejsca na pierwszej stronie zdjęcie też trzeba wliczyć w budżet, o czym więcej w tekście o tym, <a href="/blog/ile-stron-cv">ile stron powinno mieć CV</a>.</p>`,
     })
     .select("id, slug")
     .single();

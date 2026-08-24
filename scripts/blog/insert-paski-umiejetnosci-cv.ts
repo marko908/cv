@@ -98,7 +98,7 @@ async function wstaw() {
 <h2>Jak systemy rekrutacyjne traktują grafikę poziomu</h2>
 <p>Systemy ATS wyciągają z pliku tekst. Pasek narysowany w edytorze tekstem nie jest, więc do systemu nie trafia w żadnej postaci. Zostaje sama nazwa umiejętności, o ile stoi obok jako zwykły tekst.</p>
 <p>Gorszy wariant to szablony, w których cała sekcja umiejętności jest jednym obrazkiem albo siedzi w rozbudowanej tabeli. Wtedy przepada nie tylko poziom, ale i nazwy - a to już realna strata, bo dopasowanie do ogłoszenia liczy się właśnie na tych nazwach.</p>
-<p>Dla rekrutera i dla systemu wniosek jest ten sam: liczy się tekst, który da się przeczytać i zweryfikować. Grafika poziomu nie należy do żadnej z tych kategorii. Jeśli zastanawiasz się, co jeszcze bywa uznawane za ryzyko techniczne niesłusznie, sprawdź tekst o tym, czy <a href="/blog/zdjecie-w-cv">zdjęcie w CV psuje odczyt</a>.</p>`,
+<p>Dla rekrutera i dla systemu wniosek jest ten sam: liczy się tekst, który da się przeczytać i zweryfikować. Grafika poziomu nie należy do żadnej z tych kategorii. Podobnie niesłusznie za ryzyko techniczne uchodzi coś jeszcze, o czym jest osobny tekst: czy <a href="/blog/zdjecie-w-cv">zdjęcie w CV psuje odczyt</a>.</p>`,
     })
     .select("id, slug")
     .single();

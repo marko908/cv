@@ -108,7 +108,7 @@ async function wstaw() {
 <p>Rekruter przeglądający kilkadziesiąt CV dziennie nie czyta listy umiejętności do końca. Zatrzymuje wzrok na pierwszych kilku pozycjach i na tej podstawie wyrabia sobie zdanie o profilu kandydata.</p>
 <p>To samo dotyczy systemów rekrutacyjnych, choć z innego powodu: one przeczytają całość, ale rekruter filtrujący wyniki i tak zobaczy fragment. Pozycja na liście przekłada się więc na pierwsze wrażenie po obu stronach.</p>
 <p>Dlatego przestawienie kolejności jest jedną z najtańszych zmian, jakie możesz zrobić w CV. Nie wymaga dopisywania niczego nowego, zajmuje minutę i realnie zmienia to, co widać najpierw.</p>
-<p>Przy okazji porządkowania tej sekcji sprawdź, czy nie zostały w niej paski i procenty poziomu, o których jest osobny tekst: <a href="/blog/paski-umiejetnosci-cv">czy paski umiejętności w CV mają sens</a>. A jeśli zastanawiasz się, jak cała ta sekcja dociera do systemu po drugiej stronie, wyjaśnia to artykuł o tym, <a href="/blog/ats-cv">jak ATS czyta Twoje CV</a>.</p>`,
+<p>Przy okazji porządkowania tej sekcji sprawdź, czy nie zostały w niej paski i procenty poziomu, o których jest osobny tekst: <a href="/blog/paski-umiejetnosci-cv">czy paski umiejętności w CV mają sens</a>. Drogę tej sekcji do systemu po drugiej stronie wyjaśnia natomiast artykuł o tym, <a href="/blog/ats-cv">jak ATS czyta Twoje CV</a>.</p>`,
     })
     .select("id, slug")
     .single();
