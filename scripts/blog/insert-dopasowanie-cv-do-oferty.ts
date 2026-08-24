@@ -18,7 +18,7 @@ async function wstaw() {
         "Instrukcja dopasowania CV do konkretnej oferty: analiza ogłoszenia, co zmienić, czego nie ruszać i jak sprawdzić efekt przed wysłaniem.",
       kategoria: "szukanie pracy",
       tagi: ["cv", "dopasowanie", "rekrutacja"],
-      czas_czytania_min: 9,
+      czas_czytania_min: 5,
       status: "szkic",
       okladka_url: null,
       okladka_alt: "Ogłoszenie o pracę i CV zestawione obok siebie na biurku",

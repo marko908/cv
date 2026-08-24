@@ -19,7 +19,7 @@
 - [x] FAQ — 4 pytania w polu `faq`
 - [x] Środkowe CTA — kontekstowe, haczyk: kolejność tekstu w strumieniu PDF.
       Końcowe CTA automatyczne (`CtaBloga wariant="pelne"`).
-- [x] Długość: ~1300 słów
+- [x] Długość: 803 słów (zmierzone, bez akapitów z promptami) → `czas_czytania_min: 5`
 - [x] Zero myślników `—`/`–`, zero fraz z czarnej listy
 - [x] `npm run test:edytor` przechodzi
 

@@ -18,7 +18,7 @@ async function wstaw() {
         "Jak napisać CV bez doświadczenia zawodowego. Co liczy się zamiast etatu, jak ułożyć sekcje, co dać na początek i jakich wypełniaczy unikać.",
       kategoria: "pisanie CV",
       tagi: ["cv", "pierwsza praca", "studenci"],
-      czas_czytania_min: 8,
+      czas_czytania_min: 5,
       status: "szkic",
       okladka_url: null,
       okladka_alt: "Osoba pisząca swoje pierwsze CV przy laptopie",

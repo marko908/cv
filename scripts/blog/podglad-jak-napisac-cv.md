@@ -24,7 +24,7 @@ artykułów. Opublikowany wcześniej niż one prowadziłby do nieistniejących s
       do każdego pozostałego artykułu serii, zgodnie z rolą filaru
 - [x] FAQ — 4 pytania
 - [x] Środkowe CTA — kontekstowe, haczyk: ostatni punkt checklisty
-- [x] Długość: ~1500 słów
+- [x] Długość: 923 słów (zmierzone, bez akapitów z promptami) → `czas_czytania_min: 5`
 - [x] Zero myślników `—`/`–`, zero fraz z czarnej listy
 - [x] `npm run test:edytor` przechodzi (15 linków wykrytych poprawnie)
 

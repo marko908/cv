@@ -18,7 +18,7 @@ async function wstaw() {
         "Jak opisać doświadczenie w CV, żeby nie brzmiało jak zakres obowiązków. Wzór na punkt z efektem, przykłady przed i po, lista mocnych czasowników.",
       kategoria: "pisanie CV",
       tagi: ["cv", "doświadczenie", "osiągnięcia"],
-      czas_czytania_min: 8,
+      czas_czytania_min: 5,
       status: "szkic",
       okladka_url: null,
       okladka_alt: "Sekcja doświadczenia w CV z punktowanym opisem stanowiska",
@@ -103,6 +103,10 @@ async function wstaw() {
   <figcaption>Przepisanie punktów zwykle wymaga dwóch, trzech podejść</figcaption>
 </figure>
 <p class="image-prompt">📷 <strong>GRAFIKA 2 (photo)</strong> - prompt: A realistic photo of a person at a desk marking handwritten notes in the margin of a printed document with a pen, laptop open beside them, soft natural daylight from a window, shallow depth of field, warm neutral tones, no visible readable text or logos, focused editing mood, shot on a 50mm lens. <strong>Alt:</strong> "Kandydat nanoszący poprawki na wydrukowanym CV". <strong>Podpis:</strong> "Przepisanie punktów zwykle wymaga dwóch, trzech podejść". Plik: <code>jak-opisac-doswiadczenie-w-cv-02.webp</code>. <strong>Po wgraniu obrazka usuń ten akapit.</strong></p>
+
+<h2>Ile punktów przy którym stanowisku</h2>
+<p>Proporcja jest prosta i wynika z tego, jak czyta się CV: najwięcej uwagi dostaje ostatnia rola, bo to ona najlepiej opisuje, kim jesteś zawodowo dzisiaj.</p>
+<p>Przy ostatnim stanowisku daj trzy do pięciu punktów, przy poprzednim dwa albo trzy, przy starszych jeden. Stanowiska sprzed ponad dziesięciu lat możesz zredukować do jednej linii z nazwą, firmą i okresem, bez punktów. Wyjątkiem jest sytuacja, w której właśnie tam siedzi doświadczenie najbliższe ofercie, na którą aplikujesz.</p>
 
 <h2>Co zrobić, gdy praca była powtarzalna</h2>
 <p>Nie każde stanowisko daje się opisać sukcesami i nie każde musi. Przy pracy operacyjnej, gdzie zadania powtarzają się codziennie, efektem jest utrzymanie poziomu, a nie zmiana.</p>

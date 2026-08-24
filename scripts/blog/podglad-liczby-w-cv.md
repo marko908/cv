@@ -19,7 +19,7 @@
 - [x] FAQ — 4 pytania w polu `faq`
 - [x] Środkowe CTA — kontekstowe, haczyk: wywiad uzupełniający dopytujący
       o brakujące liczby. Końcowe CTA automatyczne.
-- [x] Długość: ~1300 słów
+- [x] Długość: 875 słów (zmierzone, bez akapitów z promptami) → `czas_czytania_min: 5`
 - [x] Zero myślników `—`/`–`, zero fraz z czarnej listy
 - [x] `npm run test:edytor` przechodzi
 

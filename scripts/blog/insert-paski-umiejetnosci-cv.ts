@@ -18,7 +18,7 @@ async function wstaw() {
         "Czy paski poziomu umiejętności w CV coś dają? Dlaczego procenty nic nie znaczą, co wpisać zamiast nich i kiedy skala jest uzasadniona.",
       kategoria: "pisanie CV",
       tagi: ["cv", "umiejętności", "formatowanie"],
-      czas_czytania_min: 6,
+      czas_czytania_min: 5,
       status: "szkic",
       okladka_url: null,
       okladka_alt: "Sekcja umiejętności w CV z graficznymi paskami poziomu",
@@ -94,6 +94,15 @@ async function wstaw() {
   <figcaption>Krótsza lista z konkretem działa lepiej niż dłuższa z grafiką</figcaption>
 </figure>
 <p class="image-prompt">📷 <strong>GRAFIKA 2 (photo)</strong> - prompt: A realistic photo of a person sitting at a desk working on a laptop, editing a document, with an open paper notebook beside the keyboard showing a handwritten list, soft natural daylight from a window, shallow depth of field, warm neutral tones, no visible readable text or logos, focused and calm working mood, shot on a 50mm lens. <strong>Alt:</strong> "Kandydat porządkujący sekcję umiejętności w swoim CV". <strong>Podpis:</strong> "Krótsza lista z konkretem działa lepiej niż dłuższa z grafiką". Plik: <code>paski-umiejetnosci-cv-02.webp</code>. <strong>Po wgraniu obrazka usuń ten akapit.</strong></p>
+
+<h2>Co zrobić, gdy naprawdę chcesz pokazać poziom</h2>
+<p>Czasem poziom faktycznie ma znaczenie, na przykład przy narzędziu, które jest sednem stanowiska. Są trzy sposoby, żeby go pokazać bez sięgania po skalę, której nikt nie ustalił.</p>
+<ul>
+<li><strong>Certyfikat z rokiem.</strong> Egzamin ma ustalony zakres i próg zdawalności, więc mówi więcej niż jakikolwiek pasek. Wpisz pełną nazwę i rok uzyskania.</li>
+<li><strong>Staż użycia w konkretnym kontekście.</strong> „Cztery lata pracy w SAP w module MM" niesie informację, której nie da żadna liczba procent.</li>
+<li><strong>Najtrudniejsze zadanie, jakie w tym narzędziu wykonałeś.</strong> Rekruter techniczny odczyta poziom z samego opisu zadania, bo zna skalę trudności w swojej dziedzinie.</li>
+</ul>
+<p>Wszystkie trzy mają wspólną cechę: dają się sprawdzić. Pasek nie daje się sprawdzić w żaden sposób, i to jest cała różnica.</p>
 
 <h2>Jak systemy rekrutacyjne traktują grafikę poziomu</h2>
 <p>Systemy ATS wyciągają z pliku tekst. Pasek narysowany w edytorze tekstem nie jest, więc do systemu nie trafia w żadnej postaci. Zostaje sama nazwa umiejętności, o ile stoi obok jako zwykły tekst.</p>

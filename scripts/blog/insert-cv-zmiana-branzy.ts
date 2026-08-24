@@ -18,7 +18,7 @@ async function wstaw() {
         "Jak napisać CV przy zmianie branży: kompetencje przenoszalne, co przepisać, a co usunąć, i jak zbudować podsumowanie łączące dwie ścieżki.",
       kategoria: "szukanie pracy",
       tagi: ["cv", "zmiana branży", "przebranżowienie"],
-      czas_czytania_min: 8,
+      czas_czytania_min: 5,
       status: "szkic",
       okladka_url: null,
       okladka_alt: "Osoba planująca zmianę ścieżki zawodowej przy biurku",

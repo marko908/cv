@@ -20,7 +20,7 @@
 - [x] Środkowe CTA — kontekstowe, ręcznie napisane (`<div class="blog-cta-inline">`),
       haczyk: szablony w obu wariantach, oba czytelne dla ATS. Końcowe CTA
       automatyczne (`CtaBloga wariant="pelne"`), nie pisane ręcznie.
-- [x] Długość: ~1050 słów
+- [x] Długość: 809 słów (zmierzone, bez akapitów z promptami) → `czas_czytania_min: 5`
 - [x] Zero myślników `—`/`–`, zero fraz z czarnej listy
 - [x] `npm run test:edytor` przechodzi
 

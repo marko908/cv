@@ -18,7 +18,7 @@ async function wstaw() {
         "Jak wstawić liczby do CV, gdy nikt nie mierzył efektów Twojej pracy. Pięć źródeł konkretu, przykłady dla stanowisk bez metryk i czego nie zaokrąglać.",
       kategoria: "pisanie CV",
       tagi: ["cv", "osiągnięcia", "doświadczenie"],
-      czas_czytania_min: 7,
+      czas_czytania_min: 5,
       status: "szkic",
       okladka_url: null,
       okladka_alt: "Notatnik z odręcznie wypisanymi liczbami do CV",
@@ -97,6 +97,10 @@ async function wstaw() {
   <figcaption>Zanim przepiszesz punkty, wypisz liczby, które pamiętasz</figcaption>
 </figure>
 <p class="image-prompt">📷 <strong>GRAFIKA 2 (photo)</strong> - prompt: A realistic photo of an open paper notebook on a desk filled with handwritten notes and numbers, a pen lying across the page, a laptop open and slightly out of focus in the background, soft natural daylight, shallow depth of field, warm neutral tones, no visible readable text or logos, thoughtful preparation mood, shot on a 50mm lens. <strong>Alt:</strong> "Odręczna lista liczb przygotowana przed poprawą CV". <strong>Podpis:</strong> "Zanim przepiszesz punkty, wypisz liczby, które pamiętasz". Plik: <code>liczby-w-cv-02.webp</code>. <strong>Po wgraniu obrazka usuń ten akapit.</strong></p>
+
+<h2>Skąd wziąć dane, których już nie pamiętasz</h2>
+<p>Przy pracy sprzed kilku lat liczby rozmywają się w pamięci. Nie zgaduj i nie wpisuj wartości „mniej więcej takiej", jeśli nie masz jak jej sprawdzić.</p>
+<p>Trzy miejsca, w których dane zwykle wciąż są: stare raporty i podsumowania roczne, jeśli masz do nich dostęp; korespondencja mailowa z okresu, w którym coś rozliczałeś; oraz ogłoszenie o pracę na Twoje własne stanowisko, jeśli firma je publikowała, bo często podaje wielkość zespołu albo skalę działania. Jeśli nic z tego nie zadziała, opisz zakres słowami zamiast wstawiać liczbę na wyczucie.</p>
 
 <h2>Określenia, które tylko udają konkret</h2>
 <p>Część zwrotów wygląda jak dane, choć nimi nie jest. Pojawiają się w CV najczęściej wtedy, gdy ktoś wie, że powinien podać liczbę, ale jej nie ma.</p>

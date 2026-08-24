@@ -19,7 +19,7 @@
 - [x] FAQ — 4 pytania w polu `faq`
 - [x] Środkowe CTA — kontekstowe, haczyk: scoring realnie obniża wynik za paski.
       Końcowe CTA automatyczne (`CtaBloga wariant="pelne"`).
-- [x] Długość: ~1000 słów
+- [x] Długość: 814 słów (zmierzone, bez akapitów z promptami) → `czas_czytania_min: 5`
 - [x] Zero myślników `—`/`–`, zero fraz z czarnej listy
 - [x] `npm run test:edytor` przechodzi
 

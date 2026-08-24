@@ -18,7 +18,7 @@ async function wstaw() {
         "Czy warto pisać CV przez ChatGPT? Co model robi dobrze, gdzie dopisuje nieistniejące fakty i jak używać AI, żeby nie stracić wiarygodności.",
       kategoria: "pisanie CV",
       tagi: ["cv", "ai", "chatgpt"],
-      czas_czytania_min: 8,
+      czas_czytania_min: 5,
       status: "szkic",
       okladka_url: null,
       okladka_alt: "Kandydat pracujący nad CV z pomocą narzędzia AI",

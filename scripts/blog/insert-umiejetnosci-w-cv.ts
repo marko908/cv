@@ -18,7 +18,7 @@ async function wstaw() {
         "Jakie umiejętności wpisać do CV? Proporcja twardych i miękkich, frazesy do wykreślenia, dane zbędne i dobór pozycji pod konkretną ofertę.",
       kategoria: "pisanie CV",
       tagi: ["cv", "umiejętności", "kompetencje"],
-      czas_czytania_min: 7,
+      czas_czytania_min: 5,
       status: "szkic",
       okladka_url: null,
       okladka_alt: "Sekcja umiejętności w CV widoczna na ekranie laptopa",
@@ -103,6 +103,10 @@ async function wstaw() {
   <figcaption>Lista umiejętności to zasób, z którego wybierasz przy każdej ofercie</figcaption>
 </figure>
 <p class="image-prompt">📷 <strong>GRAFIKA 2 (photo)</strong> - prompt: A realistic photo of a person working at a desk with a laptop and a printed document side by side, using a highlighter to mark lines on the printed page, soft natural daylight from a window, shallow depth of field, warm neutral tones, screen content blurred, no visible readable text or logos, focused comparison mood, shot on a 50mm lens. <strong>Alt:</strong> "Kandydat zestawiający wymagania z ogłoszenia ze swoim CV". <strong>Podpis:</strong> "Lista umiejętności to zasób, z którego wybierasz przy każdej ofercie". Plik: <code>umiejetnosci-w-cv-02.webp</code>. <strong>Po wgraniu obrazka usuń ten akapit.</strong></p>
+
+<h2>Jak grupować, gdy lista jest długa</h2>
+<p>Przy dziesięciu i więcej pozycjach sama lista przestaje się czytać. Wtedy pomaga podział na dwie albo trzy nazwane grupy, na przykład narzędzia, technologie i uprawnienia, albo obszary tematyczne właściwe dla Twojej branży.</p>
+<p>Grupy mają być krótkie, po trzy do pięciu pozycji, i nazwane językiem branży, nie własnymi wymysłami. Podział na „umiejętności twarde" i „umiejętności miękkie" jest poprawny, ale nic nie wnosi, bo rekruter i tak rozpozna jedno od drugiego.</p>
 
 <h2>Kolejność ma znaczenie</h2>
 <p>Rekruter przeglądający kilkadziesiąt CV dziennie nie czyta listy umiejętności do końca. Zatrzymuje wzrok na pierwszych kilku pozycjach i na tej podstawie wyrabia sobie zdanie o profilu kandydata.</p>

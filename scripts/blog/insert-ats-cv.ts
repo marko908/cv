@@ -18,7 +18,7 @@ async function wstaw() {
         "Czym jest system ATS w rekrutacji, co realnie wyciąga z Twojego CV i co psuje odczyt pliku. Bez mitów o automatycznym odrzucaniu zgłoszeń.",
       kategoria: "ATS i rekrutacja",
       tagi: ["ats", "cv", "rekrutacja"],
-      czas_czytania_min: 8,
+      czas_czytania_min: 5,
       status: "szkic",
       okladka_url: null,
       okladka_alt: "Rekruter przeglądający zgłoszenia w systemie rekrutacyjnym",

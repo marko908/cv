@@ -18,7 +18,7 @@ async function wstaw() {
         "Jak znaleźć słowa kluczowe w ogłoszeniu i wpleść je w CV, żeby działały u rekrutera i w systemie ATS. Metoda krok po kroku, bez upychania fraz.",
       kategoria: "ATS i rekrutacja",
       tagi: ["cv", "słowa kluczowe", "ats"],
-      czas_czytania_min: 8,
+      czas_czytania_min: 5,
       status: "szkic",
       okladka_url: null,
       okladka_alt: "Ogłoszenie o pracę z zaznaczonymi frazami kluczowymi",
@@ -99,6 +99,10 @@ async function wstaw() {
   <figcaption>Lista fraz powstaje raz, potem wraca przy każdej podobnej ofercie</figcaption>
 </figure>
 <p class="image-prompt">📷 <strong>GRAFIKA 2 (photo)</strong> - prompt: A realistic photo of a person at a desk writing a short list on a paper notepad while looking at a laptop screen, pen in hand, soft natural daylight from a window, shallow depth of field, warm neutral tones, screen content blurred and unreadable, no visible readable text or logos, focused analytical mood, shot on a 50mm lens. <strong>Alt:</strong> "Kandydat wypisujący frazy z ogłoszenia na kartce". <strong>Podpis:</strong> "Lista fraz powstaje raz, potem wraca przy każdej podobnej ofercie". Plik: <code>slowa-kluczowe-w-cv-02.webp</code>. <strong>Po wgraniu obrazka usuń ten akapit.</strong></p>
+
+<h2>Odmiana i skróty: na co uważać po polsku</h2>
+<p>Polska fleksja komplikuje wyszukiwanie bardziej niż angielska. „Zarządzanie projektami" i „zarządzał projektami" to dla wyszukiwarki dwie różne frazy, choć dla człowieka jedna.</p>
+<p>Bezpieczna praktyka jest taka: nazwę własną zapisz w mianowniku przynajmniej raz, na liście umiejętności, a w opisie doświadczenia używaj jej naturalnie, w dowolnej formie. Przy skrótach podaj obie wersje przy pierwszym użyciu, na przykład „Google Analytics 4 (GA4)". Kosztuje to trzy znaki, a pokrywa oba warianty wyszukiwania.</p>
 
 <h2>Jak sprawdzić pokrycie</h2>
 <p>Najprostsza metoda ręczna zajmuje pięć minut. Weź swoją listę fraz z ogłoszenia, otwórz CV i użyj wyszukiwania w dokumencie, przechodząc pozycja po pozycji.</p>

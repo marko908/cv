@@ -17,7 +17,7 @@
 - [x] Linkowanie wewnętrzne: 3x do bloga, 1x `/rejestracja` w CTA
 - [x] FAQ — 4 pytania
 - [x] Środkowe CTA — kontekstowe, haczyk: pokrycie fraz jako osobne kryterium
-- [x] Długość: ~1400 słów
+- [x] Długość: 861 słów (zmierzone, bez akapitów z promptami) → `czas_czytania_min: 5`
 - [x] Zero myślników `—`/`–`, zero fraz z czarnej listy
 - [x] `npm run test:edytor` przechodzi
 

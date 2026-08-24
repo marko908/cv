@@ -18,7 +18,7 @@ async function wstaw() {
         "Jak napisać CV krok po kroku: struktura sekcja po sekcji, format pliku, długość, dopasowanie do oferty i checklista przed wysłaniem zgłoszenia.",
       kategoria: "pisanie CV",
       tagi: ["cv", "poradnik", "pisanie CV"],
-      czas_czytania_min: 11,
+      czas_czytania_min: 5,
       status: "szkic",
       okladka_url: null,
       okladka_alt: "Gotowe CV leżące na biurku obok laptopa",

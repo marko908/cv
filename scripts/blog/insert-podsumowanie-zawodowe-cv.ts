@@ -18,7 +18,7 @@ async function wstaw() {
         "Jak napisać podsumowanie zawodowe do CV? Struktura w trzech zdaniach, 5 przykładów dla różnych stanowisk i błędy, które je psują.",
       kategoria: "pisanie CV",
       tagi: ["cv", "podsumowanie zawodowe", "profil zawodowy"],
-      czas_czytania_min: 7,
+      czas_czytania_min: 5,
       status: "szkic",
       okladka_url: null,
       okladka_alt: "Górna część CV z sekcją podsumowania zawodowego",

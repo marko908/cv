@@ -18,7 +18,7 @@ async function wstaw() {
         "Czy dodawać zdjęcie do CV w Polsce? Praktyka rekruterów, wymogi RODO, wpływ na odczyt w ATS i jakie zdjęcie wybrać, jeśli się zdecydujesz.",
       kategoria: "pisanie CV",
       tagi: ["cv", "zdjęcie", "rodo"],
-      czas_czytania_min: 6,
+      czas_czytania_min: 5,
       status: "szkic",
       okladka_url: null,
       okladka_alt: "Kandydat porównujący dwie wersje CV na biurku",
@@ -96,6 +96,10 @@ async function wstaw() {
   <figcaption>Różnicę robi tło, kadr i aktualność, nie profesjonalna sesja</figcaption>
 </figure>
 <p class="image-prompt">📷 <strong>GRAFIKA 2 (infographic)</strong> - prompt: A clean minimal infographic comparing CV photo options, arranged as four simple illustrated portrait thumbnails in a row, flat vector illustration style, no real faces, simple abstract avatar shapes. The first thumbnail is highlighted in green with a Polish label below reading "Dobre zdjęcie". The remaining three are marked in muted red with Polish labels below reading "Selfie", "Zdjęcie grupowe" and "Nieaktualne". A short Polish heading at the top reads "Zdjęcie do CV". All visible text must be in Polish exactly as specified above, no English words anywhere in the image, professional blue and white color scheme, plenty of white space. <strong>Alt:</strong> "Porównanie poprawnego i błędnych zdjęć do CV". <strong>Podpis:</strong> "Różnicę robi tło, kadr i aktualność, nie profesjonalna sesja". Plik: <code>zdjecie-w-cv-02.webp</code>. <strong>Po wgraniu obrazka usuń ten akapit.</strong></p>
+
+<h2>Gdzie umieścić zdjęcie w dokumencie</h2>
+<p>Standardowe miejsce to prawy lub lewy górny róg, na wysokości danych osobowych. Zdjęcie nie powinno być większe niż mniej więcej jedna szósta szerokości strony, bo zaczyna wtedy konkurować z treścią, dla której CV powstało.</p>
+<p>Unikaj umieszczania go na środku nad nagłówkiem, bo spycha nazwisko i dane kontaktowe w dół, oraz wstawiania go jako tła strony. To drugie psuje kontrast tekstu i bywa problemem przy wydruku.</p>
 
 <h2>Czy zdjęcie psuje odczyt CV w ATS</h2>
 <p>To najczęstszy argument przeciw zdjęciom i w większości przypadków nietrafiony. Systemy rekrutacyjne wyciągają z pliku tekst. Zdjęcie tekstem nie jest, więc zostaje po prostu pominięte i niczego nie obniża.</p>

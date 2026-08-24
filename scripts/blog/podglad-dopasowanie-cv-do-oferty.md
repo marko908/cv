@@ -17,7 +17,7 @@
 - [x] Linkowanie wewnętrzne: 3x do bloga, 1x `/rejestracja` w CTA
 - [x] FAQ — 4 pytania
 - [x] Środkowe CTA — kontekstowe, haczyk: rozbiór ogłoszenia + waga kryterium
-- [x] Długość: ~1500 słów
+- [x] Długość: 886 słów (zmierzone, bez akapitów z promptami) → `czas_czytania_min: 5`
 - [x] Zero myślników `—`/`–`, zero fraz z czarnej listy
 - [x] `npm run test:edytor` przechodzi
 

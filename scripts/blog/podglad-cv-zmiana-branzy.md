@@ -18,7 +18,7 @@
 - [x] FAQ — 4 pytania
 - [x] Środkowe CTA — kontekstowe, haczyk: to samo doświadczenie opowiadane
       inaczej pod każdą ofertę
-- [x] Długość: ~1400 słów
+- [x] Długość: 821 słów (zmierzone, bez akapitów z promptami) → `czas_czytania_min: 5`
 - [x] Zero myślników `—`/`–`, zero fraz z czarnej listy
 - [x] `npm run test:edytor` przechodzi
 
