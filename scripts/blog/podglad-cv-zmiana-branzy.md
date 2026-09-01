@@ -53,5 +53,7 @@ Pełna treść HTML: `scripts/blog/insert-cv-zmiana-branzy.ts`.
 ## Do zrobienia przed publikacją
 
 - **Uruchomić insert:** `npx tsx --env-file=.env.local scripts/blog/insert-cv-zmiana-branzy.ts`
-- Okładka + 2 grafiki, potem usunąć akapity `class="image-prompt"`.
+- **Wszystkie 3 prompty (okładka + 2 grafiki) są na początku treści artykułu**
+  jako akapity `class="image-prompt"` — nie trzeba wracać do tego pliku.
+  Po wgraniu każdego obrazka usuń jego akapit.
 - Redakcja w `/admin/blog`, potem status `opublikowany`.

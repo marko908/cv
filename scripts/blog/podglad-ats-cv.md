@@ -53,8 +53,9 @@ Pełna treść HTML: `scripts/blog/insert-ats-cv.ts`.
 ## Do zrobienia przed publikacją
 
 - **Uruchomić insert:** `npx tsx --env-file=.env.local scripts/blog/insert-ats-cv.ts`
-- Dodać okładkę (`okladka_url`) — prompt w `obrazki-ats-cv.md`.
-- Wygenerować i wgrać 2 grafiki, podmienić `src`, usunąć akapity `class="image-prompt"`.
+- **Wszystkie 3 prompty (okładka + 2 grafiki) są na początku treści artykułu**
+  jako akapity `class="image-prompt"` — nie trzeba wracać do tego pliku.
+  Po wgraniu każdego obrazka usuń jego akapit.
 - Redakcja w `/admin/blog`, potem status `opublikowany`.
 
 ## Linkowanie do dopisania później

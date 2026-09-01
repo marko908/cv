@@ -44,7 +44,9 @@ async function wstaw() {
             "Sam certyfikat rzadko wystarcza. Działa dopiero kurs zakończony projektem, który możesz pokazać, opisany w CV jak zadanie zawodowe, a nie jak pozycja na liście szkoleń.",
         },
       ],
-      tresc: `<p>Przy zmianie branży najczęstszy problem nie polega na tym, że nie masz doświadczenia. Polega na tym, że Twoje doświadczenie nazywa się słowami, których nowa branża nie rozpoznaje. Rekruter czytający CV pełne terminów z poprzedniego zawodu nie przetłumaczy ich sam. Poniżej jak to przełożyć i co ustawić na górze dokumentu.</p>
+      tresc: `<p class="image-prompt">📷 <strong>OKŁADKA</strong> - prompt: A realistic wide photo of a person sitting at a tidy desk with two printed documents laid side by side and an open notebook, hand resting thoughtfully on the pages, window light from the side, shallow depth of field, warm professional tones, no visible readable text or logos, reflective and determined mood, shot in 2:1 landscape framing. <strong>Alt:</strong> "Osoba planująca zmianę ścieżki zawodowej przy biurku". Plik: <code>cv-zmiana-branzy-okladka.webp</code>, format 2:1 (np. 1200×600 px). <strong>Po wgraniu okładki w polu „Okładka" usuń ten akapit.</strong></p>
+
+<p>Przy zmianie branży najczęstszy problem nie polega na tym, że nie masz doświadczenia. Polega na tym, że Twoje doświadczenie nazywa się słowami, których nowa branża nie rozpoznaje. Rekruter czytający CV pełne terminów z poprzedniego zawodu nie przetłumaczy ich sam. Poniżej jak to przełożyć i co ustawić na górze dokumentu.</p>
 
 <h2>Kompetencje przenoszalne: nazwij je językiem nowej branży</h2>
 <p>Kompetencje przenoszalne to te, które działają niezależnie od tego, w jakiej firmie i branży pracujesz: organizacja pracy, analiza danych, prowadzenie zespołu, kontakt z klientem, praca w rygorze procedur.</p>

@@ -44,7 +44,9 @@ async function wstaw() {
             "Aplikuj, jeśli spełniasz większość obowiązkowych. Wymagania mile widziane są listą życzeń, a nie progiem wejścia. Pokaż wyraźnie to, co masz, zamiast maskować to, czego brakuje.",
         },
       ],
-      tresc: `<p>Dopasowanie CV do oferty nie polega na pisaniu dokumentu od nowa przy każdej aplikacji. Zmieniasz jego górną część i akcenty, a historia zatrudnienia zostaje ta sama. Poniżej pełna metoda ręczna: jak czytać ogłoszenie, co konkretnie zmienić, czego nie wolno ruszać i ile to zajmuje.</p>
+      tresc: `<p class="image-prompt">📷 <strong>OKŁADKA</strong> - prompt: A realistic wide photo of two printed documents lying side by side on a light wooden desk, a highlighter and pen resting between them, a laptop softly blurred in the background, soft natural daylight, shallow depth of field, warm professional tones, no visible readable text or logos, focused analytical mood, shot in 2:1 landscape framing. <strong>Alt:</strong> "Ogłoszenie o pracę i CV zestawione obok siebie na biurku". Plik: <code>dopasowanie-cv-do-oferty-okladka.webp</code>, format 2:1 (np. 1200×600 px). <strong>Po wgraniu okładki w polu „Okładka" usuń ten akapit.</strong></p>
+
+<p>Dopasowanie CV do oferty nie polega na pisaniu dokumentu od nowa przy każdej aplikacji. Zmieniasz jego górną część i akcenty, a historia zatrudnienia zostaje ta sama. Poniżej pełna metoda ręczna: jak czytać ogłoszenie, co konkretnie zmienić, czego nie wolno ruszać i ile to zajmuje.</p>
 
 <h2>Dlaczego jedno CV do wszystkiego nie działa</h2>
 <p>Uniwersalne CV jest napisane dla nikogo konkretnego, więc przy każdym ogłoszeniu wypada przeciętnie. Rekruter szuka odpowiedzi na pytanie, czy ta osoba pasuje do tego stanowiska, a dokument, który równie dobrze pasuje do pięciu innych, tej odpowiedzi nie daje.</p>

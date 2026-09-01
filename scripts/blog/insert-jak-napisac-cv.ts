@@ -44,7 +44,9 @@ async function wstaw() {
             "Struktura się nie zmieniła. Zmieniło się otoczenie: większość zgłoszeń przechodzi przez systemy rekrutacyjne, a rekruterzy częściej widzą teksty pisane przez modele językowe, więc konkret i wiarygodność liczą się bardziej niż kiedyś.",
         },
       ],
-      tresc: `<p>Dobre CV mieści się zwykle na jednej stronie, opisuje fakty w kolejności od najważniejszych i daje się przeczytać w kilkanaście sekund. Reszta to szczegóły, które rozstrzygamy sekcja po sekcji. Ten przewodnik prowadzi przez cały dokument, od danych kontaktowych po checklistę przed wysłaniem.</p>
+      tresc: `<p class="image-prompt">📷 <strong>OKŁADKA</strong> - prompt: A realistic wide photo of a neatly printed document lying on a tidy wooden desk beside a partly closed laptop and a cup of coffee, soft natural daylight from a window, shallow depth of field, warm professional tones, no visible readable text or logos, calm and finished mood, shot in 2:1 landscape framing. <strong>Alt:</strong> "Gotowe CV leżące na biurku obok laptopa". Plik: <code>jak-napisac-cv-okladka.webp</code>, format 2:1 (np. 1200×600 px). <strong>Po wgraniu okładki w polu „Okładka" usuń ten akapit.</strong></p>
+
+<p>Dobre CV mieści się zwykle na jednej stronie, opisuje fakty w kolejności od najważniejszych i daje się przeczytać w kilkanaście sekund. Reszta to szczegóły, które rozstrzygamy sekcja po sekcji. Ten przewodnik prowadzi przez cały dokument, od danych kontaktowych po checklistę przed wysłaniem.</p>
 
 <h2>Struktura CV sekcja po sekcji</h2>
 <p>Kolejność poniżej sprawdza się u osoby z doświadczeniem zawodowym. Przy pierwszym CV zmienia się miejsce wykształcenia, o czym niżej.</p>

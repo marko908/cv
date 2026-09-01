@@ -44,7 +44,9 @@ async function wstaw() {
             "Niewiele. „Wzrost o 30 procent” bez informacji, z czego na co i w jakim czasie, brzmi jak dane, ale niczego nie mówi. Dopisz bazę albo zamień procent na wartość bezwzględną.",
         },
       ],
-      tresc: `<p>Blokada przy pisaniu CV brzmi zwykle tak: „u mnie nic nie było mierzone, nie mam czego wpisać”. Prawie zawsze jest nieprawdziwa, bo myli wynik ze skalą. Nawet jeśli nikt nie liczył efektów Twojej pracy, wiesz, ilu klientów obsługiwałeś, jak duży był zespół i jak często wykonywałeś dane zadanie. To też są liczby i działają.</p>
+      tresc: `<p class="image-prompt">📷 <strong>OKŁADKA</strong> - prompt: A realistic wide photo of an open paper notebook on a light desk covered with handwritten notes and figures, a pen resting on the page and a laptop softly blurred in the background, soft natural daylight, shallow depth of field, warm professional tones, no visible readable text or logos, thoughtful preparation mood, shot in 2:1 landscape framing. <strong>Alt:</strong> "Notatnik z odręcznie wypisanymi liczbami do CV". Plik: <code>liczby-w-cv-okladka.webp</code>, format 2:1 (np. 1200×600 px). <strong>Po wgraniu okładki w polu „Okładka" usuń ten akapit.</strong></p>
+
+<p>Blokada przy pisaniu CV brzmi zwykle tak: „u mnie nic nie było mierzone, nie mam czego wpisać”. Prawie zawsze jest nieprawdziwa, bo myli wynik ze skalą. Nawet jeśli nikt nie liczył efektów Twojej pracy, wiesz, ilu klientów obsługiwałeś, jak duży był zespół i jak często wykonywałeś dane zadanie. To też są liczby i działają.</p>
 
 <h2>Dlaczego liczba działa mocniej niż przymiotnik</h2>
 <p>Przymiotnik jest oceną, którą wystawiasz sam sobie. Liczba jest faktem, który da się sprawdzić i o który można dopytać na rozmowie. To druga rzecz jest tu ważniejsza: konkret zaprasza do rozmowy, ogólnik ją zamyka.</p>

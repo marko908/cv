@@ -44,7 +44,9 @@ async function wstaw() {
             "Nie. Możesz użyć nazewnictwa z ogłoszenia dla tych samych czynności, które faktycznie wykonywałeś, ale przepisanie cudzego zakresu obowiązków tworzy CV opisujące pracę, której nie było.",
         },
       ],
-      tresc: `<p>Najczęstszy problem z sekcją doświadczenia jest taki, że opisuje stanowisko, a nie osobę, która je zajmowała. „Byłem odpowiedzialny za obsługę klienta” mógłby napisać każdy, kto siedział na tym krześle przez ostatnie dziesięć lat. Poniżej wzór na punkt, który mówi coś o Tobie, osiem przykładów przed i po oraz lista czasowników, od których warto zaczynać.</p>
+      tresc: `<p class="image-prompt">📷 <strong>OKŁADKA</strong> - prompt: A realistic wide photo of a printed CV lying on a desk with the experience section visible as bullet points, a pen resting across the page and a laptop slightly out of focus behind it, soft natural daylight, shallow depth of field, warm professional tones, no visible readable text or logos, calm editing mood, shot in 2:1 landscape framing. <strong>Alt:</strong> "Sekcja doświadczenia w CV z punktowanym opisem stanowiska". Plik: <code>jak-opisac-doswiadczenie-w-cv-okladka.webp</code>, format 2:1 (np. 1200×600 px). <strong>Po wgraniu okładki w polu „Okładka" usuń ten akapit.</strong></p>
+
+<p>Najczęstszy problem z sekcją doświadczenia jest taki, że opisuje stanowisko, a nie osobę, która je zajmowała. „Byłem odpowiedzialny za obsługę klienta” mógłby napisać każdy, kto siedział na tym krześle przez ostatnie dziesięć lat. Poniżej wzór na punkt, który mówi coś o Tobie, osiem przykładów przed i po oraz lista czasowników, od których warto zaczynać.</p>
 
 <h2>Dlaczego „byłem odpowiedzialny za” nic nie mówi</h2>
 <p>Zwrot opisuje przydzielone zadanie, nie jego wykonanie. Rekruter dowiaduje się z niego, jaki był zakres stanowiska, co zwykle wie już z nazwy roli. Nie dowiaduje się, czy robiłeś to dobrze, na jaką skalę i co się dzięki temu zmieniło.</p>

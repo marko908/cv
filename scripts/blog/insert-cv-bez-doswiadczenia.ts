@@ -44,7 +44,9 @@ async function wstaw() {
             "Tylko jeśli mają związek ze stanowiskiem albo są na tyle konkretne, że staną się tematem rozmowy. „Muzyka, sport, podróże” to wypełniacz, który nie mówi nic.",
         },
       ],
-      tresc: `<p>Brak etatu za sobą nie oznacza braku doświadczenia. Oznacza, że doświadczenie nazywa się inaczej: projekt zaliczeniowy, praktyka, wolontariat, praca dorywcza, własna strona zrobiona wieczorami. Pierwsze CV polega głównie na tym, żeby to nazwać i ułożyć w kolejności, która ma sens. Poniżej jak to zrobić i czego przy okazji nie robić.</p>
+      tresc: `<p class="image-prompt">📷 <strong>OKŁADKA</strong> - prompt: A realistic wide photo of a young person working on a laptop at a bright home desk, an open notebook with handwritten notes beside them, a cup of tea nearby, soft natural daylight from a window, shallow depth of field, warm neutral tones, screen content blurred, no visible readable text or logos, calm and hopeful mood, shot in 2:1 landscape framing. <strong>Alt:</strong> "Osoba pisząca swoje pierwsze CV przy laptopie". Plik: <code>cv-bez-doswiadczenia-okladka.webp</code>, format 2:1 (np. 1200×600 px). <strong>Po wgraniu okładki w polu „Okładka" usuń ten akapit.</strong></p>
+
+<p>Brak etatu za sobą nie oznacza braku doświadczenia. Oznacza, że doświadczenie nazywa się inaczej: projekt zaliczeniowy, praktyka, wolontariat, praca dorywcza, własna strona zrobiona wieczorami. Pierwsze CV polega głównie na tym, żeby to nazwać i ułożyć w kolejności, która ma sens. Poniżej jak to zrobić i czego przy okazji nie robić.</p>
 
 <h2>Co liczy się jako doświadczenie</h2>
 <p>Rekruter rekrutujący na stanowisko juniorskie wie, że nie ma przed sobą osoby z pięcioletnim stażem. Szuka czegoś innego: śladów samodzielności, kontaktu z tematem i umiejętności doprowadzenia rzeczy do końca.</p>

@@ -44,7 +44,9 @@ async function wstaw() {
             "Nie. Pasek to grafika, a system wyciąga z pliku tekst. Odczyta samą nazwę umiejętności, jeśli jest zapisana tekstem obok. Sam poziom przepada niezależnie od tego, jak wygląda.",
         },
       ],
-      tresc: `<p>Paski postępu i procenty przy umiejętnościach nie działają, bo nie niosą żadnej informacji, którą dałoby się zweryfikować. Rekruter patrzący na „Excel 80%” nie wie, czy to poziom tabel przestawnych, czy makr w VBA. Jedyny wyjątek to języki obce, ale i tam liczy się konkretna skala, nie grafika. Poniżej dlaczego tak jest i czym te paski zastąpić.</p>
+      tresc: `<p class="image-prompt">📷 <strong>OKŁADKA</strong> - prompt: A clean minimal wide illustration of a CV skills section as a simple wireframe, showing four horizontal progress bars partially filled in muted grey and one accent colour, arranged on a white page with generous white space, flat vector style, professional blue and white colour scheme, no visible text anywhere in the image, 2:1 landscape framing. <strong>Alt:</strong> "Sekcja umiejętności w CV z graficznymi paskami poziomu". Plik: <code>paski-umiejetnosci-cv-okladka.webp</code>, format 2:1 (np. 1200×600 px). <strong>Po wgraniu okładki w polu „Okładka" usuń ten akapit.</strong></p>
+
+<p>Paski postępu i procenty przy umiejętnościach nie działają, bo nie niosą żadnej informacji, którą dałoby się zweryfikować. Rekruter patrzący na „Excel 80%” nie wie, czy to poziom tabel przestawnych, czy makr w VBA. Jedyny wyjątek to języki obce, ale i tam liczy się konkretna skala, nie grafika. Poniżej dlaczego tak jest i czym te paski zastąpić.</p>
 
 <h2>Co rekruter naprawdę odczytuje z paska</h2>
 <p>Pasek wypełniony w trzech czwartych mówi tyle, że sam siebie oceniłeś na trzy czwarte. Brakuje w nim wszystkiego, co pozwoliłoby ten wynik zinterpretować: skali, punktu odniesienia i tego, kto oceniał.</p>

@@ -44,7 +44,9 @@ async function wstaw() {
             "Otwórz plik PDF, zaznacz całą treść, skopiuj i wklej do pustego dokumentu tekstowego. To, co zobaczysz, jest mniej więcej tym, co dostaje system. Jeśli kolejność jest pomieszana albo czegoś brakuje, masz problem.",
         },
       ],
-      tresc: `<p>ATS to system, w którym pracodawca zbiera i porządkuje zgłoszenia od kandydatów. Nie ocenia CV i nie odrzuca nikogo samodzielnie, choć taka opowieść krąży po internecie od lat. Realne ryzyko jest inne: jeśli system źle odczyta Twój plik, Twoje zgłoszenie po prostu nie pojawi się tam, gdzie rekruter go szuka. Poniżej co ATS faktycznie robi i co psuje odczyt.</p>
+      tresc: `<p class="image-prompt">📷 <strong>OKŁADKA</strong> - prompt: A realistic wide photo of a recruiter working at a desktop computer in a bright modern office, a list of entries visible but blurred on the screen, notebook and pen on the desk, soft daylight from a window, shallow depth of field, neutral professional tones, no visible readable text or logos, calm and organised mood, shot in 2:1 landscape framing. <strong>Alt:</strong> "Rekruter przeglądający zgłoszenia w systemie rekrutacyjnym". Plik: <code>ats-cv-okladka.webp</code>, format 2:1 (np. 1200×600 px). <strong>Po wgraniu okładki w polu „Okładka" usuń ten akapit.</strong></p>
+
+<p>ATS to system, w którym pracodawca zbiera i porządkuje zgłoszenia od kandydatów. Nie ocenia CV i nie odrzuca nikogo samodzielnie, choć taka opowieść krąży po internecie od lat. Realne ryzyko jest inne: jeśli system źle odczyta Twój plik, Twoje zgłoszenie po prostu nie pojawi się tam, gdzie rekruter go szuka. Poniżej co ATS faktycznie robi i co psuje odczyt.</p>
 
 <h2>Czym jest ATS i kto go używa w Polsce</h2>
 <p>Skrót pochodzi od Applicant Tracking System, czyli systemu śledzenia kandydatów. W praktyce to baza danych z wyszukiwarką: zbiera zgłoszenia z ogłoszeń, przechowuje pliki CV, wyciąga z nich dane do pól formularza i pozwala rekruterowi filtrować listę.</p>

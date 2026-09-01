@@ -1020,6 +1020,25 @@ Kanał pozyskiwania ruchu organicznego. Treść pisze AI przez skille
 (`.claude/commands/blog-*.md`), redakcję i publikację robi człowiek
 w `/admin/blog`.
 
+**PROMPTY DO GRAFIK ŻYJĄ W TREŚCI ARTYKUŁU, WSZYSTKIE TRZY** (2026-08-17).
+Prompt okładki był początkowo tylko w `obrazki-<slug>.md`, bo okładka nie jest
+częścią treści i nie ma w HTML-u miejsca, w którym mogłaby stać. W praktyce
+znaczyło to, że redaktor pracujący w panelu widział dwa prompty z trzech
+i musiał wracać do repo po ten trzeci. Dlatego prompt okładki jest teraz
+PIERWSZYM akapitem `class="image-prompt"` w polu `tresc`. Czytelnikowi i tak
+się nie pokaże (`usunPromptyObrazkow` czyści całą klasę przy renderze), a przy
+publikacji kasuje się go tak samo jak pozostałe. Pliki `obrazki-<slug>.md`
+zostają jako źródło i miejsce na notatki o kadrze.
+
+**Poprawka treści już wstawionego szkicu: `scripts/blog/aktualizuj-tresc.ts`**
+(`node --env-file=.env.local --import tsx scripts/blog/aktualizuj-tresc.ts <slug>…`).
+Wgrywa pole `tresc` z `insert-<slug>.ts` do istniejącego wiersza, więc nie
+trzeba kasować i wstawiać od nowa — id, a więc i link do edycji w panelu,
+zostaje. Dwa bezpieczniki: **nie ma trybu „wszystkie"** (slugi wypisuje się
+z ręki, bo to operacja nadpisująca — świadoma decyzja, że repo jest w tej
+chwili nowsze niż baza) i **rusza wyłącznie wiersze o statusie `szkic`**,
+żeby nie podmienić pod ruchem treści, która już żyje po redakcji.
+
 **Nazewnictwo POLSKIE, jak reszta schematu** — tabela `wpis_bloga`, nie
 `blog_posts`; kolumny `tytul`/`tresc`/`zajawka`. Skille są napisane pod te
 nazwy, więc nie ma dwóch konwencji do pogodzenia.

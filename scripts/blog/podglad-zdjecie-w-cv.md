@@ -39,8 +39,9 @@ Pełna treść HTML: `scripts/blog/insert-zdjecie-w-cv.ts`.
 
 - **Uruchomić insert:** `npx tsx --env-file=.env.local scripts/blog/insert-zdjecie-w-cv.ts`
   (NIE dwa razy — slug ma unikalny indeks).
-- Dodać okładkę (`okladka_url`) — dziś `null`, prompt w `obrazki-zdjecie-w-cv.md`.
-- Wygenerować i wgrać 2 grafiki, podmienić `src` w treści, usunąć akapity `class="image-prompt"`.
+- **Wszystkie 3 prompty (okładka + 2 grafiki) są na początku treści artykułu**
+  jako akapity `class="image-prompt"` — nie trzeba wracać do tego pliku.
+  Po wgraniu każdego obrazka usuń jego akapit.
 - Redakcja/korekta w panelu `/admin/blog`.
 - Zmienić status na `opublikowany`, gdy gotowe (publikacja jest ręczna).
 

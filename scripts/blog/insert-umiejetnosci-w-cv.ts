@@ -44,7 +44,9 @@ async function wstaw() {
             "Najpierw te, które pojawiają się w wymaganiach obowiązkowych ogłoszenia, potem pozostałe twarde, na końcu miękkie. Przy szybkim przeglądzie liczy się pierwsze kilka pozycji.",
         },
       ],
-      tresc: `<p>Sekcja umiejętności bywa traktowana jak worek na wszystko, co przyszło do głowy. Tymczasem to jedno z niewielu miejsc w CV, gdzie rekruter i system rekrutacyjny szukają dokładnie tych samych słów co w ogłoszeniu. Poniżej, co się w tej sekcji broni, co ją osłabia i czego nie ma prawa tam być.</p>
+      tresc: `<p class="image-prompt">📷 <strong>OKŁADKA</strong> - prompt: A realistic wide photo of a laptop on a bright desk showing a document with a list layout, blurred and unreadable, a notebook and pen beside it, soft natural daylight, shallow depth of field, warm professional tones, no visible readable text or logos, focused working mood, shot in 2:1 landscape framing. <strong>Alt:</strong> "Sekcja umiejętności w CV widoczna na ekranie laptopa". Plik: <code>umiejetnosci-w-cv-okladka.webp</code>, format 2:1 (np. 1200×600 px). <strong>Po wgraniu okładki w polu „Okładka" usuń ten akapit.</strong></p>
+
+<p>Sekcja umiejętności bywa traktowana jak worek na wszystko, co przyszło do głowy. Tymczasem to jedno z niewielu miejsc w CV, gdzie rekruter i system rekrutacyjny szukają dokładnie tych samych słów co w ogłoszeniu. Poniżej, co się w tej sekcji broni, co ją osłabia i czego nie ma prawa tam być.</p>
 
 <h2>Twarde i miękkie: proporcja, która działa</h2>
 <p>Umiejętności twarde to konkretne, weryfikowalne rzeczy: narzędzia, programy, technologie, metodyki, uprawnienia, języki. Miękkie opisują sposób pracy: komunikację, organizację, pracę w zespole.</p>

@@ -44,7 +44,9 @@ async function wstaw() {
             "Tak, choć inaczej. Rekruter skanuje dokument w kilkanaście sekund i szuka wzrokiem terminów, które zna z ogłoszenia. Ich brak w widocznych miejscach działa tak samo jak brak w pliku.",
         },
       ],
-      tresc: `<p>Słowa kluczowe w CV to nazwy, których pracodawca użył w ogłoszeniu: technologie, narzędzia, metodyki, obszary odpowiedzialności. Nie chodzi o ich upychanie, tylko o to, żeby te, które faktycznie Cię dotyczą, w ogóle w CV wystąpiły i były widoczne. Poniżej metoda ręczna, miejsca, w których mają największy sens, i wyjaśnienie, dlaczego przesada obraca się przeciwko Tobie.</p>
+      tresc: `<p class="image-prompt">📷 <strong>OKŁADKA</strong> - prompt: A realistic wide photo of a printed job advertisement on a desk with several lines marked in yellow highlighter, a highlighter pen lying across the page, laptop blurred in the background, soft natural daylight, shallow depth of field, warm professional tones, no visible readable text or logos, analytical mood, shot in 2:1 landscape framing. <strong>Alt:</strong> "Ogłoszenie o pracę z zaznaczonymi frazami kluczowymi". Plik: <code>slowa-kluczowe-w-cv-okladka.webp</code>, format 2:1 (np. 1200×600 px). <strong>Po wgraniu okładki w polu „Okładka" usuń ten akapit.</strong></p>
+
+<p>Słowa kluczowe w CV to nazwy, których pracodawca użył w ogłoszeniu: technologie, narzędzia, metodyki, obszary odpowiedzialności. Nie chodzi o ich upychanie, tylko o to, żeby te, które faktycznie Cię dotyczą, w ogóle w CV wystąpiły i były widoczne. Poniżej metoda ręczna, miejsca, w których mają największy sens, i wyjaśnienie, dlaczego przesada obraca się przeciwko Tobie.</p>
 
 <h2>Czym są dla systemu, a czym dla rekrutera</h2>
 <p>System rekrutacyjny traktuje je dosłownie. Rekruter wpisuje w wyszukiwarkę frazę i dostaje listę zgłoszeń, w których ta fraza występuje. Jeśli w Twoim CV jej nie ma, nie pojawiasz się na liście, choćbyś umiał dokładnie to samo pod inną nazwą.</p>

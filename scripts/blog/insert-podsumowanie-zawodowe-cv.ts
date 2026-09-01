@@ -44,7 +44,9 @@ async function wstaw() {
             "Tak, jeśli aplikujesz na różne stanowiska. To sekcja najmocniej związana z konkretną ofertą, bo w trzech zdaniach ustawia perspektywę, z której rekruter przeczyta resztę dokumentu.",
         },
       ],
-      tresc: `<p>Podsumowanie zawodowe to dwa do czterech zdań na górze CV, które mówią, kim jesteś zawodowo, co potrafisz i czego szukasz. Nie jest obowiązkowe, ale to pierwsze, co czyta rekruter, więc decyduje o tym, z jakim nastawieniem przejrzy resztę. Poniżej struktura, pięć przykładów do przerobienia i błędy, które zamieniają tę sekcję w wypełniacz.</p>
+      tresc: `<p class="image-prompt">📷 <strong>OKŁADKA</strong> - prompt: A clean minimal wide illustration of the top section of a CV page as a simple wireframe, with a small avatar placeholder and a highlighted paragraph block of three text lines directly below the header, the rest of the page fading into light grey placeholder blocks, flat vector style, professional blue and white colour scheme, no visible text anywhere in the image, 2:1 landscape framing. <strong>Alt:</strong> "Górna część CV z sekcją podsumowania zawodowego". Plik: <code>podsumowanie-zawodowe-cv-okladka.webp</code>, format 2:1 (np. 1200×600 px). <strong>Po wgraniu okładki w polu „Okładka" usuń ten akapit.</strong></p>
+
+<p>Podsumowanie zawodowe to dwa do czterech zdań na górze CV, które mówią, kim jesteś zawodowo, co potrafisz i czego szukasz. Nie jest obowiązkowe, ale to pierwsze, co czyta rekruter, więc decyduje o tym, z jakim nastawieniem przejrzy resztę. Poniżej struktura, pięć przykładów do przerobienia i błędy, które zamieniają tę sekcję w wypełniacz.</p>
 
 <h2>Po co rekruterowi Twoje podsumowanie</h2>
 <p>Przy kilkuset zgłoszeniach na jedno stanowisko pierwszy przegląd CV jest szybki. Rekruter szuka odpowiedzi na jedno pytanie: czy ta osoba w ogóle pasuje do stanowiska, o którym mowa. Podsumowanie daje mu tę odpowiedź od razu, zamiast kazać jej szukać w datach i nazwach firm.</p>

@@ -44,7 +44,9 @@ async function wstaw() {
             "Przejdź punkt po punkcie i przy każdym zadaj pytanie, czy to się wydarzyło i czy obronisz to na rozmowie. Każdą liczbę i nazwę narzędzia, której nie rozpoznajesz jako swojej, usuń.",
         },
       ],
-      tresc: `<p>ChatGPT dobrze radzi sobie z językiem CV i fatalnie z faktami. Poprawi składnię, skróci rozwlekłe zdania i zaproponuje układ, ale poproszony o „mocniejszy” opis doświadczenia dopisze obowiązki i liczby, których nigdy nie było. Poniżej, gdzie ogólny model pomaga, gdzie kosztuje i jak z niego korzystać, nie tracąc wiarygodności.</p>
+      tresc: `<p class="image-prompt">📷 <strong>OKŁADKA</strong> - prompt: A realistic wide photo of a person at a desk with a laptop open beside an open paper notebook filled with handwritten notes, one hand resting on the notebook as if cross-checking, soft natural daylight, shallow depth of field, warm professional tones, screen content blurred and unreadable, no visible readable text or logos, careful and deliberate mood, shot in 2:1 landscape framing. <strong>Alt:</strong> "Kandydat pracujący nad CV z pomocą narzędzia AI". Plik: <code>cv-chatgpt-okladka.webp</code>, format 2:1 (np. 1200×600 px). <strong>Po wgraniu okładki w polu „Okładka" usuń ten akapit.</strong></p>
+
+<p>ChatGPT dobrze radzi sobie z językiem CV i fatalnie z faktami. Poprawi składnię, skróci rozwlekłe zdania i zaproponuje układ, ale poproszony o „mocniejszy” opis doświadczenia dopisze obowiązki i liczby, których nigdy nie było. Poniżej, gdzie ogólny model pomaga, gdzie kosztuje i jak z niego korzystać, nie tracąc wiarygodności.</p>
 
 <h2>Co ogólny model robi dobrze</h2>
 <p>Jest kilka zadań, w których pomoc modelu jest realna i bezpieczna, bo dotyczą formy, nie treści.</p>

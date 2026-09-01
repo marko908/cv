@@ -44,7 +44,9 @@ async function wstaw() {
             "W Wielkiej Brytanii, USA i Kanadzie zdjęcia się nie dodaje, bo rekruterzy unikają nawet pozoru dyskryminacji. W Niemczech i Austrii bywa oczekiwane. Sprawdź zwyczaj kraju, do którego wysyłasz zgłoszenie.",
         },
       ],
-      tresc: `<p>Zdjęcie w CV nie jest obowiązkowe i jego brak niczego nie przekreśla. Na polskim rynku jest jednak na tyle powszechne, że jego nieobecność bywa zauważana - inaczej niż w krajach anglosaskich, gdzie zdjęcie w CV to raczej błąd. Poniżej to, co realnie wpływa na decyzję: praktyka rekruterów, RODO i odczyt w systemach rekrutacyjnych.</p>
+      tresc: `<p class="image-prompt">📷 <strong>OKŁADKA</strong> - prompt: A realistic wide photo of two printed CV documents lying side by side on a light wooden desk, one page has a small blank portrait photo placeholder in its top corner and the other has none, a pen and a cup of coffee nearby, soft natural daylight, shallow depth of field, warm professional tones, no visible readable text or logos, calm and thoughtful mood, shot in 2:1 landscape framing. <strong>Alt:</strong> "Kandydat porównujący dwie wersje CV na biurku". Plik: <code>zdjecie-w-cv-okladka.webp</code>, format 2:1 (np. 1200×600 px). <strong>Po wgraniu okładki w polu „Okładka" usuń ten akapit.</strong></p>
+
+<p>Zdjęcie w CV nie jest obowiązkowe i jego brak niczego nie przekreśla. Na polskim rynku jest jednak na tyle powszechne, że jego nieobecność bywa zauważana - inaczej niż w krajach anglosaskich, gdzie zdjęcie w CV to raczej błąd. Poniżej to, co realnie wpływa na decyzję: praktyka rekruterów, RODO i odczyt w systemach rekrutacyjnych.</p>
 
 <h2>Praktyka w Polsce a zwyczaje zagraniczne</h2>
 <p>W Polsce zdjęcie w CV jest normą utrwaloną przez lata, a nie wymogiem prawnym. Duża część szablonów krążących w sieci ma na nie miejsce, kandydaci je wstawiają, a rekruterzy przywykli je widzieć. Nikt jednak nie odrzuci zgłoszenia dlatego, że zdjęcia zabrakło.</p>
