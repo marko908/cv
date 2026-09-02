@@ -177,14 +177,15 @@ export async function POST(request: Request) {
     try {
       trescOferty = await pobierzTrescOferty(jobUrl);
     } catch (e) {
+      // `pobierzTrescOferty` zwraca już kompletny, przyjazny komunikat
+      // (z prośbą o wklejenie treści) — nic tu nie dokładamy, żeby nie
+      // dublować tej samej instrukcji dwa razy w jednym zdaniu.
       const powod =
-        e instanceof BladPobraniaOferty ? e.message : "Nie udało się pobrać oferty.";
+        e instanceof BladPobraniaOferty
+          ? e.message
+          : "Nie udało się pobrać treści ogłoszenia z tego linku. Skopiuj całą treść ogłoszenia i wklej ją poniżej, a dopasowanie policzymy dokładnie.";
       return NextResponse.json(
-        {
-          ok: false,
-          kod: "link-nieudany",
-          error: `${powod} Skopiuj całą treść ogłoszenia i wklej ją poniżej — wtedy dopasowanie policzymy dokładnie.`,
-        },
+        { ok: false, kod: "link-nieudany", error: powod },
         { status: 422 }
       );
     }

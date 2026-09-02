@@ -159,4 +159,40 @@ export function czySerwisOfert(url: string): boolean {
 /** Komunikat pokazywany, gdy adres nie jest z listy. */
 export const KOMUNIKAT_NIEZNANY_SERWIS =
   "Ten adres nie wygląda na ogłoszenie o pracę ze znanego nam serwisu. " +
-  "Wklej treść ogłoszenia poniżej — zadziała tak samo dobrze.";
+  "Wklej treść ogłoszenia poniżej, zadziała tak samo dobrze.";
+
+/**
+ * Serwisy, z których automatyczne pobranie treści ZWYKLE się nie udaje —
+ * mają silną ochronę przed robotami (2026-09-01, po realnym zgłoszeniu 403
+ * z pracuj.pl). WYŁĄCZNIE informacyjna: podpowiadamy to w formularzu OD RAZU
+ * przy wklejeniu linku, żeby użytkownik od razu wiedział, że warto też
+ * wkleić treść — ale próby pobrania NIE blokujemy, bo czasem się jednak uda.
+ *
+ * OSTROŻNIE Z TĄ LISTĄ: sprawdzone bezpośrednim żądaniem (ten sam nagłówek
+ * przeglądarki co `pobierzBezpiecznie`) olx.pl/indeed.com/glassdoor.com
+ * blokują NAWET zwykłe żądanie serwerowe spoza Vercela — to mocny sygnał
+ * ochrony, która blokuje każdego automatycznego klienta, nie tylko nas.
+ * `pracuj.pl` jest tu z INNEGO powodu: ten sam test PRZECHODZIŁ spoza
+ * Vercela, ale w produkcji (zgłoszenie Marka) zwrócił 403 — blokada wygląda
+ * na powiązaną z reputacją adresów IP Vercela, nie z samym adresem oferty.
+ * Może więc czasem działać, a czasem nie — jeśli po jakimś czasie przestanie
+ * się powtarzać, warto wpis usunąć. `console.warn` w `fetch-oferta.ts` loguje
+ * hosta przy KAŻDYM nieudanym pobraniu — to źródło do weryfikacji tej listy,
+ * nie zgadywanie.
+ */
+const CZESTO_BLOKUJE_POBIERANIE = ["olx.pl", "indeed.com", "glassdoor.com", "pracuj.pl"];
+
+/** Czy ten serwis zwykle blokuje automatyczne pobranie (patrz komentarz wyżej). */
+export function czestoBlokujePobieranie(url: string): boolean {
+  if (!czyPoprawnyLink(url)) return false;
+  let host: string;
+  try {
+    host = new URL(zeSchematem(url)).hostname.toLowerCase();
+  } catch {
+    return false;
+  }
+  const czysty = host.startsWith("www.") ? host.slice(4) : host;
+  return CZESTO_BLOKUJE_POBIERANIE.some(
+    (d) => czysty === d || czysty.endsWith(`.${d}`)
+  );
+}

@@ -142,9 +142,20 @@ function zJsonLd(html: string): string | null {
  * Pobiera treść ogłoszenia spod adresu. Rzuca `BladPobraniaOferty`
  * z komunikatem dla użytkownika, gdy się nie uda.
  */
+/**
+ * Wspólne dokończenie każdego komunikatu o niepowodzeniu — jedno miejsce,
+ * żeby ton i treść prośby o wklejenie były wszędzie identyczne (2026-09-01,
+ * feedback Marka: kod błędu i status HTTP w komunikacie dla użytkownika nie
+ * są przyjazne — usera nie obchodzi PRZYCZYNA, tylko co ma zrobić dalej).
+ */
+const PROSBA_O_WKLEJENIE =
+  " Skopiuj całą treść ogłoszenia i wklej ją poniżej, a dopasowanie policzymy dokładnie.";
+
 export async function pobierzTrescOferty(url: string): Promise<string> {
   if (!czyPoprawny(url)) {
-    throw new BladPobraniaOferty("To nie wygląda na poprawny adres strony.");
+    throw new BladPobraniaOferty(
+      "To nie wygląda na poprawny adres strony." + PROSBA_O_WKLEJENIE
+    );
   }
 
   /*
@@ -187,11 +198,23 @@ export async function pobierzTrescOferty(url: string): Promise<string> {
     });
   } catch (e) {
     if (e instanceof BladPobraniaOferty) throw e;
-    // Komunikat z kontroli adresu jest zrozumiały dla użytkownika i nie
-    // zdradza, co siedzi po drugiej stronie — przepuszczamy go dalej.
-    if (e instanceof BladAdresu) throw new BladPobraniaOferty(e.message);
+    /*
+     * Komunikat z kontroli adresu (`BladAdresu`) bywa techniczny — status
+     * HTTP, treść przekierowania — bo jest pisany pod diagnostykę, nie pod
+     * użytkownika. Prawdziwy powód logujemy dla siebie (żeby z czasem dało
+     * się rozpoznać, które serwisy trwale blokują pobieranie — patrz
+     * `serwisy-ofert.czestoBlokujePobieranie`), a przed użytkownikiem staje
+     * jeden, zawsze przyjazny komunikat zamiast surowego kodu błędu.
+     */
+    if (e instanceof BladAdresu) {
+      console.warn("[fetch-oferta] pobranie zablokowane:", pelny, e.message);
+      throw new BladPobraniaOferty(
+        "Nie udało się automatycznie pobrać treści z tego linku. Zdarza się, że strona blokuje pobieranie przez automat." +
+          PROSBA_O_WKLEJENIE
+      );
+    }
     throw new BladPobraniaOferty(
-      "Nie udało się połączyć ze stroną ogłoszenia."
+      "Nie udało się połączyć ze stroną ogłoszenia." + PROSBA_O_WKLEJENIE
     );
   }
 
@@ -202,7 +225,8 @@ export async function pobierzTrescOferty(url: string): Promise<string> {
   // uczciwie mówimy, że się nie udało, zamiast karmić model śmieciem.
   if (tekst.replace(/\s+/g, "").length < 300) {
     throw new BladPobraniaOferty(
-      "Pod tym adresem nie znaleźliśmy treści ogłoszenia."
+      "Nie znaleźliśmy treści ogłoszenia pod tym adresem. Część stron ładuje ją dopiero w przeglądarce, więc automat jej nie widzi." +
+        PROSBA_O_WKLEJENIE
     );
   }
   return tekst;

@@ -998,6 +998,32 @@ w przeglądarce). Dzięki temu lista może być niepełna, nikogo nie blokując.
 `tailor-flow` sprawdza to też po stronie klienta, żeby powiedzieć o tym OD RAZU
 w formularzu, zamiast po pełnym przebiegu analizy.
 
+**Komunikaty o niepowodzeniu pobrania są ZAWSZE przyjazne dla użytkownika,
+nigdy techniczne (decyzja Marka 2026-09-01).** Zgłoszenie: kod błędu i status
+HTTP w komunikacie („Strona odpowiedziała błędem 403.") nie są friendly —
+usera nie obchodzi PRZYCZYNA, tylko co ma zrobić dalej. `fetch-oferta.ts`
+tłumaczy każdy wewnętrzny błąd (SSRF-owy `BladAdresu` z surowym statusem
+włącznie) na jeden z kilku gotowych, kompletnych komunikatów kończących się
+prośbą o wklejenie treści (`PROSBA_O_WKLEJENIE`); prawdziwy powód (host +
+`e.message`) trafia tylko do `console.warn`, nie do klienta. `/api/dopasuj`
+przepuszcza ten komunikat 1:1 — nic do niego NIE dokleja (wcześniej dodawał
+drugą, zduplikowaną prośbę o wklejenie do końca komunikatu z `fetch-oferta`).
+
+**`czestoBlokujePobieranie()` w `serwisy-ofert.ts` — podpowiedź w formularzu
+ZANIM użytkownik w ogóle uruchomi analizę**, dla serwisów o znanej, silnej
+ochronie przed robotami. Lista jest krótka i celowo ostrożna: zbudowana
+z bezpośredniego testu żądaniem (te same nagłówki co `pobierzBezpiecznie`) —
+`olx.pl`/`indeed.com`/`glassdoor.com` blokują NAWET żądanie spoza Vercela
+(mocny sygnał, że blokują każdego automatycznego klienta), a `pracuj.pl` jest
+tam z INNEGO powodu: ten sam test przechodził spoza Vercela, ale w produkcji
+zwracał 403 — blokada wygląda na powiązaną z reputacją adresów IP Vercela,
+nie z samym adresem. **Dlatego lista NIE blokuje próby** (`canRun` się nie
+zmienia) — tylko pokazuje spokojny tekst pod polem linku. Testowanie spoza
+Vercela nie jest wiarygodnym predyktorem zachowania produkcji — `console.warn`
+w `fetch-oferta.ts` loguje hosta przy każdym nieudanym pobraniu, co jest
+źródłem do PÓŹNIEJSZEGO doprecyzowania tej listy na realnych danych, nie
+zgadywanie z sandboksa.
+
 Dopasowanie obejmuje poddomeny (`jobs.lever.co` pasuje do `lever.co`), ale nie
 domeny kończące się tym samym ciągiem (`nie-pracuj.pl` ≠ `pracuj.pl`) ani
 prefiksowe podszywanie (`pracuj.pl.zly-host.com`). Cztery grupy: polskie
@@ -1240,7 +1266,7 @@ Pliki generowane dla robotów (nie strony, ale trasy): `/robots.txt`
 - **Pytania wywiadu** → `interview.ts`
 - **Parsowanie oferty** → `job-offer.ts` · **wiedza branżowa/synonimy** → `slownik.ts`
 - **Import CV (ekstrakcja/mapowanie/linki)** → `parse-cv.ts` + `/api/parsuj-cv`
-- **Pobieranie oferty z linku** → `fetch-oferta.ts` (wpięte w `/api/dopasuj`; przy niepowodzeniu 422 `kod:"link-nieudany"` → UI prosi o wklejenie treści)
+- **Pobieranie oferty z linku** → `fetch-oferta.ts` (wpięte w `/api/dopasuj`; przy niepowodzeniu 422 `kod:"link-nieudany"` → UI prosi o wklejenie treści; komunikaty zawsze przyjazne, bez statusu HTTP) · **lista serwisów, które zwykle blokują pobieranie (podpowiedź w formularzu przed uruchomieniem)** → `czestoBlokujePobieranie()` w `serwisy-ofert.ts`
 - **Dopisanie serwisu z ogłoszeniami (portal / ATS)** → `src/lib/ai/serwisy-ofert.ts`, jedyne miejsce — moduł bez importów z `node:`, bo używa go też komponent kliencki
 - **Kontrola adresów pobieranych przez serwer (SSRF)** → `src/lib/bezpieczenstwo/adresy.ts` · **kontrola wgrywanych plików** → `src/lib/bezpieczenstwo/pliki.ts`
 - **Opis „co zmieniliśmy/dlaczego"** → `changes.ts`

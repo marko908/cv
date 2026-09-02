@@ -37,6 +37,7 @@ import {
 } from "@/lib/ai/interview";
 import type { ParsedOferta } from "@/lib/ai/job-offer";
 import {
+  czestoBlokujePobieranie,
   czyPoprawnyLink,
   czySerwisOfert,
   KOMUNIKAT_NIEZNANY_SERWIS,
@@ -361,6 +362,12 @@ function ConfigStep({
    * kontrola jest wyłącznie dla wygody.
    */
   const nieznanySerwis = maLink && !czySerwisOfert(jobPosting.url);
+  // Serwis rozpoznany, ale sam znany z tego, że zwykle blokuje pobieranie —
+  // pokazujemy podpowiedź OD RAZU (nie czekamy na 422 z serwera), żeby
+  // użytkownik od razu wkleił też treść, zamiast czekać ~30 s na wynik,
+  // który i tak każe mu wrócić po treść ręcznie.
+  const czestoBlokuje =
+    maLink && !nieznanySerwis && czestoBlokujePobieranie(jobPosting.url);
   // Sam link spoza listy nie wystarczy do startu — ale z wklejoną treścią tak,
   // bo wtedy niczego nie pobieramy.
   const canRun = maTresc || (maLink && !nieznanySerwis);
@@ -373,8 +380,8 @@ function ConfigStep({
         </p>
         <DialogTitle>Dopasuj CV do oferty</DialogTitle>
         <DialogDescription>
-          Panel „rekruterów" oceni Twoje CV pod kątem tej oferty i wskaże
-          konkretne poprawki — po polsku, pod ATS.
+          Silnik AI oceni Twoje CV pod kątem tej oferty i wskaże konkretne
+          poprawki, po polsku, pod ATS.
         </DialogDescription>
       </DialogHeader>
 
@@ -394,6 +401,13 @@ function ConfigStep({
           {nieznanySerwis && (
             <p className="text-xs text-muted-foreground">
               {KOMUNIKAT_NIEZNANY_SERWIS}
+            </p>
+          )}
+          {czestoBlokuje && (
+            <p className="text-xs text-muted-foreground">
+              Z tego serwisu zwykle nie da się pobrać treści automatycznie.
+              Możesz mimo to spróbować, ale dla pewności wklej też treść
+              ogłoszenia poniżej.
             </p>
           )}
         </div>
@@ -424,7 +438,7 @@ function ConfigStep({
 
       <div className="flex items-center justify-between">
         <span className="eyebrow text-muted-foreground">
-          Panel rekruterów · ~30&nbsp;s
+          Silnik dopasowania · ~30&nbsp;s
         </span>
         <Button
           className="btn-label gap-2 font-bold"
@@ -555,7 +569,7 @@ function RunningStep({
       <DialogHeader>
         <DialogTitle>Analizujemy Twoje CV</DialogTitle>
         <DialogDescription>
-          Pięciu specjalistów ocenia je równolegle, potem składamy raport.
+          Silnik AI ocenia je pod pięcioma kryteriami, potem składamy raport.
         </DialogDescription>
       </DialogHeader>
 
@@ -590,7 +604,7 @@ function RunningStep({
 
       <div>
         <div className="mb-1 flex justify-between">
-          <span className="eyebrow text-muted-foreground">Specjaliści</span>
+          <span className="eyebrow text-muted-foreground">Kryteria</span>
           <span className="eyebrow text-muted-foreground">
             {doneCount} / {total} gotowe
           </span>
