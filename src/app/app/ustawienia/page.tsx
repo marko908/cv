@@ -1,8 +1,7 @@
 ﻿"use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { CreditCard, ExternalLink, Loader2, Sparkles } from "lucide-react";
+import { CreditCard, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { KartaKonta } from "@/components/auth/karta-konta";
 import { SavedIndicator } from "@/components/saved-indicator";
@@ -201,20 +200,11 @@ export default function UstawieniaPage() {
         <KartaKonta />
       </SettingsCard>
 
-      {/* Na początek */}
-      <SettingsCard eyebrow="Na początek">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm text-muted-foreground">
-            Chcesz zobaczyć stronę produktu albo zacząć od nowa?
-          </p>
-          <Button asChild size="sm" variant="secondary">
-            <Link href="/">
-              <ExternalLink className="size-4" />
-              Strona główna
-            </Link>
-          </Button>
-        </div>
-      </SettingsCard>
+      {/* Karta „Na początek" (odnośnik na stronę główną) usunięta 2026-09-02
+          jako pozostałość po fazie testowej. Zalogowany i tak odbija się z „/"
+          na „/app" (patrz „ZALOGOWANY NIE OGLĄDA LANDINGU"), więc przycisk
+          prowadził donikąd, a „zacząć od nowa" nie znaczyło już niczego
+          konkretnego. */}
 
       {/* Stało tu: „Twoje dane są przechowywane lokalnie i nie opuszczają
           przeglądarki". Po przejściu na Supabase to była już NIEPRAWDA —

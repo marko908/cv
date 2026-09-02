@@ -89,29 +89,14 @@ export function KartaKonta() {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-secondary p-4">
-        <div className="flex min-w-0 items-start gap-3">
-          <UserRound className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-          <div className="min-w-0">
-            <p className="text-sm font-bold">Zalogowany</p>
-            <p className="mt-0.5 truncate text-sm text-muted-foreground">
-              {uzytkownik.email}
-            </p>
-          </div>
+      <div className="flex min-w-0 items-start gap-3 rounded-lg bg-secondary p-4">
+        <UserRound className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+        <div className="min-w-0">
+          <p className="text-sm font-bold">Zalogowany</p>
+          <p className="mt-0.5 truncate text-sm text-muted-foreground">
+            {uzytkownik.email}
+          </p>
         </div>
-        <Button
-          size="sm"
-          variant="secondary"
-          onClick={wyloguj}
-          disabled={wylogowuje}
-        >
-          {wylogowuje ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <LogOut className="size-4" />
-          )}
-          Wyloguj się
-        </Button>
       </div>
 
       <ZgodaMarketingowa userId={uzytkownik.id} />
@@ -137,6 +122,32 @@ export function KartaKonta() {
             <Trash2 className="size-4" />
           )}
           {potwierdzam ? "Na pewno? Kliknij ponownie" : "Usuń konto"}
+        </Button>
+      </div>
+
+      {/* Wylogowanie na samym dole, pod usunięciem konta (decyzja Marka
+          2026-09-02). Stało wcześniej przy adresie e-mail, czyli w pierwszym
+          wierszu sekcji - a to wyjście z aplikacji, nie informacja o koncie. */}
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-secondary p-4">
+        <div>
+          <p className="text-sm font-bold">Wyloguj się</p>
+          <p className="mt-0.5 max-w-md text-sm text-muted-foreground">
+            Zamyka sesję w tej przeglądarce. Twoje CV i dopasowania zostają na
+            koncie.
+          </p>
+        </div>
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={wyloguj}
+          disabled={wylogowuje}
+        >
+          {wylogowuje ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <LogOut className="size-4" />
+          )}
+          Wyloguj się
         </Button>
       </div>
     </div>
