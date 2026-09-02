@@ -74,7 +74,7 @@ export function opiszZmiany(
         ? `Rekruter czyta podsumowanie jako pierwsze. Wyeksponowaliśmy w nim: ${nowe
             .slice(0, 3)
             .join(", ")}.`
-        : `Dopasowaliśmy brzmienie do stanowiska „${oferta.stanowisko}” — bez dopisywania czegokolwiek, czego nie ma w Twoim CV.`,
+        : `Dopasowaliśmy brzmienie do stanowiska „${oferta.stanowisko}” - bez dopisywania czegokolwiek, czego nie ma w Twoim CV.`,
     });
   }
 
@@ -116,14 +116,14 @@ export function opiszZmiany(
     }
     const opis = czesci.join(" i ");
     zmiany.push({
-      section: `Doświadczenie — ${exp.role || "pozycja"}${
+      section: `Doświadczenie - ${exp.role || "pozycja"}${
         exp.company ? ` (${exp.company})` : ""
       }`,
       change: `${opis.charAt(0).toUpperCase()}${opis.slice(
         1
       )}, zachowując wszystkie liczby i technologie z Twojego oryginału.`,
       reason: dotyczy.length
-        ? `Użyliśmy słownictwa z ogłoszenia tam, gdzie opisuje to samo, co już robiłeś — dzięki temu CV lepiej przechodzi przez filtry ATS. Dotyczy: ${dotyczy
+        ? `Użyliśmy słownictwa z ogłoszenia tam, gdzie opisuje to samo, co już robiłeś - dzięki temu CV lepiej przechodzi przez filtry ATS. Dotyczy: ${dotyczy
             .slice(0, 3)
             .join(", ")}.`
         : "Uporządkowaliśmy opis tak, aby zaczynał się od konkretu, a nie od opisu obowiązków.",
@@ -166,7 +166,7 @@ export function opiszZmiany(
           .slice(0, 4)
           .join(", ")}.`,
         reason:
-          "Rekruter skanuje CV przez kilka sekund — to, czego szuka oferta, powinno rzucać się w oczy najpierw. Żadna umiejętność nie została dodana ani usunięta.",
+          "Rekruter skanuje CV przez kilka sekund - to, czego szuka oferta, powinno rzucać się w oczy najpierw. Żadna umiejętność nie została dodana ani usunięta.",
       });
     }
     // Jeśli kolejność się zmieniła, ale wymagane NIE poszły w górę — nie
@@ -214,9 +214,11 @@ export function zbudujWskazowki(
         ? "high"
         : "medium",
       title: "Czego ta oferta wymaga, a czego nie ma w Twoim CV",
-      detail: `Nie dopisaliśmy tego do CV, bo nie podałeś tego o sobie — a wymyślone kompetencje wychodzą na rozmowie. Brakuje: ${luki
-        .map((l) => l.wymaganie.tekst)
-        .join("; ")}. Jeśli faktycznie masz z tym styczność, dopisz to w edytorze, a dopasowanie policzymy od nowa.`,
+      detail:
+        "Nie dopisaliśmy tego do CV, bo nie podałeś tego o sobie, a wymyślone kompetencje wychodzą na rozmowie. Brakuje:",
+      items: luki.map((l) => l.wymaganie.tekst),
+      podsumowanie:
+        "Jeśli faktycznie masz z tym styczność, dopisz to w edytorze, a dopasowanie policzymy od nowa.",
     });
   }
 
@@ -225,7 +227,7 @@ export function zbudujWskazowki(
     category: "wiarygodnosc",
     severity: "medium",
     title: "Wszystko opiera się na Twoich danych",
-    detail: `Przy przepisywaniu CV korzystaliśmy wyłącznie z informacji, które sam podałeś — żadna liczba, technologia ani nazwa firmy nie została dodana. ${
+    detail: `Przy przepisywaniu CV korzystaliśmy wyłącznie z informacji, które sam podałeś - żadna liczba, technologia ani nazwa firmy nie została dodana. ${
       liczbaZmian > 0
         ? `Wprowadziliśmy ${liczbaZmian === 1 ? "jedną zmianę" : `${liczbaZmian} zmiany`} w treści.`
         : ""

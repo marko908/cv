@@ -153,7 +153,7 @@ export function runMockReview(cv: TailoredCv, jobText: string): AiMeta {
       severity: "high",
       title: "Konkrety i metryki w doświadczeniu",
       detail:
-        "Mocne CV opisuje osiągnięcia liczbami (metoda STAR) — np. „skróciłem czas ładowania o 40% dla 12 tys. użytkowników” działa lepiej niż „odpowiadałem za rozwój aplikacji”. Zadbaliśmy, aby Twoje doświadczenie mówiło o efektach, a nie tylko o obowiązkach.",
+        "Mocne CV opisuje osiągnięcia liczbami (metoda STAR) - np. „skróciłem czas ładowania o 40% dla 12 tys. użytkowników” działa lepiej niż „odpowiadałem za rozwój aplikacji”. Zadbaliśmy, aby Twoje doświadczenie mówiło o efektach, a nie tylko o obowiązkach.",
     });
   }
   if (missingKeywords.length > 0) {
@@ -182,7 +182,7 @@ export function runMockReview(cv: TailoredCv, jobText: string): AiMeta {
       severity: "medium",
       title: "Podsumowanie zawodowe",
       detail:
-        "Dobre podsumowanie w 3–4 zdaniach mówi, kim jesteś zawodowo, w czym jesteś dobry i jaką wartość wniesiesz — bez amerykańskiego hype'u. Takie streszczenie otwiera teraz Twoje CV.",
+        "Dobre podsumowanie w 3-4 zdaniach mówi, kim jesteś zawodowo, w czym jesteś dobry i jaką wartość wniesiesz - bez amerykańskiego hype'u. Takie streszczenie otwiera teraz Twoje CV.",
     });
   }
   if (!cv.rodo_clause.trim()) {
@@ -192,7 +192,7 @@ export function runMockReview(cv: TailoredCv, jobText: string): AiMeta {
       severity: "medium",
       title: "Klauzula RODO",
       detail:
-        "Polscy rekruterzy oczekują klauzuli o przetwarzaniu danych na dole CV — bez niej aplikacja bywa odrzucana formalnie. Zadbaliśmy, aby aktualna klauzula znalazła się w dokumencie.",
+        "Polscy rekruterzy oczekują klauzuli o przetwarzaniu danych na dole CV - bez niej aplikacja bywa odrzucana formalnie. Zadbaliśmy, aby aktualna klauzula znalazła się w dokumencie.",
     });
   }
   if (techSkills < 5) {
@@ -224,7 +224,7 @@ export function runMockReview(cv: TailoredCv, jobText: string): AiMeta {
       severity: "medium",
       title: "Mocne czasowniki na początku punktów",
       detail:
-        "Punkty zaczynające się od czasowników dokonanych — „wdrożyłem”, „zoptymalizowałem”, „zredukowałem” — brzmią konkretniej i sprawczo niż „byłem odpowiedzialny za” czy „pomagałem przy”. Wzmocniliśmy w ten sposób język opisów.",
+        "Punkty zaczynające się od czasowników dokonanych - „wdrożyłem”, „zoptymalizowałem”, „zredukowałem” - brzmią konkretniej i sprawczo niż „byłem odpowiedzialny za” czy „pomagałem przy”. Wzmocniliśmy w ten sposób język opisów.",
     },
     {
       id: "consistency",
@@ -232,13 +232,13 @@ export function runMockReview(cv: TailoredCv, jobText: string): AiMeta {
       severity: "low",
       title: "Spójny format dat i nazw stanowisk",
       detail:
-        "Jednolity format okresów (np. „03.2021 – obecnie”) i spójne nazewnictwo ról poprawiają czytelność CV dla systemów ATS. Ujednoliciliśmy je w całym dokumencie.",
+        "Jednolity format okresów (np. „03.2021 - obecnie”) i spójne nazewnictwo ról poprawiają czytelność CV dla systemów ATS. Ujednoliciliśmy je w całym dokumencie.",
     },
     {
       id: "length",
       category: "content",
       severity: "low",
-      title: "Zwięzłość — jedna, gęsta strona",
+      title: "Zwięzłość - jedna, gęsta strona",
       detail:
         "Dla większości polskich rekrutacji optymalne jest jednostronicowe, gęste CV. Postawiliśmy na osiągnięcia istotne dla stanowiska, bez oczywistości i zdań bez wartości.",
     },
@@ -322,7 +322,7 @@ export function extractJobTitle(jobText: string, jobUrl: string): string {
     }
   }
 
-  if (company) return `${role} — ${company}`;
+  if (company) return `${role} - ${company}`;
   if (role) return role;
 
   // Ostateczność: gdy brak treści, użyj domeny z linku.

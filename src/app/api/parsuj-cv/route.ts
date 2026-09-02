@@ -26,7 +26,7 @@ const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
 export async function POST(request: Request) {
   if (!czyAiDostepne()) {
     return NextResponse.json(
-      { ok: false, error: "Brak klucza API — import CV wymaga podłączonego modelu." },
+      { ok: false, error: "Brak klucza API - import CV wymaga podłączonego modelu." },
       { status: 503 }
     );
   }

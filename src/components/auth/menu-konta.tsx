@@ -77,7 +77,7 @@ export function MenuKonta({
         type="button"
         onClick={wyloguj}
         disabled={wTrakcie}
-        title={`${uzytkownik.email} — wyloguj`}
+        title={`${uzytkownik.email} - wyloguj`}
         className="flex w-full items-center justify-center rounded-md py-2 text-muted-foreground transition-colors hover:text-foreground"
       >
         {wTrakcie ? (

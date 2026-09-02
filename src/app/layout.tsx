@@ -29,7 +29,7 @@ const lato = localFont({
 });
 
 /** Tytuł i opis w jednym miejscu — powtarza je Open Graph i karta Twittera. */
-const TYTUL = "Aplikando — CV dopasowane do oferty pracy";
+const TYTUL = "Aplikando - CV dopasowane do oferty pracy";
 const OPIS =
   "Dopasuj lub stwórz CV pod konkretną ofertę pracy. AI wytrenowane pod polski rynek pracy: ATS, RODO, profesjonalna polszczyzna bez amerykańskiego hype'u.";
 

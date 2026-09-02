@@ -39,7 +39,7 @@ export function KartaKonta() {
         <div className="flex items-start gap-3">
           <UserRound className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
           <p className="max-w-md text-sm text-muted-foreground">
-            Nie jesteś zalogowany. Twoje CV są zapisane tylko w tej przeglądarce —
+            Nie jesteś zalogowany. Twoje CV są zapisane tylko w tej przeglądarce -
             konto daje do nich dostęp z każdego urządzenia.
           </p>
         </div>

@@ -7,7 +7,7 @@ import { maZgodeRegulaminowa } from "@/lib/prawne/zapis-zgody";
 import { APLIKACJA } from "@/lib/prawne/dane";
 
 export const metadata: Metadata = {
-  title: `Dokończ rejestrację — ${APLIKACJA.nazwa}`,
+  title: `Dokończ rejestrację - ${APLIKACJA.nazwa}`,
   // Ekran przejściowy jednego użytkownika — nie ma czego indeksować.
   robots: { index: false, follow: false },
 };

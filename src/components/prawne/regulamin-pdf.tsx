@@ -246,7 +246,7 @@ export function DokumentPdf({ zrodlo }: { zrodlo: string }) {
         })}
 
         <Text style={style.stopka} fixed>
-          {APLIKACJA.nazwa} — {APLIKACJA.adresWww}
+          {APLIKACJA.nazwa} - {APLIKACJA.adresWww}
         </Text>
       </Page>
     </Document>

@@ -44,7 +44,7 @@ export function MatchResults() {
     newCvFrom(
       ostatnie.tailoredCv,
       ostatnie.template,
-      `${ostatnie.jobTitle} — dopasowane`
+      `${ostatnie.jobTitle} - dopasowane`
     );
     router.push("/app/kreator/edytor");
   };
@@ -85,8 +85,8 @@ export function MatchResults() {
       <p className="rounded-md bg-accent p-3 text-xs text-muted-foreground">
         <FileText className="mr-1.5 inline size-3.5 align-[-2px]" />
         Przerobione CV to <strong className="text-foreground">osobny
-        dokument</strong>. CV otwarte w edytorze — i to, które pobierzesz
-        przyciskiem na górze — zostaje bez zmian.
+        dokument</strong>. CV otwarte w edytorze - i to, które pobierzesz
+        przyciskiem na górze - zostaje bez zmian.
       </p>
 
       {ostatnie && (

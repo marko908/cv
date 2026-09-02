@@ -98,6 +98,18 @@ oryginał — najgorszy możliwy wynik wywiadu to „bez zmian". W pipeline słu
 `bazaCzysta`: `baseCv` ze znacznikami idzie do rejestru faktów i do modelu, ale
 wszystkie ścieżki awaryjne cofają do wersji czystej.
 
+**Z WYWIADU DA SIĘ WYJŚĆ BEZ KOSZTU (2026-09-02).** Ekran pytań ma na GÓRZE
+„Wróć do wyniku" (tam, gdzie w tym oknie zawsze stoi wyjście z kroku) — wcześniej
+jedyną drogą powrotu było „Pomiń" pod całą listą pytań. Do tego
+`wywiadUzytyRef` ustawia się dopiero przy WYSŁANIU odpowiedzi (`wzmocnij`), nie
+przy wejściu na ekran: samo zajrzenie do pytań nie może zużywać jedynej szansy
+na wywiad. **Ekran wyniku nie ma już „Analizuj ponownie"** — kasowało gotowy
+wynik i wracało do pustego formularza, choć nic się nie zmieniło; ponowne
+liczenie ma sens wyłącznie PO odpowiedziach z wywiadu. Start dopasowania do
+INNEJ oferty został, ale na dole ekranu i pod własną nazwą („Dopasuj CV do innej
+oferty") — bez tego, po pierwszej analizie, okno otwierałoby się już zawsze na
+starym wyniku, bez drogi do nowej oferty (`resetReview` woła TYLKO ten przycisk).
+
 **Bez limitu pytań, wywiad RAZ na analizę** (decyzja Marka 2026-08-02): zniesione
 `MAX_PYTAN=5`, `maxPozycje=3` i `.slice(0,8)` w pipeline; `wywiadUzytyRef`
 w `tailor-flow` nie proponuje kolejnej tury. Nie pytamy o punkty, które konkret już
@@ -154,6 +166,11 @@ pielęgniarka + krótka oferta spadała 82→66, teraz 82→82).
   addedKeywords, changesLog, findings?, scoreBreakdown?, categories?, unlocked?
   — POLE MARTWE, zostawione tylko dla starych zapisów}`, `ReviewFinding`,
   `Tailoring` (rekord historii: baseCv+tailoredCv+aiMeta+jobText), `SavedCv`.
+  `ReviewFinding` ma opcjonalne `items[]` + `podsumowanie` (2026-09-02): lista
+  brakujących wymagań sklejana w zdanie przez `join("; ")` była ścianą tekstu,
+  której nikt nie czytał. Renderuje to `components/builder/tresc-wskazowki.tsx`
+  — JEDEN komponent dla ekranu wyniku w kreatorze i dla `/app/dopasowania/[id]`,
+  bo dwie kopie tego renderu prędzej czy później by się rozjechały.
   Akcje: `newCv`, `newCvFrom` (auto-włącza sekcje z danymi), `openCv`, `loadCv`,
   `syncActiveCv`, `renameCv`, `deleteCv`, `setAiMeta`, `addTailoring`/`removeTailoring`,
   `resetReview`, **`aktywujSubskrypcje`/`anulujSubskrypcje`/`zliczDopasowanie`**.
@@ -1308,6 +1325,24 @@ Pliki generowane dla robotów (nie strony, ale trasy): `/robots.txt`
 
 ## Konwencje i pułapki
 
+- **BEZ DŁUGICH MYŚLNIKÓW W TEKSTACH DLA UŻYTKOWNIKA (decyzja Marka 2026-09-02).**
+  W tekście, który widzi użytkownik, zawsze krótki dywiz `-`, nigdy `—` ani `–`.
+  Tak samo: żadnych pojedynczych słów w cudzysłowie „dla podkreślenia". Powód nie
+  jest estetyczny: jedno i drugie czyta się jako tekst pisany przez model, a cała
+  obietnica produktu brzmi „CV, które nie wygląda na pisane przez AI". Zasada
+  obejmuje UI, maile (`lib/maile/tresci.ts`), teksty findings i changelogu
+  (`changes.ts`, `scoring.ts`, `mock-review.ts`) ORAZ **prompty do modelu**
+  (`rewrite.ts` ma osobną sekcję INTERPUNKCJA zakazującą pauz w generowanym CV,
+  `cv-schema.ts` w `.describe()`) — inaczej model odtwarza pauzy w treści CV,
+  którą wysyła pracodawcy. Komentarzy w kodzie to NIE dotyczy (nikt ich nie widzi
+  w przeglądarce). **Dokumenty prawne są świadomie WYŁĄCZONE** (`lib/prawne/*`):
+  każda zmiana ich treści wymaga wersji, daty i maila do klientów, więc pauzy
+  zostają tam do czasu najbliższej planowej zmiany dokumentów.
+  ⚠️ **Masowa podmiana skryptem PSUJE KLASY ZNAKÓW W REGEXACH** — `[-–—:,(]`
+  zamienia się w `[---:,(]`, czyli zakres „od `-` do `:`", co cicho zmienia
+  logikę (złapane w `validator.ts`, `interview.ts`, `scoring.ts`, `mock-review.ts`,
+  `section-dialogs.tsx`; `tsc` wyłapał tylko jeden z pięciu przypadków). Po każdej
+  takiej operacji: `grep -rn "\[[^]]*---[^]]*\]" src` plus pełne testy.
 - **Cudzysłowy PL:** w stringach JS w `"..."` NIE może być prostego `"` w środku —
   użyj „ " (U+201E/U+201D). Złamało build w `scoring.ts`. W backtickach `` ` `` proste `"` OK.
 - **PODGLĄD CV TO PRAWDZIWY PLIK PDF — nie ma drugiej implementacji szablonów** (`pdf-preview.tsx`, 2026-08-01). Do tej daty podgląd był RÓWNOLEGŁYM rendererem każdego szablonu w HTML/CSS (`cv-document*.tsx`, ~1600 linii) z własnym stronicowaniem (`paginated-cv-sheet.tsx`, ~430 linii), a plik powstawał w Yodze przez `@react-pdf`. Dwa silniki układu = dwa różne algorytmy łamania wiersza, zaokrąglania metryk fontu i modelu marginesów; ta sama treść dawała inną liczbę stron i inne miejsca podziału. Kolejne poprawki (`MARGINES_DOLU`, `data-blok`, `MARGINES_STRONY_PT`, przesuwanie per kolumna) zmniejszały różnicę, ale zgodność dwóch silników trzeba by utrzymywać w nieskończoność, przy każdej zmianie każdego szablonu. **Zgodność 1:1 nie jest już celem do osiągnięcia, tylko właściwością konstrukcji:** `PdfPreview` generuje plik w przeglądarce przez `renderujCvPdf` — TĘ SAMĄ funkcję, której używa „Pobierz PDF" — i rysuje jego strony przez pdf.js na kanwie. Nie da się tego zepsuć zmianą w szablonie, bo nie ma czego rozjeżdżać. Konsekwencje, o których trzeba wiedzieć: (a) podgląd odświeża się po `OPOZNIENIE_MS = 350` ms od ostatniej zmiany, nie na każdy znak; (b) tekst na kartce NIE jest zaznaczalny (raster, nie DOM); (c) render pdf.js chodzi na `requestAnimationFrame`, więc w tle karty stoi — to normalne, ale utrudnia testy automatyczne (kartę trzeba mieć na wierzchu); (d) każda strona rysuje się najpierw na kanwie POZA EKRANEM i trafia na widoczną jednym `drawImage` — bez tego bufora pdf.js czyściłby kanwę na starcie i przy każdej zmianie CV migałaby biała plama; (e) generowanie jest SZEREGOWE (`wKolejce`) i cache'owane po treści (`PAMIEC`) — galeria pokazuje 9 miniatur naraz i bez kolejki 9 renderów Yogi blokowało wątek na sekundy.

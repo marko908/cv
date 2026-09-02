@@ -31,7 +31,7 @@ export async function proxy(request: NextRequest) {
   // środowiskowych w panelu hostingu.
   if (!url || !klucz) {
     console.error(
-      "[proxy] Brak NEXT_PUBLIC_SUPABASE_URL lub NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY — " +
+      "[proxy] Brak NEXT_PUBLIC_SUPABASE_URL lub NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY - " +
         "sesja nie będzie odświeżana, logowanie nie zadziała. Uzupełnij zmienne środowiskowe."
     );
     return odpowiedz;

@@ -127,7 +127,7 @@ async function sprawdzDostep(): Promise<{
 export async function POST(request: Request) {
   if (!czyAiDostepne()) {
     return NextResponse.json(
-      { ok: false, error: "Brak klucza API — działa tryb demo (mock)." },
+      { ok: false, error: "Brak klucza API - działa tryb demo (mock)." },
       { status: 503 }
     );
   }

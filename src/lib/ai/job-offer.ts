@@ -36,7 +36,7 @@ export const wymaganieSchema = z.object({
   slowa_kluczowe: z
     .array(z.string())
     .describe(
-      "Słowa i frazy w DOKŁADNYM brzmieniu z ogłoszenia — po nich systemy ATS filtrują CV"
+      "Słowa i frazy w DOKŁADNYM brzmieniu z ogłoszenia - po nich systemy ATS filtrują CV"
     ),
 });
 
@@ -44,14 +44,14 @@ export const ofertaSchema = z.object({
   stanowisko: z.string().describe("Nazwa stanowiska z ogłoszenia"),
   firma: z
     .string()
-    .describe("Nazwa firmy, jeśli występuje w tekście. Jeśli nie ma — pusty string."),
+    .describe("Nazwa firmy, jeśli występuje w tekście. Jeśli nie ma - pusty string."),
   poziom: z
     .enum(["staz", "junior", "mid", "senior", "lead", "nieokreslony"])
     .describe("Poziom stanowiska, jeśli wynika z ogłoszenia"),
   branza: z.string().describe("Branża, jeśli wynika z ogłoszenia"),
   ton: z
     .enum(["formalny", "neutralny", "swobodny"])
-    .describe("Rejestr językowy ogłoszenia — wpłynie na styl CV"),
+    .describe("Rejestr językowy ogłoszenia - wpłynie na styl CV"),
   wymagania: z.array(wymaganieSchema),
 });
 
@@ -75,7 +75,7 @@ ZASADY BEZWZGLĘDNE:
    osobne wymagania, bo kandydat może spełniać część z nich.
 6. Priorytet ustalasz po strukturze ogłoszenia: sekcja wymagań obowiązkowych to
    „wymagane”, sekcja „mile widziane” / „dodatkowym atutem będzie” to
-   „mile_widziane”. Gdy ogłoszenie nie rozdziela — ustaw „wymagane”.
+   „mile_widziane”. Gdy ogłoszenie nie rozdziela - ustaw „wymagane”.
 
 Odpowiadasz po polsku, poprawną polszczyzną.`;
 

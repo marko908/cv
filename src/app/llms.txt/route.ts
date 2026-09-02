@@ -47,7 +47,7 @@ export async function GET() {
       ? wpisy
           .map((w) => `- [${w.tytul}](${baza}/blog/${w.slug})${w.zajawka ? `: ${w.zajawka}` : ""}`)
           .join("\n")
-      : "- Blog wystartował — pierwsze wpisy są w przygotowaniu.";
+      : "- Blog wystartował - pierwsze wpisy są w przygotowaniu.";
 
   const faq = FAQ_LANDING.map((p) => `### ${p.pytanie}\n${p.odpowiedz}`).join("\n\n");
 
@@ -70,7 +70,7 @@ export async function GET() {
 ## Czego ta aplikacja NIE robi
 
 - Nie zmyśla treści CV. Model dostaje wyłącznie fakty podane przez użytkownika
-  i może je wybrać, uporządkować i przeformułować — nigdy dopisać. Pilnuje tego
+  i może je wybrać, uporządkować i przeformułować - nigdy dopisać. Pilnuje tego
   walidator w kodzie, który odrzuca wymyślone liczby, umiejętności, firmy,
   stanowiska i podniesione poziomy znajomości języków.
 - Nie obiecuje zatrudnienia ani zaproszenia na rozmowę.

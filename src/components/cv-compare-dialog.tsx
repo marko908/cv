@@ -83,7 +83,7 @@ export function CvCompareDialog({
       >
         <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border/60 py-3 pl-4 pr-11 lg:pr-4">
           <DialogTitle className="text-sm font-bold">
-            Porównanie CV — przed i po dopasowaniu
+            Porównanie CV - przed i po dopasowaniu
           </DialogTitle>
           {/* Przełącznik na mniejszych ekranach (poniżej lg) */}
           <div className="flex gap-1 rounded-full bg-secondary p-1 lg:hidden">

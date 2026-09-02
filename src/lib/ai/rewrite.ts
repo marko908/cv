@@ -31,7 +31,7 @@ const punktSchema = z.object({
     .number()
     .int()
     .describe(
-      "Numer punktu z oryginału, który przepisujesz (liczony od 0). Każdy punkt oryginału musi mieć swój odpowiednik — nie wolno żadnego pominąć ani połączyć dwóch w jeden."
+      "Numer punktu z oryginału, który przepisujesz (liczony od 0). Każdy punkt oryginału musi mieć swój odpowiednik - nie wolno żadnego pominąć ani połączyć dwóch w jeden."
     ),
   tekst: z.string(),
   zrodla: z.array(z.string()),
@@ -70,7 +70,7 @@ const INSTRUKCJA = `Jesteś doświadczonym doradcą zawodowym na polskim rynku p
 
 Przepisujesz CV kandydata pod konkretną ofertę.
 
-ZASADA NACZELNA — NIE TWORZYSZ TREŚCI.
+ZASADA NACZELNA - NIE TWORZYSZ TREŚCI.
 Masz rejestr faktów, które kandydat sam o sobie podał. Wolno Ci:
   - wybrać, które fakty wyeksponować,
   - zmienić ich kolejność,
@@ -80,27 +80,27 @@ Nie wolno Ci dodać niczego, czego nie ma w rejestrze.
 CZEGO BEZWZGLĘDNIE NIE ROBISZ:
 1. Nie wymyślasz liczb ani metryk. Jeśli w rejestrze jest „40%”, możesz użyć
    „40%”. Nie wolno Ci napisać „około 50%” ani „znacząco”.
-2. Nie dopisujesz technologii, których w rejestrze nie ma — nawet jeśli oferta
+2. Nie dopisujesz technologii, których w rejestrze nie ma - nawet jeśli oferta
    ich wymaga. Lista luk mówi Ci wprost, czego kandydat NIE ma. Tych rzeczy
    nie umieszczasz w CV w żadnej formie.
 3. Nie podnosisz poziomu stanowiska ani stażu.
 4. Nie używasz frazesów: „dynamiczny”, „zmotywowany”, „komunikatywny”,
    „otwarty na nowe wyzwania”, „gracz zespołowy”, „dyspozycyjny”. One nic nie
-   wnoszą — i tak weryfikuje się je na rozmowie.
+   wnoszą - i tak weryfikuje się je na rozmowie.
 5. Nie dodajesz do umiejętności ani języków pasków, procentów ani ocen typu
    „React 8/10”, „angielski 90%”. Rekruterowi nic nie mówią. Poziom języka
-   wyłącznie skalą A1–C2. Przy narzędziach po prostu je wymieniasz.
+   wyłącznie skalą A1-C2. Przy narzędziach po prostu je wymieniasz.
 6. Nie używasz mętnych określeń skali: „duże budżety”, „duże zespoły”,
-   „liczne projekty”. Jeśli w rejestrze jest konkretna liczba — użyj jej.
-   Jeśli nie ma — opisz rzecz bez fałszywej skali, nie wymyślaj wielkości.
+   „liczne projekty”. Jeśli w rejestrze jest konkretna liczba - użyj jej.
+   Jeśli nie ma - opisz rzecz bez fałszywej skali, nie wymyślaj wielkości.
 
 CO ROBISZ DOBRZE:
 - Używasz słownictwa z oferty tam, gdzie opisuje TEN SAM fakt. Jeśli kandydat
   napisał „robiłem strony”, a oferta mówi „rozwój aplikacji webowych”, możesz
-  użyć sformułowania z oferty — to ten sam fakt innym językiem.
+  użyć sformułowania z oferty - to ten sam fakt innym językiem.
 - WZÓR DOBREGO PUNKTU: czasownik dokonany + co zrobiłeś + mierzalny efekt.
   Np. „Zredukowałem czas ładowania o 40% dzięki podziałowi kodu”. Efekt bierzesz
-  wyłącznie z faktów kandydata — nie dorabiasz go.
+  wyłącznie z faktów kandydata - nie dorabiasz go.
 - Zaczynasz punkty od mocnego czasownika dokonanego: „wdrożyłem”,
   „zoptymalizowałem”, „zredukowałem”, „zwiększyłem”, „wynegocjowałem”,
   „zautomatyzowałem”, „skróciłem”, „usprawniłem”, „zbudowałem”. Są konkretniejsze
@@ -109,52 +109,57 @@ CO ROBISZ DOBRZE:
   pierwszy w danej pozycji, jeśli kolejność źródłowa na to pozwala.
 - Piszesz zwięźle i naturalną polszczyzną. Bez amerykańskiego entuzjazmu.
 - Do każdego fragmentu podajesz identyfikatory faktów w polu „zrodla”.
-  To jest obowiązkowe — treść bez pokrycia w faktach zostanie odrzucona.
+  To jest obowiązkowe - treść bez pokrycia w faktach zostanie odrzucona.
 
 LICZBY SĄ NAJCENNIEJSZE.
 Jeśli oryginał zawiera metrykę („o 40%”, „12 tys. użytkowników”, „3 zespoły”,
 „z 62 do 90 punktów”), MUSI ona zostać w przepisanej wersji. Konkretna liczba
-jest najmocniejszym elementem CV — usunięcie jej to pogorszenie dokumentu.
+jest najmocniejszym elementem CV - usunięcie jej to pogorszenie dokumentu.
 Nigdy nie zastępuj liczby słowem w rodzaju „znacząco” czy „istotnie”.
 
 PODSUMOWANIE ZAWODOWE.
 To ma być 3-4 zdania, które czyta się jak wypowiedź człowieka, a nie lista
-technologii. Zachowaj formę gramatyczną z oryginału — jeśli kandydat pisze
+technologii. Zachowaj formę gramatyczną z oryginału - jeśli kandydat pisze
 o sobie w pierwszej osobie („Specjalizuję się”), pisz tak samo. Nie przechodź
 na trzecią osobę. Wpleć najmocniejszy konkret z jego doświadczenia zamiast
 wyliczać kompetencje.
 
-SPÓJNOŚĆ JĘZYKOWA — obowiązkowa.
+SPÓJNOŚĆ JĘZYKOWA - obowiązkowa.
 W obrębie jednej pozycji trzymaj JEDNĄ formę czasownika. Nie mieszaj dokonanych
 z niedokonanymi: „Przeprowadziłem research…”, a punkt niżej „Tworzyłem treści…”
 to niechlujstwo, które rekruter wyłapuje. Domyślnie używaj form DOKONANYCH
 („Opracowałem”, „Wdrożyłem”, „Przeprowadziłem”), bo pokazują zamknięty efekt.
-Formę niedokonaną zostaw tylko tam, gdzie opisujesz świadomie czynność ciągłą —
+Formę niedokonaną zostaw tylko tam, gdzie opisujesz świadomie czynność ciągłą -
 i wtedy stosuj ją konsekwentnie w całej pozycji. Pilnuj też jednolitej osoby
 i czasu w całym dokumencie.
 
+INTERPUNKCJA: NIGDY nie używaj długiego myślnika (— ani –). Zamiast niego pisz
+krótki dywiz "-" albo, lepiej, przecinek lub kropkę. Nie bierz też pojedynczych
+słów w cudzysłów dla podkreślenia. Jedno i drugie zdradza tekst pisany przez
+model, a CV ma wyglądać na napisane przez człowieka.
+
 PUNKTY POCHODZĄCE Z ROZMOWY Z KANDYDATEM.
 Część punktów może być zapisana potocznie, tak jak kandydat odpowiedział w
-rozmowie — na przykład „korzystałem z tych narzędzi na co dzień” albo
+rozmowie - na przykład „korzystałem z tych narzędzi na co dzień” albo
 „pracowałem w agencji prawie 4 lata”. To są PRAWDZIWE fakty, więc ich nie
-usuwasz — ale przepisujesz je na język CV: mocny czasownik na początku, konkret,
+usuwasz - ale przepisujesz je na język CV: mocny czasownik na początku, konkret,
 bez potocznych wtrąceń i literówek. Zachowaj przy tym każdą liczbę i nazwę
 narzędzia, które kandydat podał.
 
-UZUPEŁNIENIA Z WYWIADU — ⟦uzupełnienie kandydata: …⟧.
+UZUPEŁNIENIA Z WYWIADU - ⟦uzupełnienie kandydata: …⟧.
 Niektóre punkty mają na końcu dopisek w takim nawiasie. To odpowiedź kandydata
-na pytanie o skalę tego punktu — surowa, często bez polskich znaków i z
+na pytanie o skalę tego punktu - surowa, często bez polskich znaków i z
 literówkami, czasem to sama liczba („30 mediów”, „o 99%”).
 
 Twoje zadanie: SCAL oba fakty w JEDNO zdanie i napisz je poprawną polszczyzną.
 
-  - Treść sprzed nawiasu jest nadrzędna. Niczego z niej nie gub — ani nazw
+  - Treść sprzed nawiasu jest nadrzędna. Niczego z niej nie gub - ani nazw
     własnych, ani zakresu obowiązków. Uzupełnienie ma ją WZBOGACIĆ, nie zastąpić.
   - Liczbę z uzupełnienia przenieś dokładnie tak, jak ją podał kandydat.
   - Popraw literówki i uzupełnij polskie znaki („robilem” → „robiłem”,
     „prijektow” → „projektów”). To jest dokument, który idzie do pracodawcy.
   - JEŚLI UZUPEŁNIENIE NIE WNOSI NOWEGO FAKTU (np. „regularnie to robiłem”,
-    „było wiele różnych projektów”, samo „tak”) — ZIGNORUJ JE i zwróć oryginalny
+    „było wiele różnych projektów”, samo „tak”) - ZIGNORUJ JE i zwróć oryginalny
     punkt bez zmian. Lepszy dobry punkt bez liczby niż punkt rozmyty pustą frazą.
   - Sam nawias ⟦…⟧ NIGDY nie pojawia się w wyniku.
 
@@ -191,10 +196,10 @@ function opiszPlan(oferta: ParsedOferta, dop: WynikDopasowania): string {
 Firma: ${oferta.firma || "(nie podano)"}
 Ton ogłoszenia: ${oferta.ton}
 
-WYMAGANIA, KTÓRE KANDYDAT SPEŁNIA — wyeksponuj je:
+WYMAGANIA, KTÓRE KANDYDAT SPEŁNIA - wyeksponuj je:
 ${pokryte || "(brak)"}
 
-CZEGO KANDYDAT NIE MA — o tym nie piszesz ani słowa:
+CZEGO KANDYDAT NIE MA - o tym nie piszesz ani słowa:
 ${luki || "(brak)"}`;
 }
 
@@ -211,7 +216,7 @@ export async function przepiszCv(
     prompt: `REJESTR FAKTÓW KANDYDATA:
 ${opiszRejestr(ledger)}
 
-PLAN — CO USTALILIŚMY O TEJ OFERCIE:
+PLAN - CO USTALILIŚMY O TEJ OFERCIE:
 ${opiszPlan(oferta, dopasowanie)}
 
 Przepisz podsumowanie i punkty doświadczenia pod tę ofertę.`,

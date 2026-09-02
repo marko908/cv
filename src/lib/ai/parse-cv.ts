@@ -165,9 +165,9 @@ export async function wyodrebnijTekstZLinkami(
 const INSTRUKCJA = `Jesteś precyzyjnym parserem CV. Dostajesz surowy tekst
 wyciągnięty z pliku CV kandydata i masz przepisać go do ustrukturyzowanej formy.
 
-ZASADA NACZELNA — PRZEPISUJESZ, NIE TWORZYSZ.
+ZASADA NACZELNA - PRZEPISUJESZ, NIE TWORZYSZ.
 Wypełniasz pola WYŁĄCZNIE informacjami, które są w tekście. Niczego nie
-dopisujesz, nie zawyżasz, nie „poprawiasz". Jeśli czegoś nie ma w tekście —
+dopisujesz, nie zawyżasz, nie „poprawiasz". Jeśli czegoś nie ma w tekście -
 zostaw puste (pusty string lub pusta lista). Nie zgaduj adresu e-mail, telefonu
 ani nazw firm.
 
@@ -176,30 +176,30 @@ MAPOWANIE:
   e-mail, telefon, miasto (samo miasto), link do LinkedIn/GitHub jeśli jest.
   W polu linkedin_or_github wpisz PEŁNY ADRES (https://…), nigdy samego napisu
   „LinkedIn". Jeśli w tekście stoi tylko etykieta, weź adres z listy WYKRYTE
-  HIPERŁĄCZA poniżej — tam są adresy, które w oryginalnym pliku były podpięte
+  HIPERŁĄCZA poniżej - tam są adresy, które w oryginalnym pliku były podpięte
   pod klikalny tekst. Dopasuj po domenie (linkedin.com → LinkedIn,
   github.com → GitHub). Jeśli pasującego adresu nie ma, zostaw pole puste.
 - professional_summary: jeśli w CV jest sekcja „o mnie"/„podsumowanie", przepisz
-  ją. Jeśli nie ma — zostaw pusty string. NIE wymyślaj podsumowania.
+  ją. Jeśli nie ma - zostaw pusty string. NIE wymyślaj podsumowania.
 - experience: każda pozycja to firma, stanowisko (role), okres (period, w formie
-  z CV), miasto/tryb (location, jeśli jest) i punkty (bullets) — dokładnie tak,
+  z CV), miasto/tryb (location, jeśli jest) i punkty (bullets) - dokładnie tak,
   jak w CV, w kolejności od najnowszej.
 - education: uczelnia (institution), kierunek i stopień (degree), okres.
 - skills.technical: technologie i umiejętności twarde. skills.soft_and_tools:
   umiejętności miękkie i narzędzia. Rozdziel je sensownie.
-- projects: jeśli są — nazwa, technologie, link, okres, punkty.
-- languages: język z poziomem, np. „angielski – B2". Zachowaj poziom z CV.
+- projects: jeśli są - nazwa, technologie, link, okres, punkty.
+- languages: język z poziomem, np. „angielski - B2". Zachowaj poziom z CV.
 - rodo_clause: jeśli w tekście jest klauzula RODO/zgoda, przepisz ją; w przeciwnym
   razie zostaw pusty string (uzupełnimy standardową w kodzie).
 
 WIELKOŚĆ LITER.
 Wiele CV zapisuje nazwisko, stanowisko czy nazwy firm WERSALIKAMI, bo tak
-wygląda szablon — to decyzja graficzna, nie zapis danych. Przepisuj takie pola
+wygląda szablon - to decyzja graficzna, nie zapis danych. Przepisuj takie pola
 naturalną pisownią: „MARKO NOWAK" → „Marko Nowak", „ACCOUNT EXECUTIVE" →
 „Account Executive". Zachowaj wersaliki tylko tam, gdzie należą do nazwy
 (skróty i marki: „PR", „ADATA", „SQL", „IBM").
 
-Zachowaj oryginalne liczby i metryki w punktach — są najcenniejsze. Pisz po
+Zachowaj oryginalne liczby i metryki w punktach - są najcenniejsze. Pisz po
 polsku (jeśli CV jest po polsku) lub w języku oryginału CV.`;
 
 /** Mapuje surowy tekst CV na schemat — przez AI. */

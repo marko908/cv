@@ -327,7 +327,7 @@ function StartOnboarding() {
                 Przygotowanie do rozmowy po polsku
               </h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                Symulacja rozmowy rekrutacyjnej pod Twoją ofertę — wkrótce.
+                Symulacja rozmowy rekrutacyjnej pod Twoją ofertę - wkrótce.
               </p>
             </div>
           </div>

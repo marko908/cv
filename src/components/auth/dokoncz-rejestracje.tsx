@@ -170,7 +170,7 @@ export function DokonczRejestracje() {
             >
               <EtykietaZgodaMarketing />{" "}
               <span className="text-muted-foreground/70">
-                (nieobowiązkowe — możesz to wycofać w każdej chwili
+                (nieobowiązkowe - możesz to wycofać w każdej chwili
                 w ustawieniach konta)
               </span>
             </CheckboxZgody>
@@ -198,7 +198,7 @@ export function DokonczRejestracje() {
               ? "Usuwam konto…"
               : potwierdzam
                 ? "Na pewno? Kliknij ponownie, żeby usunąć konto"
-                : "Nie zgadzam się — usuń założone konto"}
+                : "Nie zgadzam się - usuń założone konto"}
           </button>
         </div>
       </div>

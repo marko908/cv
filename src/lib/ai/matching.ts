@@ -213,7 +213,7 @@ function zbudujWerdykt(
       ? `Ta oferta wymaga rzeczy, których nie ma w Twoim CV (${krytyczne
           .slice(0, 3)
           .map((l) => l.wymaganie.tekst)
-          .join(", ")}). Samo przepisanie CV tego nie nadrobi — rozważ ofertę bliższą Twojemu doświadczeniu.`
+          .join(", ")}). Samo przepisanie CV tego nie nadrobi - rozważ ofertę bliższą Twojemu doświadczeniu.`
       : "Twoje CV pokrywa niewiele wymagań z tej oferty. Rozważ ofertę bliższą Twojemu doświadczeniu.",
   };
 }

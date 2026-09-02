@@ -68,7 +68,7 @@ export function DownloadPdfButton({
       <AuthDialog
         {...propsyDialogu}
         tytul="Załóż konto, żeby pobrać CV"
-        opis="Twoje CV zostaje tam, gdzie jest — konto daje do niego dostęp z każdego urządzenia i pozwala wrócić do niego później. Po założeniu konta plik pobierze się sam."
+        opis="Twoje CV zostaje tam, gdzie jest - konto daje do niego dostęp z każdego urządzenia i pozwala wrócić do niego później. Po założeniu konta plik pobierze się sam."
       />
     </>
   );

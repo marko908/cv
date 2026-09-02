@@ -142,7 +142,7 @@ export function ReportErrorDialog({
                   rows={5}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Opisz, co poszło nie tak — np. które dane są błędne albo która poprawka jest nietrafiona."
+                  placeholder="Opisz, co poszło nie tak - np. które dane są błędne albo która poprawka jest nietrafiona."
                 />
               </div>
 

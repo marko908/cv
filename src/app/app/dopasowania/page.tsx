@@ -35,7 +35,7 @@ export default function DopasowaniaPage() {
             Historia dopasowań CV do ofert
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Każde uruchomienie „Dopasuj do oferty" zapisuje się tutaj — z ofertą,
+            Każde uruchomienie „Dopasuj do oferty" zapisuje się tutaj - z ofertą,
             wynikiem i przerobionym CV.
           </p>
         </div>
@@ -55,7 +55,7 @@ export default function DopasowaniaPage() {
             icon={Target}
             eyebrow="Brak dopasowań"
             title="Nie masz jeszcze żadnego dopasowania"
-            description="Otwórz kreator, wklej ofertę pracy i uruchom analizę — wynik i przerobione CV pojawią się na tej liście."
+            description="Otwórz kreator, wklej ofertę pracy i uruchom analizę - wynik i przerobione CV pojawią się na tej liście."
             action={
               <Button asChild className="gap-2">
                 <Link href="/app/kreator">

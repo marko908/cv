@@ -88,7 +88,7 @@ export function ZgodaMarketingowa({ userId }: { userId: string }) {
           <p className="text-sm font-bold">Informacje handlowe</p>
           <p className="mt-0.5 max-w-md text-sm text-muted-foreground">
             Nowości i promocje w Aplikando, pocztą elektroniczną. Całkowicie
-            dobrowolne — wyłączenie nie wpływa na konto ani na żadną z usług.
+            dobrowolne - wyłączenie nie wpływa na konto ani na żadną z usług.
             Zasady:{" "}
             <Link
               href={SCIEZKI.regulaminNewslettera}

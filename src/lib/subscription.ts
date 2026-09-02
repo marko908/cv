@@ -83,7 +83,7 @@ export const PLANY: Record<PlanId, Plan> = {
     nazwa: "Pro",
     limit: 100,
     ceny: { miesiac: 49, rok: 490 },
-    opis: "Dla aplikujących seryjnie — trzykrotnie więcej za mniej niż dwa razy tyle.",
+    opis: "Dla aplikujących seryjnie - trzykrotnie więcej za mniej niż dwa razy tyle.",
     polecany: true,
   },
 };

@@ -22,13 +22,13 @@ export const personalInfoSchema = z.object({
     .string()
     .optional()
     .describe(
-      "NIE WYPEŁNIAJ. Gotowe, wykadrowane zdjęcie kandydata (data URL) — to renderują szablony ze zdjęciem."
+      "NIE WYPEŁNIAJ. Gotowe, wykadrowane zdjęcie kandydata (data URL) - to renderują szablony ze zdjęciem."
     ),
   photo_source: z
     .string()
     .optional()
     .describe(
-      "NIE WYPEŁNIAJ. Pomniejszony oryginał zdjęcia — potrzebny wyłącznie po to, by dało się PONOWNIE dopasować kadr bez utraty jakości."
+      "NIE WYPEŁNIAJ. Pomniejszony oryginał zdjęcia - potrzebny wyłącznie po to, by dało się PONOWNIE dopasować kadr bez utraty jakości."
     ),
   photo_crop: z
     .object({
@@ -46,7 +46,7 @@ export const experienceItemSchema = z.object({
   company: z.string(),
   role: z.string(),
   location: z.string().optional().describe("Miasto / tryb pracy (opcjonalnie)"),
-  period: z.string().describe("Okres zatrudnienia, np. '03.2021 – obecnie'"),
+  period: z.string().describe("Okres zatrudnienia, np. '03.2021 - obecnie'"),
   bullets: z
     .array(z.string())
     .describe(
@@ -82,14 +82,14 @@ export const tailoredCvSchema = z.object({
   personal_info: personalInfoSchema,
   professional_summary: z
     .string()
-    .describe("Zwięzłe podsumowanie zawodowe (3–4 zdania), po polsku"),
+    .describe("Zwięzłe podsumowanie zawodowe (3-4 zdania), po polsku"),
   experience: z.array(experienceItemSchema),
   projects: z.array(projectItemSchema).describe("Projekty (opcjonalnie)"),
   skills: skillsSchema,
   education: z.array(educationItemSchema),
   languages: z
     .array(z.string())
-    .describe("Języki z poziomem, np. 'angielski – C1'"),
+    .describe("Języki z poziomem, np. 'angielski - C1'"),
   rodo_clause: z
     .string()
     .describe("Standardowa polska klauzula RODO / zgoda na przetwarzanie danych"),
@@ -98,7 +98,7 @@ export const tailoredCvSchema = z.object({
 export const changeLogEntrySchema = z.object({
   section: z.string().describe("Sekcja CV, której dotyczy zmiana"),
   change: z.string().describe("Co zostało zmienione"),
-  reason: z.string().describe("Dlaczego — w odniesieniu do oferty pracy"),
+  reason: z.string().describe("Dlaczego - w odniesieniu do oferty pracy"),
 });
 
 /**

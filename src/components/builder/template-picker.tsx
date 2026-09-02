@@ -14,7 +14,7 @@ export function TemplatePicker() {
         <h3 className="eyebrow text-muted-foreground">Szablon graficzny</h3>
         <p className="mt-2 flex items-start gap-1.5 text-xs text-muted-foreground">
           <Lock className="mt-0.5 size-3.5 shrink-0" />
-          {ATS_OBIETNICA} Układ jest zablokowany — edytujesz treść, a my
+          {ATS_OBIETNICA} Układ jest zablokowany - edytujesz treść, a my
           pilnujemy, żeby CV dobrze się czytało i człowiekowi, i automatowi.
         </p>
       </div>

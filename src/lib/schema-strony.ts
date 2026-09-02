@@ -92,7 +92,7 @@ export function schemaWitryny() {
 function ofertaPlanu(plan: Plan, okres: OkresRozliczeniowy) {
   return {
     "@type": "Offer",
-    name: `${plan.nazwa} — ${okres === "rok" ? "rocznie" : "miesięcznie"}`,
+    name: `${plan.nazwa} - ${okres === "rok" ? "rocznie" : "miesięcznie"}`,
     description: `${plan.limit} dopasowań CV do oferty miesięcznie.`,
     price: plan.ceny[okres],
     priceCurrency: "PLN",

@@ -70,7 +70,7 @@ export function Builder({
         <header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border/60 px-3 sm:px-4">
           <div className="flex min-w-0 items-center gap-3">
             <span className="eyebrow hidden truncate text-foreground sm:block">
-              {fullName ? `CV — ${fullName}` : "CV bez tytułu"}
+              {fullName ? `CV - ${fullName}` : "CV bez tytułu"}
             </span>
             <SavedIndicator />
           </div>
@@ -145,7 +145,7 @@ export function Builder({
         <AuthDialog
           {...propsyDialogu}
           tytul="Załóż konto, żeby dopasować CV"
-          opis="Dopasowanie zapisuje się w Twojej historii — konto pozwala do niego wrócić i porównać wersje CV. Po założeniu konta przejdziemy dalej automatycznie."
+          opis="Dopasowanie zapisuje się w Twojej historii - konto pozwala do niego wrócić i porównać wersje CV. Po założeniu konta przejdziemy dalej automatycznie."
         />
 
         {/* Mobilny przełącznik Edycja / Podgląd (ukryty na md+) */}

@@ -313,7 +313,7 @@ export function PaywallDialog({
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       {okres === "rok"
                         ? `To ${miesiecznieZRocznego(plan)} zł miesięcznie, płatne z góry.`
-                        : "Cena brutto — tyle zapłacisz."}
+                        : "Cena brutto - tyle zapłacisz."}
                     </p>
 
                     <p className="mt-4 rounded-md bg-background/60 px-3 py-2 text-sm font-bold">
@@ -370,7 +370,7 @@ export function PaywallDialog({
                   <p className="mt-1 text-xs text-muted-foreground">
                     {okres === "rok"
                       ? `To ${miesiecznieZRocznego(planDoPotwierdzenia)} zł miesięcznie, płatne z góry.`
-                      : "Cena brutto — tyle zapłacisz."}
+                      : "Cena brutto - tyle zapłacisz."}
                   </p>
                   <p className="mt-3 text-sm font-bold">
                     {planDoPotwierdzenia.limit} dopasowań miesięcznie
@@ -389,7 +389,7 @@ export function PaywallDialog({
                     {okres === "rok"
                       ? "Umowa na czas nieoznaczony, odnawia się co 12 miesięcy."
                       : "Umowa na czas nieoznaczony, odnawia się co miesiąc."}{" "}
-                    Rezygnujesz w każdej chwili — dostęp zostaje do końca
+                    Rezygnujesz w każdej chwili - dostęp zostaje do końca
                     opłaconego okresu.
                   </p>
                 </div>
@@ -448,7 +448,7 @@ export function PaywallDialog({
                 </DialogTitle>
                 <p className="text-sm text-muted-foreground">
                   Jednorazowa płatność, bez odnawiania. Odblokowuje pełny raport
-                  i przerobione CV dla tej jednej oferty — na zawsze. Kolejne
+                  i przerobione CV dla tej jednej oferty - na zawsze. Kolejne
                   dopasowania możesz odblokowywać tak samo, pojedynczo.
                 </p>
               </DialogHeader>

@@ -95,7 +95,7 @@ export function zbudujPytania(luki: DopasowanieWymagania[]): PytanieWywiadu[] {
           ? `Czy masz doświadczenie z tym: „${t}”?`
           : `Czy chcesz wskazać w CV: „${t}”?`,
         hint: twarda
-          ? "Jeśli tak, opisz krótko — gdzie i jak długo (np. w projekcie X). Jeśli nie, pomiń."
+          ? "Jeśli tak, opisz krótko - gdzie i jak długo (np. w projekcie X). Jeśli nie, pomiń."
           : "",
         kontekst: kontekstOferty(l.wymaganie.cytat, l.wymaganie.tekst),
         slowa,
@@ -180,7 +180,7 @@ export function zbudujPytaniaOMetryki(cv: TailoredCv): PytanieWywiadu[] {
         id: `metryka-${e}-${j}`,
         typ: "doswiadczenie",
         pytanie: `Czy możesz podać skalę tego: „${cytat(tekst)}”?`,
-        hint: "Ilu klientów, ile projektów, jak duży zespół, o ile szybciej? Wystarczy sama liczba albo krótkie zdanie — resztę dopiszemy za Ciebie. Nie masz liczby? Pomiń.",
+        hint: "Ilu klientów, ile projektów, jak duży zespół, o ile szybciej? Wystarczy sama liczba albo krótkie zdanie - resztę dopiszemy za Ciebie. Nie masz liczby? Pomiń.",
         slowa: [],
         wazne: false,
         cel: { exp: e, bullet: j },

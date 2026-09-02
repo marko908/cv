@@ -39,7 +39,7 @@ export function BanerCookies() {
           <span className="font-semibold text-foreground">
             Używamy plików cookies.
           </span>{" "}
-          Te niezbędne działają zawsze — bez nich nie da się zalogować ani
+          Te niezbędne działają zawsze - bez nich nie da się zalogować ani
           zapłacić. Na statystyki i reklamy potrzebujemy Twojej zgody. Możesz ją
           w każdej chwili zmienić lub wycofać. Szczegóły w{" "}
           <Link

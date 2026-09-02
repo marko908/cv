@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   AlertCircle,
+  ArrowLeft,
   ArrowRight,
   Check,
   Download,
@@ -46,6 +47,7 @@ import { czyAktywna } from "@/lib/subscription";
 import { pobierzUprawnienia, zuzyjDarmoweDopasowanie } from "@/lib/supabase/repo";
 import { PaywallDialog } from "./paywall-dialog";
 import { ScoreBreakdown } from "./score-breakdown";
+import { TrescWskazowki } from "./tresc-wskazowki";
 import { cn, pluralize } from "@/lib/utils";
 
 type Step = "config" | "running" | "interview" | "result";
@@ -249,6 +251,10 @@ export function TailorFlow({
 
   // Wywiad: nakładamy potwierdzone odpowiedzi na CV i uruchamiamy ponownie.
   const wzmocnij = (odpowiedzi: OdpowiedzWywiadu[]) => {
+    // Wywiad liczy się jako WYKORZYSTANY dopiero przy wysłaniu odpowiedzi
+    // (decyzja Marka 2026-08-02: raz na analizę). Samo zajrzenie do pytań
+    // i powrót do wyniku nie może odbierać tej szansy.
+    wywiadUzytyRef.current = true;
     const baza = pendingCv ?? cv;
     // Wszystkie pokazane pytania są teraz obsłużone (potwierdzone lub nie) —
     // nie zadawaj ich w kolejnych rundach. To domyka pętlę wywiadu.
@@ -306,22 +312,16 @@ export function TailorFlow({
             <InterviewStep
               pytania={pytania}
               onSubmit={wzmocnij}
-              onSkip={() => setStep("result")}
+              onBack={() => setStep("result")}
             />
           )}
           {step === "result" && (
             <ResultStep
               tailoringId={tailoringId}
               pytania={pytania}
-              onWzmocnij={() => {
-                // Wywiad pokazujemy RAZ na analizę (decyzja Marka 2026-08-02):
-                // kto nie odpowie, ten nie skorzysta. Bez tego po każdym
-                // przeliczeniu wracała kolejna tura pytań.
-                wywiadUzytyRef.current = true;
-                setStep("interview");
-              }}
+              onWzmocnij={() => setStep("interview")}
               onClose={() => setOpen(false)}
-              onRerun={resetFlow}
+              onNowaOferta={resetFlow}
               onUnlock={() => setPaywallOpen(true)}
             />
           )}
@@ -420,10 +420,10 @@ function ConfigStep({
             rows={8}
             value={jobPosting.text}
             onChange={(e) => setJobPosting({ text: e.target.value })}
-            placeholder="Wklej pełną treść — wymagania, obowiązki, mile widziane. Im więcej szczegółów, tym trafniejszy wynik."
+            placeholder="Wklej pełną treść - wymagania, obowiązki, mile widziane. Im więcej szczegółów, tym trafniejszy wynik."
           />
           <p className="text-xs text-muted-foreground">
-            Wystarczy link albo wklejona treść — możesz podać jedno lub oba.
+            Wystarczy link albo wklejona treść - możesz podać jedno lub oba.
             Wklejone ogłoszenie daje najdokładniejszy wynik.
           </p>
         </div>
@@ -502,7 +502,7 @@ function RunningStep({
       timers.push(
         setTimeout(() => {
           setDoneCount((n) => n + 1);
-          setLog((l) => [...l, `${spec.label} — ${spec.note}`]);
+          setLog((l) => [...l, `${spec.label} - ${spec.note}`]);
         }, momenty[i])
       );
     }
@@ -520,7 +520,7 @@ function RunningStep({
       finished = true;
       const ostatni = REVIEW_SPECIALISTS[total - 1];
       setDoneCount(total);
-      setLog((l) => [...l, `${ostatni.label} — ${ostatni.note}`]);
+      setLog((l) => [...l, `${ostatni.label} - ${ostatni.note}`]);
       doneRef.current(wynik);
     };
 
@@ -629,11 +629,11 @@ function RunningStep({
 function InterviewStep({
   pytania,
   onSubmit,
-  onSkip,
+  onBack,
 }: {
   pytania: PytanieWywiadu[];
   onSubmit: (odpowiedzi: OdpowiedzWywiadu[]) => void;
-  onSkip: () => void;
+  onBack: () => void;
 }) {
   // Stan odpowiedzi: dla każdego pytania „mam” + opcjonalny szczegół.
   const [stan, setStan] = useState<
@@ -724,6 +724,21 @@ function InterviewStep({
 
   return (
     <>
+      {/* Powrót do wyniku stoi NA GÓRZE, tam gdzie w tym oknie zawsze stoi
+          wyjście z kroku (jak „Przerwij" przy analizie). Wcześniej jedyną
+          drogą powrotu było „Pomiń" na samym dole, pod listą pytań - kto nie
+          doscrollował, ten nie widział wyjścia (feedback Marka 2026-09-02). */}
+      <div className="flex items-center pr-8">
+        <button
+          type="button"
+          onClick={onBack}
+          className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="size-4" />
+          Wróć do wyniku
+        </button>
+      </div>
+
       <DialogHeader>
         <p className="eyebrow flex items-center gap-1.5 text-primary">
           <Target className="size-3.5" />
@@ -732,7 +747,7 @@ function InterviewStep({
         <DialogTitle>Uzupełnij to, czego brakuje</DialogTitle>
         <DialogDescription>
           Ta oferta wspomina o rzeczach, których nie ma w Twoim CV. Nie
-          dopisujemy niczego za Ciebie — potwierdź tylko to, co faktycznie
+          dopisujemy niczego za Ciebie - potwierdź tylko to, co faktycznie
           Cię dotyczy, a policzymy dopasowanie od nowa.
         </DialogDescription>
       </DialogHeader>
@@ -747,21 +762,14 @@ function InterviewStep({
         {cechy.length > 0 && (
           <div className="flex flex-col gap-2">
             <p className="eyebrow text-muted-foreground">
-              Cechy — warto wskazać, jeśli Cię opisują
+              Cechy - warto wskazać, jeśli Cię opisują
             </p>
             {cechy.map(karta)}
           </div>
         )}
       </div>
 
-      <div className="flex items-center justify-between gap-2">
-        <button
-          type="button"
-          onClick={onSkip}
-          className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-        >
-          Pomiń
-        </button>
+      <div className="flex items-center justify-end gap-2">
         <Button onClick={wyslij} disabled={potwierdzone === 0} className="gap-2 font-bold">
           <RefreshCw className="size-4" />
           Przelicz z {potwierdzone === 1 ? "1 uzupełnieniem" : `${potwierdzone} uzupełnieniami`}
@@ -779,14 +787,14 @@ function ResultStep({
   pytania,
   onWzmocnij,
   onClose,
-  onRerun,
+  onNowaOferta,
   onUnlock,
 }: {
   tailoringId: string | null;
   pytania: PytanieWywiadu[];
   onWzmocnij: () => void;
   onClose: () => void;
-  onRerun: () => void;
+  onNowaOferta: () => void;
   onUnlock: () => void;
 }) {
   const aiMeta = useCvStore((s) => s.aiMeta);
@@ -801,19 +809,16 @@ function ResultStep({
 
   return (
     <>
-      <div className="flex items-center justify-between gap-2 pr-8">
+      {/* Bez „Analizuj ponownie" na górze (feedback Marka 2026-09-02): ten
+          przycisk kasował gotowy wynik i wracał do pustego formularza, choć
+          nic się nie zmieniło - ponowne liczenie ma sens dopiero PO
+          odpowiedziach z wywiadu. Start dopasowania do INNEJ oferty został,
+          ale na dole ekranu i pod właściwą nazwą. */}
+      <div className="flex items-center gap-2 pr-8">
         <p className="eyebrow flex items-center gap-1.5 text-primary">
           <Target className="size-3.5" />
           Wynik dopasowania
         </p>
-        <button
-          type="button"
-          onClick={onRerun}
-          className="flex shrink-0 items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <RefreshCw className="size-3.5" />
-          Analizuj ponownie
-        </button>
       </div>
 
       {/* Wynik ogólny */}
@@ -825,13 +830,13 @@ function ResultStep({
         </p>
         {before !== undefined && score > before && (
           <p className="mt-1 text-sm text-muted-foreground">
-            przed dopasowaniem: {before}/100 —{" "}
+            przed dopasowaniem: {before}/100 -{" "}
             <span className="font-bold text-primary">+{score - before}</span>
           </p>
         )}
         {before !== undefined && score <= before && (
           <p className="mt-1 text-sm text-muted-foreground">
-            Twoje CV już dobrze pasuje do tej oferty — dopracowaliśmy brzmienie
+            Twoje CV już dobrze pasuje do tej oferty - dopracowaliśmy brzmienie
             pod ATS i czytelność.
           </p>
         )}
@@ -860,9 +865,10 @@ function ResultStep({
                 Możesz podnieść ten wynik
               </span>
               <span className="mt-0.5 block text-xs text-muted-foreground">
-                Oferta wymaga {pluralize(pytania.length, "rzeczy", "rzeczy", "rzeczy")},
-                których nie ma w Twoim CV. Jeśli faktycznie je masz — potwierdź, a
-                policzymy dopasowanie od nowa. Bez zmyślania.
+                Odpowiedz na {pytania.length}{" "}
+                {pluralize(pytania.length, "pytanie", "pytania", "pytań")} i
+                podnieś wynik swojego CV. Pytamy tylko o to, czego wymaga ta
+                oferta, a czego nie ma jeszcze w Twoim CV. Nic nie zmyślamy.
               </span>
             </span>
             <ArrowRight className="size-4 shrink-0 text-primary" />
@@ -902,9 +908,7 @@ function ResultStep({
             <div key={f.id} className="rounded-lg bg-secondary p-3">
               <p className="text-sm font-bold">{f.title}</p>
               {visible ? (
-                <p className="mt-1.5 text-sm text-muted-foreground">
-                  {f.detail}
-                </p>
+                <TrescWskazowki finding={f} />
               ) : (
                 <p className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Lock className="size-3" />
@@ -954,6 +958,15 @@ function ResultStep({
           )}
         </div>
       )}
+
+      <button
+        type="button"
+        onClick={onNowaOferta}
+        className="flex items-center justify-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <RefreshCw className="size-3.5" />
+        Dopasuj CV do innej oferty
+      </button>
     </>
   );
 }

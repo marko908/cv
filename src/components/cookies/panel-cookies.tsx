@@ -181,7 +181,7 @@ function TrescPanelu({
       <DialogHeader className="shrink-0 p-4 pr-12 text-left">
         <DialogTitle>Ustawienia plików cookies</DialogTitle>
         <DialogDescription>
-          Zdecyduj, na co się zgadzasz. Odmowa niczego nie ogranicza — Aplikacja
+          Zdecyduj, na co się zgadzasz. Odmowa niczego nie ogranicza - Aplikacja
           działa tak samo.
         </DialogDescription>
       </DialogHeader>

@@ -181,7 +181,7 @@ export function validateAgainstLedger(
           kind: "frazes",
           field: path,
           offending: f,
-          detail: `„${f}” to pusty frazes dopisany przez model — nie ma go w CV użytkownika i nic nie wnosi.`,
+          detail: `„${f}” to pusty frazes dopisany przez model - nie ma go w CV użytkownika i nic nie wnosi.`,
         });
       }
     }
@@ -216,7 +216,7 @@ export function validateAgainstLedger(
         kind: "wymyslone_stanowisko",
         field: `experience[${i}].role`,
         offending: e.role,
-        detail: `Stanowisko „${e.role}” nie występuje w danych użytkownika — możliwe zawyżenie poziomu.`,
+        detail: `Stanowisko „${e.role}” nie występuje w danych użytkownika - możliwe zawyżenie poziomu.`,
       });
     }
   });
@@ -237,7 +237,7 @@ export function validateAgainstLedger(
         kind: "podniesiony_poziom_jezyka",
         field: `languages[${i}]`,
         offending: l,
-        detail: `Podniesiono deklarowany poziom języka (${p.jezyk}). Użytkownik podał niższy — to zostanie zweryfikowane na rozmowie.`,
+        detail: `Podniesiono deklarowany poziom języka (${p.jezyk}). Użytkownik podał niższy - to zostanie zweryfikowane na rozmowie.`,
       });
     }
   });
@@ -247,7 +247,7 @@ export function validateAgainstLedger(
 
 /** Krótkie, czytelne podsumowanie naruszeń — do logów i panelu diagnostycznego. */
 export function summarizeViolations(result: ValidationResult): string {
-  if (result.ok) return "OK — CV opiera się wyłącznie na danych użytkownika.";
+  if (result.ok) return "OK - CV opiera się wyłącznie na danych użytkownika.";
   const byKind = new Map<ViolationKind, number>();
   for (const v of result.violations) {
     byKind.set(v.kind, (byKind.get(v.kind) ?? 0) + 1);

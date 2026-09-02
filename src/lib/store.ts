@@ -119,6 +119,14 @@ export interface ReviewFinding {
   severity: "high" | "medium" | "low";
   title: string;
   detail: string; // treść widoczna dopiero po odblokowaniu
+  /**
+   * Wypunktowanie pod treścią. Lista brakujących wymagań doklejana do zdania
+   * przez `join("; ")` dawała ścianę tekstu nie do przeczytania (feedback
+   * Marka 2026-09-02) - osobne wiersze czyta się od razu.
+   */
+  items?: string[];
+  /** Zdanie zamykające, pod listą. */
+  podsumowanie?: string;
 }
 
 export interface AiMeta {
@@ -169,7 +177,7 @@ export interface SavedCv {
 export function defaultCvName(cv: TailoredCv): string {
   const name = cv.personal_info.full_name.trim();
   const title = cv.personal_info.title.trim();
-  if (name && title) return `${name} — ${title}`;
+  if (name && title) return `${name} - ${title}`;
   if (name) return name;
   if (title) return title;
   return "CV bez nazwy";

@@ -225,7 +225,7 @@ export function ocenCv(
     "Słowa kluczowe pod ATS",
     10,
     kw,
-    `Systemy ATS filtrują CV po słowach z ogłoszenia. Twoje CV zawiera ${dopasowanie.pokrycieSlowKluczowych}% słów kluczowych z tej oferty — wplecionych naturalnie, tylko tam, gdzie masz je w doświadczeniu.`,
+    `Systemy ATS filtrują CV po słowach z ogłoszenia. Twoje CV zawiera ${dopasowanie.pokrycieSlowKluczowych}% słów kluczowych z tej oferty - wplecionych naturalnie, tylko tam, gdzie masz je w doświadczeniu.`,
     true
   );
 
@@ -261,7 +261,7 @@ export function ocenCv(
     10,
     licz * 10,
     bullety.length
-      ? `${Math.round(zLiczba * 100)}% punktów zawiera konkretną liczbę (%, kwota, skala).${metneW ? ` Uwaga: ${metneW} raz(y) pojawia się mętne określenie („duże budżety/zespoły") — warto zastąpić je liczbą.` : " Liczby to najmocniejszy element CV."}`
+      ? `${Math.round(zLiczba * 100)}% punktów zawiera konkretną liczbę (%, kwota, skala).${metneW ? ` Uwaga: ${metneW} raz(y) pojawia się mętne określenie („duże budżety/zespoły") - warto zastąpić je liczbą.` : " Liczby to najmocniejszy element CV."}`
       : "Brak punktów do oceny kwantyfikacji.",
     false
   );
@@ -275,10 +275,10 @@ export function ocenCv(
     8,
     sum * 8,
     sumLen >= 120
-      ? "Masz mocne podsumowanie u góry — rekruter czyta je jako pierwsze i od niego zależy pierwsze wrażenie."
+      ? "Masz mocne podsumowanie u góry - rekruter czyta je jako pierwsze i od niego zależy pierwsze wrażenie."
       : sumLen >= 50
-        ? "Podsumowanie jest, ale krótkie — warto rozwinąć do 3–4 zdań (kim jesteś, kluczowe osiągnięcia, cel)."
-        : "Brak podsumowania zawodowego. To pierwsza rzecz, którą czyta rekruter — jego brak odbiera CV ludzki aspekt.",
+        ? "Podsumowanie jest, ale krótkie - warto rozwinąć do 3-4 zdań (kim jesteś, kluczowe osiągnięcia, cel)."
+        : "Brak podsumowania zawodowego. To pierwsza rzecz, którą czyta rekruter - jego brak odbiera CV ludzki aspekt.",
     false
   );
 
@@ -341,11 +341,11 @@ export function ocenCv(
     6,
     format * 6,
     mieszanyAspekt
-      ? `W ${pluralize(mieszanyAspekt, "pozycji", "pozycjach", "pozycjach")} mieszasz formy dokonane („Wdrożyłem") z niedokonanymi („Wdrażałem") — trzymaj jedną konwencję w obrębie stanowiska, najlepiej dokonaną.`
+      ? `W ${pluralize(mieszanyAspekt, "pozycji", "pozycjach", "pozycjach")} mieszasz formy dokonane („Wdrożyłem") z niedokonanymi („Wdrażałem") - trzymaj jedną konwencję w obrębie stanowiska, najlepiej dokonaną.`
       : paskiSkill
-        ? `Przy umiejętnościach pojawiają się paski/procenty poziomu (${paskiSkill}) — rekruterowi nic nie mówią; użyj skali A1–C2 dla języków, a przy narzędziach po prostu ich wymień.`
+        ? `Przy umiejętnościach pojawiają się paski/procenty poziomu (${paskiSkill}) - rekruterowi nic nie mówią; użyj skali A1-C2 dla języków, a przy narzędziach po prostu ich wymień.`
         : okresy.length && spojneDaty < 1
-          ? `Daty są zapisane na ${wzorce.size} różne sposoby (${[...wzorce].join(", ")}) — ujednolić je do jednego formatu w całym CV.`
+          ? `Daty są zapisane na ${wzorce.size} różne sposoby (${[...wzorce].join(", ")}) - ujednolić je do jednego formatu w całym CV.`
           : "Daty i formy czasowników spójne w całym CV, bez pasków poziomu przy umiejętnościach.",
     false
   );
@@ -365,8 +365,8 @@ export function ocenCv(
     4,
     czystosc * 4,
     frazesyW || wrazliweW
-      ? `${frazesyW ? `Frazesy typu „komunikatywny"/„gracz zespołowy" (${frazesyW}) — i tak weryfikuje się je na rozmowie. ` : ""}${wrazliweW ? `Dane wrażliwe (wiek/stan cywilny/PESEL) — usuń, to ryzyko dyskryminacji. ` : ""}`.trim()
-      : "Bez pustych frazesów i bez danych wrażliwych — dobrze.",
+      ? `${frazesyW ? `Frazesy typu „komunikatywny"/„gracz zespołowy" (${frazesyW}) - i tak weryfikuje się je na rozmowie. ` : ""}${wrazliweW ? `Dane wrażliwe (wiek/stan cywilny/PESEL) - usuń, to ryzyko dyskryminacji. ` : ""}`.trim()
+      : "Bez pustych frazesów i bez danych wrażliwych - dobrze.",
     false
   );
 
@@ -384,8 +384,8 @@ export function ocenCv(
     2,
     kontaktProc * 2,
     kontakt === 4
-      ? "Komplet danych kontaktowych i klauzula RODO — bez tego (na rynku PL) CV bywa odrzucane bez czytania."
-      : "Uzupełnij dane kontaktowe (mail, telefon, miasto) i klauzulę RODO — na rynku PL jej brak potrafi wykluczyć CV z rekrutacji.",
+      ? "Komplet danych kontaktowych i klauzula RODO - bez tego (na rynku PL) CV bywa odrzucane bez czytania."
+      : "Uzupełnij dane kontaktowe (mail, telefon, miasto) i klauzulę RODO - na rynku PL jej brak potrafi wykluczyć CV z rekrutacji.",
     false
   );
 

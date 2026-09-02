@@ -34,7 +34,7 @@ export default function KreatorListPage() {
           Twoje CV
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Możesz mieć wiele CV — np. w różnych językach albo pod różne
+          Możesz mieć wiele CV - np. w różnych językach albo pod różne
           stanowiska. Każde dopasujesz do dowolnej liczby ofert.
         </p>
       </div>

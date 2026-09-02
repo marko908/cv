@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 export function BulletsEditor({
   bullets,
   onChange,
-  placeholder = "Opisz osiągnięcie — użyj metody STAR, liczb i czasowników dokonanych…",
+  placeholder = "Opisz osiągnięcie - użyj metody STAR, liczb i czasowników dokonanych…",
 }: {
   bullets: string[];
   onChange: (bullets: string[]) => void;

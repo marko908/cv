@@ -67,7 +67,7 @@ export const CV_TEMPLATES: CvTemplate[] = [
     id: "prestizowy",
     name: "Prestiżowy",
     description:
-      "Jedna kolumna, okrągłe zdjęcie w nagłówku i jeden stonowany akcent w morskiej zieleni. Dużo światła — czyta się jak dokument premium.",
+      "Jedna kolumna, okrągłe zdjęcie w nagłówku i jeden stonowany akcent w morskiej zieleni. Dużo światła - czyta się jak dokument premium.",
     withPhoto: true,
     tags: ["ze-zdjeciem", "jednokolumnowy", "nowoczesny"],
   },
@@ -75,7 +75,7 @@ export const CV_TEMPLATES: CvTemplate[] = [
     id: "boczny",
     name: "Boczny panel",
     description:
-      "Dwie kolumny ze zdjęciem — kontakt, umiejętności i języki w bocznym pasku. Efektowny dla rekrutera, a tekst zapisujemy w kolejności czytelnej także dla systemów rekrutacyjnych.",
+      "Dwie kolumny ze zdjęciem - kontakt, umiejętności i języki w bocznym pasku. Efektowny dla rekrutera, a tekst zapisujemy w kolejności czytelnej także dla systemów rekrutacyjnych.",
     withPhoto: true,
     tags: ["ze-zdjeciem", "dwukolumnowy", "klasyczny"],
   },
@@ -99,7 +99,7 @@ export const CV_TEMPLATES: CvTemplate[] = [
     id: "kompaktowy",
     name: "Kompaktowy",
     description:
-      "Gęstszy rytm i oszczędne odstępy — dobry wybór dla dłuższego doświadczenia.",
+      "Gęstszy rytm i oszczędne odstępy - dobry wybór dla dłuższego doświadczenia.",
     tags: ["bez-zdjecia", "jednokolumnowy", "minimalistyczny"],
   },
 ];
@@ -142,7 +142,7 @@ export const TEMPLATE_CATEGORIES: {
   {
     tag: "bez-zdjecia",
     label: "Bez zdjęcia",
-    opis: "Sam tekst — najprostsze w odbiorze i dla ludzi, i dla automatów.",
+    opis: "Sam tekst - najprostsze w odbiorze i dla ludzi, i dla automatów.",
   },
 ];
 

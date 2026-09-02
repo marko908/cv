@@ -179,13 +179,13 @@ export function SummaryDialog({ trigger }: { trigger: ReactNode }) {
   return (
     <SectionShell section="summary" trigger={trigger}>
       <div className="grid gap-1.5">
-        <Label htmlFor="summary">Podsumowanie (3–4 zdania)</Label>
+        <Label htmlFor="summary">Podsumowanie (3-4 zdania)</Label>
         <Textarea
           id="summary"
           rows={5}
           value={summary}
           onChange={(e) => setSummary(e.target.value)}
-          placeholder="Kim jesteś zawodowo, w czym jesteś dobry i czego szukasz — konkretnie, bez hype'u."
+          placeholder="Kim jesteś zawodowo, w czym jesteś dobry i czego szukasz - konkretnie, bez hype'u."
         />
         <p className="text-xs text-muted-foreground">
           Postaw na fakty i mocne strony istotne dla stanowiska, na które
@@ -260,7 +260,7 @@ export function ExperienceDialog({ trigger }: { trigger: ReactNode }) {
                   <Input
                     value={exp.period}
                     onChange={(e) => update(i, { period: e.target.value })}
-                    placeholder="03.2021 – obecnie"
+                    placeholder="03.2021 - obecnie"
                   />
                 </div>
               </div>
@@ -359,7 +359,7 @@ export function ProjectsDialog({ trigger }: { trigger: ReactNode }) {
                 <BulletsEditor
                   bullets={proj.bullets}
                   onChange={(bullets) => update(i, { bullets })}
-                  placeholder="Co zbudowałeś i jaki był efekt — z konkretami…"
+                  placeholder="Co zbudowałeś i jaki był efekt - z konkretami…"
                 />
               </div>
             </div>
@@ -473,7 +473,7 @@ export function EducationDialog({ trigger }: { trigger: ReactNode }) {
                   <Input
                     value={edu.period}
                     onChange={(e) => update(i, { period: e.target.value })}
-                    placeholder="2015 – 2019"
+                    placeholder="2015 - 2019"
                   />
                 </div>
               </div>
@@ -518,12 +518,12 @@ const LANGUAGE_OPTIONS = [
 
 const LEVEL_OPTIONS = [
   { value: "ojczysty", label: "ojczysty" },
-  { value: "A1", label: "A1 – początkujący" },
-  { value: "A2", label: "A2 – podstawowy" },
-  { value: "B1", label: "B1 – średnio zaawansowany" },
-  { value: "B2", label: "B2 – wyższy średni" },
-  { value: "C1", label: "C1 – zaawansowany" },
-  { value: "C2", label: "C2 – biegły" },
+  { value: "A1", label: "A1 - początkujący" },
+  { value: "A2", label: "A2 - podstawowy" },
+  { value: "B1", label: "B1 - średnio zaawansowany" },
+  { value: "B2", label: "B2 - wyższy średni" },
+  { value: "C1", label: "C1 - zaawansowany" },
+  { value: "C2", label: "C2 - biegły" },
 ];
 
 /** Rozbija zapis „język – poziom" na części do edycji w dropdownach. */
@@ -534,7 +534,7 @@ function parseLanguage(entry: string): { lang: string; level: string } {
 
 function composeLanguage(lang: string, level: string): string {
   if (!lang) return "";
-  return level ? `${lang} – ${level}` : lang;
+  return level ? `${lang} - ${level}` : lang;
 }
 
 export function LanguagesDialog({ trigger }: { trigger: ReactNode }) {

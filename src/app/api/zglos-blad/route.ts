@@ -50,8 +50,8 @@ export async function POST(request: Request) {
     if (czyMailDostepny() && MAIL_ZGLOSZENIA) {
       const wiersze = [
         ["Kategoria", zgloszenie.category],
-        ["Dopasowanie", zgloszenie.tailoringId ?? "—"],
-        ["Stanowisko", zgloszenie.jobTitle ?? "—"],
+        ["Dopasowanie", zgloszenie.tailoringId ?? "-"],
+        ["Stanowisko", zgloszenie.jobTitle ?? "-"],
         ["Zgłoszono", zgloszenie.at],
       ]
         .map(([k, v]) => `<p><strong>${k}:</strong> ${escapeHtml(v)}</p>`)
@@ -59,16 +59,16 @@ export async function POST(request: Request) {
 
       const wynik = await wyslijMail({
         adresat: MAIL_ZGLOSZENIA,
-        temat: `Aplikando — zgłoszenie: ${zgloszenie.category}`,
+        temat: `Aplikando - zgłoszenie: ${zgloszenie.category}`,
         html: `${wiersze}<hr><p>${escapeHtml(zgloszenie.message).replace(/\n/g, "<br>")}</p>`,
-        text: `Kategoria: ${zgloszenie.category}\nDopasowanie: ${zgloszenie.tailoringId ?? "—"}\nStanowisko: ${zgloszenie.jobTitle ?? "—"}\n\n${zgloszenie.message}`,
+        text: `Kategoria: ${zgloszenie.category}\nDopasowanie: ${zgloszenie.tailoringId ?? "-"}\nStanowisko: ${zgloszenie.jobTitle ?? "-"}\n\n${zgloszenie.message}`,
       });
 
       // Głośno w logach, cicho dla użytkownika — patrz komentarz nad funkcją.
       if (!wynik.ok) console.error("[zgłoszenie błędu] WYSYŁKA NIEUDANA:", wynik.blad);
     } else {
       console.warn(
-        "[zgłoszenie błędu] Mail pominięty — brak RESEND_API_KEY lub MAIL_ZGLOSZENIA."
+        "[zgłoszenie błędu] Mail pominięty - brak RESEND_API_KEY lub MAIL_ZGLOSZENIA."
       );
     }
 

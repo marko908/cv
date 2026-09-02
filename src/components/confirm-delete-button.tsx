@@ -63,7 +63,7 @@ export function ConfirmDeleteButton({
     <button
       type="button"
       onClick={klik}
-      aria-label={uzbrojony ? `${label} — kliknij ponownie, aby potwierdzić` : label}
+      aria-label={uzbrojony ? `${label} - kliknij ponownie, aby potwierdzić` : label}
       title={uzbrojony ? "Kliknij ponownie, aby usunąć" : label}
       className={cn(
         "shrink-0 rounded-full transition-colors",

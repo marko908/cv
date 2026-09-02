@@ -20,6 +20,7 @@ import { DownloadPdfButton } from "@/components/download-pdf-button";
 import { CvCompareDialog } from "@/components/cv-compare-dialog";
 import { ReportErrorDialog } from "@/components/report-error-dialog";
 import { ScoreBreakdown } from "@/components/builder/score-breakdown";
+import { TrescWskazowki } from "@/components/builder/tresc-wskazowki";
 import { useCvStore, useMaDostepDo } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -62,7 +63,7 @@ export default function DopasowanieDetailPage({
 
   const editInBuilder = () => {
     // Tworzymy nowe CV z przerobionego, by nie nadpisać oryginału.
-    newCvFrom(tailoredCv, template, `${jobTitle} — dopasowane`);
+    newCvFrom(tailoredCv, template, `${jobTitle} - dopasowane`);
     router.push("/app/kreator/edytor");
   };
 
@@ -124,7 +125,7 @@ export default function DopasowanieDetailPage({
       {/* Porównanie CV przed / po */}
       <div className="mt-8 flex flex-wrap items-center justify-between gap-2">
         <h2 className="eyebrow text-muted-foreground">
-          Twoje CV — przed i po dopasowaniu
+          Twoje CV - przed i po dopasowaniu
         </h2>
         <CvCompareDialog
           baseCv={baseCv}
@@ -222,9 +223,7 @@ export default function DopasowanieDetailPage({
                 <div key={f.id} className="card-surface p-4">
                   <p className="text-sm font-bold">{f.title}</p>
                   {visible ? (
-                    <p className="mt-1.5 text-sm text-muted-foreground">
-                      {f.detail}
-                    </p>
+                    <TrescWskazowki finding={f} />
                   ) : (
                     <p className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
                       <Lock className="size-3" />

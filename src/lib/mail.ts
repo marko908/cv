@@ -70,7 +70,7 @@ export interface Mail {
  */
 export async function wyslijMail(mail: Mail): Promise<WynikWysylki> {
   if (!czyMailDostepny()) {
-    return { ok: false, blad: "Brak RESEND_API_KEY — wysyłka wyłączona." };
+    return { ok: false, blad: "Brak RESEND_API_KEY - wysyłka wyłączona." };
   }
 
   try {

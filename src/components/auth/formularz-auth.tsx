@@ -181,7 +181,7 @@ export const TEKSTY_AUTH: Record<EkranAuth, { tytul: string; opis: string }> = {
   },
   "kod-rejestracji": {
     tytul: "Potwierdź adres e-mail",
-    opis: "Zostało ostatnie kliknięcie — przepisz kod, który do Ciebie wysłaliśmy.",
+    opis: "Zostało ostatnie kliknięcie - przepisz kod, który do Ciebie wysłaliśmy.",
   },
   "reset-prosba": {
     tytul: "Nie pamiętasz hasła?",
@@ -209,7 +209,7 @@ function poPolsku(komunikat: string): string {
   if (m.includes("email not confirmed"))
     return "Konto nie jest jeszcze aktywowane. Sprawdź kod w skrzynce.";
   if (m.includes("user already registered") || m.includes("already been registered"))
-    return "Konto z tym adresem już istnieje — zaloguj się.";
+    return "Konto z tym adresem już istnieje - zaloguj się.";
   if (m.includes("token has expired") || m.includes("invalid token") || m.includes("otp"))
     return "Kod jest nieprawidłowy albo wygasł. Wyślij nowy.";
   if (m.includes("password should be at least"))
@@ -400,7 +400,7 @@ export function FormularzAuth({
     // który nigdy nie przyjdzie.
     if (data.user && data.user.identities?.length === 0) {
       przelaczEkran("logowanie");
-      return setBlad("Konto z tym adresem już istnieje — zaloguj się.");
+      return setBlad("Konto z tym adresem już istnieje - zaloguj się.");
     }
 
     // Gdy potwierdzanie maila jest wyłączone, sesja jest od razu — możemy
@@ -520,7 +520,7 @@ export function FormularzAuth({
       if (error.message.toLowerCase().includes("email not confirmed")) {
         setEkran("kod-rejestracji");
         setOdliczanie(0);
-        return setInfo("Dokończ aktywację — wpisz kod z maila.");
+        return setInfo("Dokończ aktywację - wpisz kod z maila.");
       }
       return setBlad(poPolsku(error.message));
     }

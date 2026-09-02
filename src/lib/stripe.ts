@@ -64,7 +64,7 @@ export function idCenySubskrypcji(plan: PlanId, okres: OkresRozliczeniowy): stri
   const id = process.env[zmienna];
   if (!id) {
     throw new Error(
-      `Brak ${zmienna} — nie wiem, którą cenę Stripe'a wystawić dla planu ` +
+      `Brak ${zmienna} - nie wiem, którą cenę Stripe'a wystawić dla planu ` +
         `${PLANY[plan].nazwa} (${okres}).`
     );
   }
@@ -75,7 +75,7 @@ export function idCenyJednorazowej(): string {
   const id = process.env.STRIPE_CENA_JEDNORAZOWA;
   if (!id) {
     throw new Error(
-      `Brak STRIPE_CENA_JEDNORAZOWA — nie wiem, którą cenę wystawić za ` +
+      `Brak STRIPE_CENA_JEDNORAZOWA - nie wiem, którą cenę wystawić za ` +
         `jednorazowe odblokowanie (${CENA_JEDNORAZOWA} zł).`
     );
   }

@@ -45,7 +45,7 @@ export function CvPreview() {
   return (
     <div ref={wrapRef} className="mx-auto w-full max-w-[794px]">
       <p className="eyebrow mb-3 text-center text-muted-foreground">
-        Podgląd na żywo — szablon:{" "}
+        Podgląd na żywo - szablon:{" "}
         <span className="text-primary">{template}</span>
       </p>
 

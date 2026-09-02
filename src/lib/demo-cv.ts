@@ -24,13 +24,13 @@ export const demoCv: TailoredCv = {
     linkedin_or_github: "https://linkedin.com/in/michal-zawadzki",
   },
   professional_summary:
-    "Product Manager z 8-letnim doświadczeniem w budowie produktów cyfrowych dla rynku B2B. Prowadziłem zespoły od odkrywania potrzeb po wdrożenie i skalowanie; ostatnio zwiększyłem retencję kluczowego produktu o 24% w rok. Łączę pracę z danymi z bliskim kontaktem z klientem — najlepsze decyzje podejmuję po rozmowie z użytkownikiem, nie tylko po wykresie.",
+    "Product Manager z 8-letnim doświadczeniem w budowie produktów cyfrowych dla rynku B2B. Prowadziłem zespoły od odkrywania potrzeb po wdrożenie i skalowanie; ostatnio zwiększyłem retencję kluczowego produktu o 24% w rok. Łączę pracę z danymi z bliskim kontaktem z klientem - najlepsze decyzje podejmuję po rozmowie z użytkownikiem, nie tylko po wykresie.",
   experience: [
     {
       company: "Nordvia Software",
       role: "Senior Product Manager",
       location: "Warszawa (hybrydowo)",
-      period: "04.2021 – obecnie",
+      period: "04.2021 - obecnie",
       bullets: [
         "Zwiększyłem retencję 12-miesięczną platformy B2B z 61% do 85% dzięki przebudowie procesu wdrożenia klienta.",
         "Zbudowałem od zera zespół produktowy (6 osób) i wprowadziłem cykl odkrywania potrzeb oparty na wywiadach z klientami.",
@@ -42,7 +42,7 @@ export const demoCv: TailoredCv = {
       company: "Kaleido Group",
       role: "Product Manager",
       location: "Kraków",
-      period: "08.2018 – 03.2021",
+      period: "08.2018 - 03.2021",
       bullets: [
         "Odpowiadałem za aplikację mobilną z 240 tys. aktywnych użytkowników miesięcznie.",
         "Przeprowadziłem migrację na nowy system płatności bez przerwy w działaniu usługi.",
@@ -53,7 +53,7 @@ export const demoCv: TailoredCv = {
       company: "Sensora Labs",
       role: "Junior Product Manager",
       location: "Wrocław",
-      period: "09.2016 – 07.2018",
+      period: "09.2016 - 07.2018",
       bullets: [
         "Prowadziłem badania z użytkownikami i przygotowałem 40 wywiadów pogłębionych.",
         "Opracowałem pierwszy zestaw wskaźników produktowych używany do dziś przez zespół.",
@@ -63,7 +63,7 @@ export const demoCv: TailoredCv = {
       company: "Formica Interactive",
       role: "Analityk biznesowy",
       location: "Wrocław",
-      period: "07.2015 – 08.2016",
+      period: "07.2015 - 08.2016",
       bullets: [
         "Zebrałem wymagania dla 3 wdrożeń u klientów z branży logistycznej.",
         "Zautomatyzowałem raportowanie miesięczne, oszczędzając zespołowi 20 godzin pracy w miesiącu.",
@@ -84,7 +84,7 @@ export const demoCv: TailoredCv = {
     {
       name: "Program mentoringowy dla juniorów",
       technologies: ["Mentoring", "Rekrutacja"],
-      period: "2022 – 2023",
+      period: "2022 - 2023",
       bullets: [
         "Przeszkoliłem 9 osób, z których 7 awansowało w ciągu roku.",
       ],
@@ -118,15 +118,15 @@ export const demoCv: TailoredCv = {
       institution: "Uniwersytet Ekonomiczny w Krakowie",
       degree: "Zarządzanie, mgr",
       location: "Kraków",
-      period: "2014 – 2016",
+      period: "2014 - 2016",
     },
     {
       institution: "Politechnika Wrocławska",
       degree: "Informatyka, inż.",
       location: "Wrocław",
-      period: "2010 – 2014",
+      period: "2010 - 2014",
     },
   ],
-  languages: ["polski – ojczysty", "angielski – C1", "niemiecki – B1"],
+  languages: ["polski - ojczysty", "angielski - C1", "niemiecki - B1"],
   rodo_clause: DEFAULT_RODO_CLAUSE,
 };

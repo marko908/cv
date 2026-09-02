@@ -122,7 +122,7 @@ function naprawCv(
 /** Tytuł pozycji w historii — ze sparsowanej oferty, nie z heurystyki. */
 function tytulDopasowania(oferta: ParsedOferta): string {
   return oferta.firma
-    ? `${oferta.stanowisko} — ${oferta.firma}`
+    ? `${oferta.stanowisko} - ${oferta.firma}`
     : oferta.stanowisko;
 }
 

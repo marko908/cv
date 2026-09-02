@@ -59,7 +59,7 @@ export function NewCvDialog({
           {/* Obietnica ATS dotyczy CAŁEJ oferty, więc stoi nad kategoriami —
               w stałym nagłówku, który nie odjeżdża przy przewijaniu galerii. */}
           <DialogDescription>
-            {ATS_OBIETNICA} Układ jest zablokowany — edytujesz tylko treść.
+            {ATS_OBIETNICA} Układ jest zablokowany - edytujesz tylko treść.
           </DialogDescription>
         </DialogHeader>
 

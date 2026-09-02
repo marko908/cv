@@ -279,7 +279,7 @@ export function CvPdf({
                     {exp.role || "Stanowisko"}
                     {exp.company ? (
                       <Text style={{ fontWeight: "normal", color: "#4b5563" }}>
-                        {"  —  "}
+                        {"  -  "}
                         {exp.company}
                       </Text>
                     ) : null}
@@ -316,7 +316,7 @@ export function CvPdf({
                     {proj.name || "Projekt"}
                     {proj.technologies.filter(Boolean).length > 0 ? (
                       <Text style={{ fontWeight: "normal", color: "#4b5563" }}>
-                        {"  —  "}
+                        {"  -  "}
                         {proj.technologies.filter(Boolean).join(", ")}
                       </Text>
                     ) : null}
@@ -383,7 +383,7 @@ export function CvPdf({
                   </Text>
                   {edu.degree ? (
                     <Text style={{ color: "#4b5563" }}>
-                      {"  —  "}
+                      {"  -  "}
                       {edu.degree}
                     </Text>
                   ) : null}
