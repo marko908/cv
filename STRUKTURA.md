@@ -98,6 +98,22 @@ oryginał — najgorszy możliwy wynik wywiadu to „bez zmian". W pipeline słu
 `bazaCzysta`: `baseCv` ze znacznikami idzie do rejestru faktów i do modelu, ale
 wszystkie ścieżki awaryjne cofają do wersji czystej.
 
+**WYWIAD ŻYJE W REKORDZIE, NIE W MODALU (2026-09-02).** `aiMeta.pytania`
+(plus `aiMeta.oferta`) zapisuje `/api/dopasuj` razem z dopasowaniem, więc na
+pytania pominięte za pierwszym razem można odpowiedzieć PÓŹNIEJ, w
+`/app/dopasowania/[id]` — wcześniej znikały razem z zamkniętym oknem, a to
+jedyna droga do wyższego wyniku bez zmyślania. Zero migracji: `ai_meta` to
+JSONB mapowane w całości. Sparsowana oferta jedzie z nimi, żeby przeliczenie
+ze strony szczegółów miało ten sam cache co modal (bez tego wymagania liczyłyby
+się od nowa — drgający wynik „przed" i drugi koszt parsowania).
+Formularz pytań to WSPÓLNY `components/builder/formularz-wywiadu.tsx` (modal +
+strona), a podmianę rekordu po przeliczeniu robi JEDNA akcja store'u
+`zastapDopasowanie(nowy, stareId)`: dziedziczenie korzenia → przeniesienie
+odblokowania → skasowanie starego. Te trzy kroki rozsypane po komponentach już
+raz kosztowały ludzi opłacony dostęp, a teraz wołają je DWA miejsca.
+Ekran szczegółów gatuje wywiad tak samo jak modal (dopiero po odblokowaniu),
+inaczej dałoby się podnosić wynik bez płacenia.
+
 **Z WYWIADU DA SIĘ WYJŚĆ BEZ KOSZTU (2026-09-02).** Ekran pytań ma na GÓRZE
 „Wróć do wyniku" (tam, gdzie w tym oknie zawsze stoi wyjście z kroku) — wcześniej
 jedyną drogą powrotu było „Pomiń" pod całą listą pytań. Do tego
@@ -697,6 +713,14 @@ odliczy VAT-u, a Regulamin przewiduje Usługobiorców będących Przedsiębiorca
 Pułapka: Resend zwraca błąd W ODPOWIEDZI (`{ data, error }`), nie wyjątkiem —
 samo `await` bez sprawdzenia `error` wygląda na sukces przy odrzuconej wysyłce.
 
+**`src/lib/oferta-tekst.ts`** (2026-09-02) — `sformatujOferte()` porządkuje
+treść ogłoszenia DO WYŚWIETLENIA: rozkleja zdania sklejone kropką
+(„utrzymanie.Jeżeli"), zamienia średniki po `<li>` na listy i wyciąga tytuły
+sekcji („Wymagania:", „Twoimi zadaniami będą:"). Ogłoszenie pobrane z linku to
+jeden ciąg tekstu, którego nie da się czytać. **To render, nie migracja** —
+w rekordzie i w wejściu do modelu zostaje surowy tekst ze strony. Ma być
+czytelnie, nie idealnie: struktury z HTML-a nie da się odtworzyć co do znaku.
+
 **`src/lib/`**: `cv-schema.ts` · `store.ts` · `cv-templates.ts` (rejestr szablonów: `withPhoto`/`templateUsesPhoto`, `tags: TemplateTag[]` + `templatesByTag`, `TEMPLATE_CATEGORIES` = wiersze galerii, `ATS_OBIETNICA` = jedno źródło komunikatu o zgodności z ATS (używane przez `new-cv-dialog.tsx` i `template-picker.tsx`), `STOCK_PHOTO` = zdjęcie poglądowe `public/stock/kandydat.jpg`) ·
 `sample-cv.ts` (Anna Kowalska — demo) · `sections.ts` (definicje sekcji edytora) ·
 `utils.ts` (`cn`, `pluralize`) · `mock-review.ts`.
@@ -1280,7 +1304,9 @@ Pliki generowane dla robotów (nie strony, ale trasy): `/robots.txt`
 - **Logika wyniku / wagi / kryteria** → `scoring.ts` (rubryka) + `matching.ts` (pokrycie)
 - **Co model wolno/nie wolno pisać** → `rewrite.ts` (prompt+straże) + `validator.ts` (twarde reguły)
 - **Reguły odrzucania (frazesy, liczby, języki)** → `validator.ts`
-- **Pytania wywiadu** → `interview.ts`
+- **Pytania wywiadu** → `interview.ts` (logika) · **formularz pytań w UI (modal ORAZ strona dopasowania)** → `components/builder/formularz-wywiadu.tsx` · **podmiana rekordu po przeliczeniu** → `store.zastapDopasowanie`
+- **Wygląd treści ogłoszenia w raporcie** → `lib/oferta-tekst.ts` (tylko render, dane zostają surowe)
+- **Czyszczenie pauz w tekstach ZAPISANYCH wcześniej** → `bezPauz()` z `lib/utils.ts`, wołane przy renderowaniu (findings, dziennik zmian, treść oferty); w nowych tekstach pauz nie ma z zasady, patrz „Konwencje i pułapki"
 - **Parsowanie oferty** → `job-offer.ts` · **wiedza branżowa/synonimy** → `slownik.ts`
 - **Import CV (ekstrakcja/mapowanie/linki)** → `parse-cv.ts` + `/api/parsuj-cv`
 - **Pobieranie oferty z linku** → `fetch-oferta.ts` (wpięte w `/api/dopasuj`; przy niepowodzeniu 422 `kod:"link-nieudany"` → UI prosi o wklejenie treści; komunikaty zawsze przyjazne, bez statusu HTTP) · **lista serwisów, które zwykle blokują pobieranie (podpowiedź w formularzu przed uruchomieniem)** → `czestoBlokujePobieranie()` w `serwisy-ofert.ts`

@@ -12,6 +12,8 @@ import type {
   TailoredCv,
 } from "./cv-schema";
 import { emptyCv } from "./cv-schema";
+import type { PytanieWywiadu } from "./ai/interview";
+import type { ParsedOferta } from "./ai/job-offer";
 import {
   BRAK_SUBSKRYPCJI,
   PLANY,
@@ -139,6 +141,23 @@ export interface AiMeta {
   /** Rozkład wyniku 0–100 na jawne, ważone kryteria (przed/po) — do edukacji. */
   scoreBreakdown?: ScoreCriterion[];
   unlocked?: boolean; // czy pełne poprawki są odblokowane (paywall)
+  /**
+   * Pytania wywiadu, na które użytkownik JESZCZE nie odpowiedział (2026-09-02).
+   *
+   * Wcześniej żyły wyłącznie w stanie modalu w kreatorze, więc kto zamknął
+   * okno, tracił je bezpowrotnie - a to jedyna droga do podniesienia wyniku
+   * bez zmyślania. Zapis tutaj (a nie w osobnej kolumnie) jest darmowy:
+   * `ai_meta` to JSONB mapowane w całości, więc nie potrzeba migracji.
+   * Pipeline zwraca wyłącznie pytania nieobsłużone, więc pusta lista znaczy
+   * „nie ma o co pytać".
+   */
+  pytania?: PytanieWywiadu[];
+  /**
+   * Sparsowana oferta z tego przebiegu - odsyłana przy przeliczeniu, żeby
+   * wymagania były identyczne co rundę (inaczej wynik „przed" drga od
+   * niedeterminizmu modelu) i żeby nie płacić za parsowanie drugi raz.
+   */
+  oferta?: ParsedOferta;
 }
 
 /** Zapisane dopasowanie CV do jednej oferty (pozycja historii). */
@@ -254,6 +273,7 @@ interface CvState {
   deleteCv: (id: string) => void;
   addTailoring: (t: Tailoring) => void;
   removeTailoring: (id: string) => void;
+  zastapDopasowanie: (nowy: Tailoring, stareId: string) => void;
   updateTailoringCv: (id: string, cv: TailoredCv) => void;
   resetReview: () => void;
 
@@ -532,6 +552,43 @@ export const useCvStore = create<CvState>()(
         set((s) => ({ tailorings: [bezOryginaluZdjecia(t), ...s.tailorings] })),
       removeTailoring: (id) =>
         set((s) => ({ tailorings: s.tailorings.filter((t) => t.id !== id) })),
+
+      /*
+       * Przeliczenie po wywiadzie: nowy rekord WCHODZI NA MIEJSCE starego.
+       *
+       * Trzy rzeczy muszą stać się razem, i to w tej kolejności - rozdzielone
+       * po komponentach już raz kosztowały użytkowników opłacony dostęp
+       * (patrz `korzen_id` w STRUKTURA.md), a od 2026-09-02 wołają to DWA
+       * miejsca: modal w kreatorze i strona szczegółów dopasowania:
+       *  1. nowy rekord dziedziczy KORZEŃ łańcucha (po nim wiąże się zakup
+       *     jednorazowy, więc korzeń nie może zginąć przy przeliczeniu),
+       *  2. lokalne odblokowanie przechodzi ze starego id na nowe,
+       *  3. dopiero potem stary rekord znika z historii.
+       */
+      zastapDopasowanie: (nowy, stareId) =>
+        set((s) => {
+          const stary = s.tailorings.find((t) => t.id === stareId);
+          const zKorzeniem: Tailoring = stary
+            ? { ...nowy, korzenId: stary.korzenId ?? stary.id }
+            : nowy;
+
+          const bezStarego = s.odblokowaneDopasowania.filter(
+            (x) => x !== stareId
+          );
+          const odblokowane =
+            s.odblokowaneDopasowania.includes(stareId) &&
+            !bezStarego.includes(zKorzeniem.id)
+              ? [...bezStarego, zKorzeniem.id]
+              : s.odblokowaneDopasowania;
+
+          return {
+            tailorings: [
+              bezOryginaluZdjecia(zKorzeniem),
+              ...s.tailorings.filter((t) => t.id !== stareId),
+            ],
+            odblokowaneDopasowania: odblokowane,
+          };
+        }),
       updateTailoringCv: (id, tailoredCv) =>
         set((s) => ({
           tailorings: s.tailorings.map((t) =>

@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -21,8 +21,11 @@ import { CvCompareDialog } from "@/components/cv-compare-dialog";
 import { ReportErrorDialog } from "@/components/report-error-dialog";
 import { ScoreBreakdown } from "@/components/builder/score-breakdown";
 import { TrescWskazowki } from "@/components/builder/tresc-wskazowki";
-import { useCvStore, useMaDostepDo } from "@/lib/store";
-import { cn } from "@/lib/utils";
+import { FormularzWywiadu } from "@/components/builder/formularz-wywiadu";
+import { zastosujOdpowiedzi, type OdpowiedzWywiadu } from "@/lib/ai/interview";
+import { sformatujOferte } from "@/lib/oferta-tekst";
+import { useCvStore, useMaDostepDo, type Tailoring } from "@/lib/store";
+import { bezPauz, cn, plural } from "@/lib/utils";
 
 export default function DopasowanieDetailPage({
   params,
@@ -33,8 +36,19 @@ export default function DopasowanieDetailPage({
   const router = useRouter();
   const tailoring = useCvStore((s) => s.tailorings.find((t) => t.id === id));
   const newCvFrom = useCvStore((s) => s.newCvFrom);
+  const zastapDopasowanie = useCvStore((s) => s.zastapDopasowanie);
+  const zliczDopasowanie = useCvStore((s) => s.zliczDopasowanie);
   const maDostep = useMaDostepDo(id);
   const [paywallOpen, setPaywallOpen] = useState(false);
+  const [przeliczanie, setPrzeliczanie] = useState(false);
+  const [bladWywiadu, setBladWywiadu] = useState<string | null>(null);
+
+  // Treść ogłoszenia porządkujemy do wyświetlenia (nagłówki + listy zamiast
+  // ściany tekstu). Rekord zostaje nietknięty - to render, nie migracja danych.
+  const bloki = useMemo(
+    () => (tailoring ? sformatujOferte(tailoring.jobText ?? "") : []),
+    [tailoring]
+  );
 
   if (!tailoring) {
     return (
@@ -60,6 +74,57 @@ export default function DopasowanieDetailPage({
   const before = aiMeta.matchScoreBefore;
   const findings = aiMeta.findings ?? [];
   const changes = aiMeta.changesLog ?? [];
+  // Pytania, na które użytkownik jeszcze nie odpowiedział. Rekordy sprzed
+  // 2026-09-02 ich nie mają - wtedy sekcji wywiadu po prostu nie pokazujemy.
+  const pytania = aiMeta.pytania ?? [];
+
+  /**
+   * Odpowiedzi z wywiadu nakładamy na CV BAZOWE tego dopasowania i liczymy je
+   * od nowa. Nowy rekord wchodzi na miejsce starego (korzeń łańcucha i zakup
+   * jednorazowy przechodzą na niego), więc na koniec przenosimy się pod nowy
+   * adres - stary rekord już nie istnieje.
+   */
+  const odpowiedzNaPytania = async (odpowiedzi: OdpowiedzWywiadu[]) => {
+    setPrzeliczanie(true);
+    setBladWywiadu(null);
+    try {
+      const wzbogacone = zastosujOdpowiedzi(baseCv, pytania, odpowiedzi);
+      const res = await fetch("/api/dopasuj", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cv: wzbogacone,
+          oryginalCv: baseCv,
+          // Wszystkie pokazane pytania są już obsłużone - bez tego wracałyby
+          // w kolejnej rundzie w nieskończoność.
+          obsluzonePytania: pytania.map((p) => p.id),
+          oferta: aiMeta.oferta,
+          template,
+          jobText,
+          jobUrl,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.ok || !data.tailoring) {
+        setBladWywiadu(
+          (data?.error as string) ??
+            "Nie udało się przeliczyć dopasowania. Spróbuj ponownie za chwilę."
+        );
+        return;
+      }
+      const nowy = data.tailoring as Tailoring;
+      zastapDopasowanie(nowy, id);
+      // Przeliczenie zużyło osobne wywołania modelu, więc liczy się do limitu.
+      zliczDopasowanie();
+      router.replace(`/app/dopasowania/${nowy.id}`);
+    } catch {
+      setBladWywiadu(
+        "Nie udało się połączyć z serwerem. Spróbuj ponownie za chwilę."
+      );
+    } finally {
+      setPrzeliczanie(false);
+    }
+  };
 
   const editInBuilder = () => {
     // Tworzymy nowe CV z przerobionego, by nie nadpisać oryginału.
@@ -119,6 +184,61 @@ export default function DopasowanieDetailPage({
       {aiMeta.scoreBreakdown && aiMeta.scoreBreakdown.length > 0 && (
         <div className="mt-6">
           <ScoreBreakdown breakdown={aiMeta.scoreBreakdown} unlocked={unlocked} />
+        </div>
+      )}
+
+      {/* Niedokończony wywiad - realna droga do wyższego wyniku bez zmyślania.
+          Pytania żyją w rekordzie (`aiMeta.pytania`), więc da się do nich
+          wrócić także długo po analizie, nie tylko w modalu tuż po niej
+          (prośba Marka 2026-09-02). Gate jak wszędzie: dopiero po opłacie,
+          inaczej dałoby się podnieść wynik bez płacenia za cokolwiek. */}
+      {pytania.length > 0 && (
+        <div className="mt-6 rounded-lg border border-primary/40 bg-primary/5 p-4">
+          <p className="flex items-center gap-1.5 text-sm font-bold text-primary">
+            <Target className="size-4" />
+            Możesz jeszcze podnieść ten wynik
+          </p>
+          {unlocked ? (
+            <>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Zostało {pytania.length}{" "}
+                {plural(pytania.length, "pytanie", "pytania", "pytań")}, na
+                które nie odpowiedziałeś. Odpowiedz teraz, a policzymy
+                dopasowanie od nowa. Pytamy tylko o to, czego wymaga ta oferta,
+                a czego nie ma jeszcze w Twoim CV. Nic nie zmyślamy.
+              </p>
+              <div className="mt-4">
+                <FormularzWywiadu
+                  pytania={pytania}
+                  onSubmit={odpowiedzNaPytania}
+                  wTrakcie={przeliczanie}
+                  etykietaPrzycisku={(n) =>
+                    przeliczanie
+                      ? "Przeliczamy…"
+                      : `Przelicz z ${n === 1 ? "1 uzupełnieniem" : `${n} uzupełnieniami`}`
+                  }
+                />
+              </div>
+              {bladWywiadu && (
+                <p className="mt-2 text-sm text-destructive">{bladWywiadu}</p>
+              )}
+            </>
+          ) : (
+            <>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Zostało {pytania.length}{" "}
+                {plural(pytania.length, "pytanie", "pytania", "pytań")} o rzeczy
+                wymagane w tej ofercie. Odpowiedzi podnoszą wynik, ale są
+                dostępne po odblokowaniu raportu.
+              </p>
+              <Button
+                className="btn-label mt-3 font-bold"
+                onClick={() => setPaywallOpen(true)}
+              >
+                Odblokuj i odpowiedz
+              </Button>
+            </>
+          )}
         </div>
       )}
 
@@ -191,12 +311,14 @@ export default function DopasowanieDetailPage({
           const visible = unlocked || i === 0;
           return (
             <div key={i} className="card-surface p-4">
-              <p className="text-sm font-bold text-primary">{c.section}</p>
+              <p className="text-sm font-bold text-primary">
+                {bezPauz(c.section)}
+              </p>
               {visible ? (
                 <>
-                  <p className="mt-1 text-sm">{c.change}</p>
+                  <p className="mt-1 text-sm">{bezPauz(c.change)}</p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {c.reason}
+                    {bezPauz(c.reason)}
                   </p>
                 </>
               ) : (
@@ -237,14 +359,33 @@ export default function DopasowanieDetailPage({
         </>
       )}
 
-      {/* Treść oferty */}
+      {/* Treść oferty - porządkowana wyłącznie do wyświetlenia, patrz
+          `lib/oferta-tekst.ts`. W rekordzie zostaje surowy tekst ze strony. */}
       <details className="card-surface mt-8 p-4">
         <summary className="cursor-pointer text-sm font-bold">
           Treść oferty, do której dopasowano CV
         </summary>
-        <p className="mt-3 whitespace-pre-wrap text-sm text-muted-foreground">
-          {jobText}
-        </p>
+        <div className="mt-3 flex flex-col gap-2 text-sm text-muted-foreground">
+          {bloki.length > 0 ? (
+            bloki.map((blok, i) =>
+              blok.typ === "naglowek" ? (
+                <p key={i} className="mt-2 text-sm font-bold text-foreground">
+                  {blok.tekst}
+                </p>
+              ) : blok.typ === "lista" ? (
+                <ul key={i} className="flex list-disc flex-col gap-1 pl-4">
+                  {blok.pozycje.map((pozycja, j) => (
+                    <li key={j}>{pozycja}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p key={i}>{blok.tekst}</p>
+              )
+            )
+          ) : (
+            <p className="whitespace-pre-wrap">{jobText}</p>
+          )}
+        </div>
       </details>
 
       {/* Paywall CTA na dole (gdy zablokowane) */}

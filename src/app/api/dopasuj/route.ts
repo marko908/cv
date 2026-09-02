@@ -243,7 +243,14 @@ export async function POST(request: Request) {
       // pokazywały pełną, skumulowaną różnicę, nie tylko ostatnią rundę.
       baseCv: oryginal ?? baseCv,
       tailoredCv: wynik.tailoredCv,
-      aiMeta: wynik.aiMeta,
+      // Pytania wywiadu jadą W REKORDZIE (2026-09-02), nie tylko w odpowiedzi:
+      // dzięki temu można na nie odpowiedzieć także później, ze strony
+      // szczegółów dopasowania, a nie wyłącznie w modalu tuż po analizie.
+      // Razem z nimi sparsowana oferta - przeliczenie stamtąd odsyła ją tak
+      // samo jak modal, więc wymagania zostają identyczne co rundę (bez tego
+      // wynik „przed" drgałby od niedeterminizmu modelu) i nie płacimy za
+      // ponowne parsowanie.
+      aiMeta: { ...wynik.aiMeta, pytania: wynik.pytania, oferta: wynik.oferta },
     };
 
     // Dziennik zużycia AI. Rolą `service_role`, bo `zuzycie_ai` jest dla

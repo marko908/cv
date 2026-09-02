@@ -6,6 +6,19 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
+ * Zamienia długie myślniki na krótki dywiz.
+ *
+ * W kodzie pauz już nie ma (patrz STRUKTURA.md, „Konwencje i pułapki"), ale
+ * teksty ZAPISANE wcześniej - findings, dziennik zmian, treść oferty pobrana
+ * z ogłoszenia - siedzą w bazie z pauzami i żadna zmiana kodu ich nie ruszy.
+ * Dlatego czyścimy je przy renderowaniu. Chroni to też przed modelem, gdyby
+ * mimo zakazu w promptcie wstawił pauzę.
+ */
+export function bezPauz(tekst: string): string {
+  return tekst.replace(/[—–]/g, "-");
+}
+
+/**
  * Polska odmiana rzeczownika przez liczebnik.
  * plural(1, "poprawka", "poprawki", "poprawek") → "poprawka"
  * plural(3, ...) → "poprawki", plural(5, ...) → "poprawek"

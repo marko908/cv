@@ -45,6 +45,7 @@ import {
 } from "@/lib/ai/serwisy-ofert";
 import { czyAktywna } from "@/lib/subscription";
 import { pobierzUprawnienia, zuzyjDarmoweDopasowanie } from "@/lib/supabase/repo";
+import { FormularzWywiadu } from "./formularz-wywiadu";
 import { PaywallDialog } from "./paywall-dialog";
 import { ScoreBreakdown } from "./score-breakdown";
 import { TrescWskazowki } from "./tresc-wskazowki";
@@ -93,9 +94,8 @@ export function TailorFlow({
     setAiMeta,
     resetReview,
     addTailoring,
-    removeTailoring,
+    zastapDopasowanie,
     zliczDopasowanie,
-    przeniesOdblokowanie,
     tailorings,
     subscription,
   } = useCvStore();
@@ -197,11 +197,13 @@ export function TailorFlow({
     }
     const { tailoring: surowy, pytania: p, oferta: o } = res;
 
-    // Łańcuch przeliczeń: nowy rekord dziedziczy korzeń po zastępowanym,
-    // a gdy to pierwsze dopasowanie — korzeniem jest on sam (pole zostaje puste).
-    // Po tym korzeniu wiąże się jednorazowy zakup, więc opłacony dostęp przeżywa
-    // wywiad także wtedy, gdy użytkownik wróci do dopasowania z innego urządzenia
-    // (lokalne `przeniesOdblokowanie` działa tylko w tej przeglądarce).
+    /*
+     * Łańcuch przeliczeń: nowy rekord dziedziczy korzeń po zastępowanym, a gdy
+     * to pierwsze dopasowanie - korzeniem jest on sam (pole zostaje puste).
+     * Podmianę rekordu (korzeń + przeniesienie odblokowania + skasowanie
+     * starego) robi JEDNA akcja store'u, bo od 2026-09-02 to samo dzieje się
+     * też na stronie szczegółów dopasowania.
+     */
     const zastepowany = zastapRef.current
       ? tailorings.find((x) => x.id === zastapRef.current)
       : undefined;
@@ -209,7 +211,11 @@ export function TailorFlow({
       ? { ...surowy, korzenId: zastepowany.korzenId ?? zastepowany.id }
       : surowy;
 
-    addTailoring(t);
+    if (zastapRef.current && zastapRef.current !== t.id) {
+      zastapDopasowanie(t, zastapRef.current);
+    } else {
+      addTailoring(t);
+    }
     // Licznik uczciwego użycia. Przeliczenie po wywiadzie ZASTĘPUJE rekord,
     // ale zużyło osobne wywołania modelu, więc liczy się jak nowe dopasowanie.
     zliczDopasowanie();
@@ -231,14 +237,6 @@ export function TailorFlow({
       });
     }
 
-    // Przeliczenie z wywiadu zastępuje poprzedni rekord, nie mnoży historii.
-    if (zastapRef.current && zastapRef.current !== t.id) {
-      // NAJPIERW przenieś opłacony jednorazowo dostęp na nowe id — inaczej
-      // ktoś, kto kupił to jedno dopasowanie, straciłby je przez sam fakt
-      // skorzystania z wywiadu.
-      przeniesOdblokowanie(zastapRef.current, t.id);
-      removeTailoring(zastapRef.current);
-    }
     zastapRef.current = null;
     // Zapamiętaj sparsowaną ofertę — re-run ją odeśle, więc nie parsujemy od nowa.
     if (o) ofertaRef.current = o;
@@ -635,93 +633,6 @@ function InterviewStep({
   onSubmit: (odpowiedzi: OdpowiedzWywiadu[]) => void;
   onBack: () => void;
 }) {
-  // Stan odpowiedzi: dla każdego pytania „mam” + opcjonalny szczegół.
-  const [stan, setStan] = useState<
-    Record<string, { ma: boolean; szczegol: string }>
-  >(() => Object.fromEntries(pytania.map((p) => [p.id, { ma: false, szczegol: "" }])));
-
-  const potwierdzone = pytania.filter((p) => stan[p.id]?.ma).length;
-
-  const wyslij = () => {
-    onSubmit(
-      pytania.map((p) => ({
-        id: p.id,
-        ma: stan[p.id]?.ma ?? false,
-        szczegol: stan[p.id]?.szczegol,
-      }))
-    );
-  };
-
-  const doswiadczenie = pytania.filter((p) => p.typ === "doswiadczenie");
-  const cechy = pytania.filter((p) => p.typ === "cecha");
-
-  // Karta pytania — framing i pola zależą od rodzaju (doświadczenie vs cecha).
-  const karta = (p: PytanieWywiadu) => {
-    const s = stan[p.id] ?? { ma: false, szczegol: "" };
-    // Etykiety muszą odpowiadać NA TO pytanie. „Mam to / Nie mam" pod pytaniem
-    // o skalę punktu było odpowiedzią na zupełnie inne pytanie — użytkownik
-    // klikał „Mam to" w znaczeniu „tak, robiłem to", a nie „mam liczbę”
-    // (feedback Marka 2026-08-02).
-    const tak = p.cel ? "Podam" : p.typ === "doswiadczenie" ? "Mam to" : "Wskaż w CV";
-    const nie = p.cel ? "Nie wiem" : p.typ === "doswiadczenie" ? "Nie mam" : "Pomiń";
-    return (
-      <div key={p.id} className="card-surface p-4">
-        <p className="text-sm font-medium">{p.pytanie}</p>
-        {/* Dosłowny fragment ogłoszenia — bez niego zwięzłe wymaganie („Docker")
-            nie mówi, o jaki zakres pyta pracodawca. Cały cytat, nie urwany. */}
-        {p.kontekst && (
-          <p className="mt-1.5 border-l-2 border-border pl-2.5 text-xs italic text-muted-foreground">
-            W ogłoszeniu: „{p.kontekst}”
-          </p>
-        )}
-        <div className="mt-2 flex gap-1.5">
-          <button
-            type="button"
-            onClick={() =>
-              setStan((st) => ({ ...st, [p.id]: { ...s, ma: true } }))
-            }
-            className={cn(
-              "rounded-full px-3 py-1 text-xs font-bold transition-colors",
-              s.ma
-                ? "bg-primary text-primary-foreground"
-                : "bg-secondary text-muted-foreground"
-            )}
-          >
-            {tak}
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              setStan((st) => ({ ...st, [p.id]: { ma: false, szczegol: "" } }))
-            }
-            className={cn(
-              "rounded-full px-3 py-1 text-xs font-bold transition-colors",
-              !s.ma
-                ? "bg-accent text-foreground"
-                : "bg-secondary text-muted-foreground"
-            )}
-          >
-            {nie}
-          </button>
-        </div>
-        {/* Pole na konkret tylko dla doświadczenia — cechy nie opisujemy. */}
-        {s.ma && p.typ === "doswiadczenie" && (
-          <Textarea
-            value={s.szczegol}
-            onChange={(e) =>
-              setStan((st) => ({
-                ...st,
-                [p.id]: { ...s, szczegol: e.target.value },
-              }))
-            }
-            placeholder={p.hint}
-            className="mt-2 min-h-16 text-sm"
-          />
-        )}
-      </div>
-    );
-  };
-
   return (
     <>
       {/* Powrót do wyniku stoi NA GÓRZE, tam gdzie w tym oknie zawsze stoi
@@ -752,29 +663,7 @@ function InterviewStep({
         </DialogDescription>
       </DialogHeader>
 
-      <div className="flex flex-col gap-5">
-        {doswiadczenie.length > 0 && (
-          <div className="flex flex-col gap-2">
-            <p className="eyebrow text-muted-foreground">Twoje doświadczenie</p>
-            {doswiadczenie.map(karta)}
-          </div>
-        )}
-        {cechy.length > 0 && (
-          <div className="flex flex-col gap-2">
-            <p className="eyebrow text-muted-foreground">
-              Cechy - warto wskazać, jeśli Cię opisują
-            </p>
-            {cechy.map(karta)}
-          </div>
-        )}
-      </div>
-
-      <div className="flex items-center justify-end gap-2">
-        <Button onClick={wyslij} disabled={potwierdzone === 0} className="gap-2 font-bold">
-          <RefreshCw className="size-4" />
-          Przelicz z {potwierdzone === 1 ? "1 uzupełnieniem" : `${potwierdzone} uzupełnieniami`}
-        </Button>
-      </div>
+      <FormularzWywiadu pytania={pytania} onSubmit={onSubmit} />
     </>
   );
 }
